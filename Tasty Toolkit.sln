@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.572
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Logging", "Tasty.Logging\Tasty.Logging.csproj", "{24CA2AFE-776E-49DF-BDC7-3179ED3E38FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Logging.Colorful", "Tasty.Logging.Colorful\Tasty.Logging.Colorful.csproj", "{6CF0B774-4F69-4AE7-8C1B-B9429514DF16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Tests.SQLiteManager", "Tasty.Tests.SQLiteManager\Tasty.Tests.SQLiteManager.csproj", "{6DB71CB0-B5FB-448E-8361-9BB3DABD04AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.SQLiteManager", "Tasty.SQLiteManager\Tasty.SQLiteManager.csproj", "{A2001B55-D38A-47B7-B33D-0C5B2B710A36}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Production|Any CPU = Production|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{24CA2AFE-776E-49DF-BDC7-3179ED3E38FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24CA2AFE-776E-49DF-BDC7-3179ED3E38FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24CA2AFE-776E-49DF-BDC7-3179ED3E38FF}.Production|Any CPU.ActiveCfg = Production|Any CPU
+		{24CA2AFE-776E-49DF-BDC7-3179ED3E38FF}.Production|Any CPU.Build.0 = Production|Any CPU
+		{24CA2AFE-776E-49DF-BDC7-3179ED3E38FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24CA2AFE-776E-49DF-BDC7-3179ED3E38FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CF0B774-4F69-4AE7-8C1B-B9429514DF16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CF0B774-4F69-4AE7-8C1B-B9429514DF16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CF0B774-4F69-4AE7-8C1B-B9429514DF16}.Production|Any CPU.ActiveCfg = Production|Any CPU
+		{6CF0B774-4F69-4AE7-8C1B-B9429514DF16}.Production|Any CPU.Build.0 = Production|Any CPU
+		{6CF0B774-4F69-4AE7-8C1B-B9429514DF16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CF0B774-4F69-4AE7-8C1B-B9429514DF16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DB71CB0-B5FB-448E-8361-9BB3DABD04AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DB71CB0-B5FB-448E-8361-9BB3DABD04AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DB71CB0-B5FB-448E-8361-9BB3DABD04AE}.Production|Any CPU.ActiveCfg = Production|Any CPU
+		{6DB71CB0-B5FB-448E-8361-9BB3DABD04AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DB71CB0-B5FB-448E-8361-9BB3DABD04AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2001B55-D38A-47B7-B33D-0C5B2B710A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2001B55-D38A-47B7-B33D-0C5B2B710A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2001B55-D38A-47B7-B33D-0C5B2B710A36}.Production|Any CPU.ActiveCfg = Production|Any CPU
+		{A2001B55-D38A-47B7-B33D-0C5B2B710A36}.Production|Any CPU.Build.0 = Production|Any CPU
+		{A2001B55-D38A-47B7-B33D-0C5B2B710A36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2001B55-D38A-47B7-B33D-0C5B2B710A36}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B0EA43ED-82B1-4DA5-BCCF-68A4767F618A}
+	EndGlobalSection
+EndGlobal
