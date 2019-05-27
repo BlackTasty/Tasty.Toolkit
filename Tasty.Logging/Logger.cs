@@ -10,13 +10,13 @@ namespace Tasty.Logging
 {
     public class Logger
     {
-        private static Logger instance;
-        private static readonly string _logFolderPath = AppDomain.CurrentDomain.BaseDirectory + "Logs\\";
-        private string _fileName = "log.txt";
+        protected static Logger instance;
+        protected static readonly string logFolderPath = AppDomain.CurrentDomain.BaseDirectory + "Logs\\";
+        protected string fileName = "log.txt";
 
-        private string _logFilePath;
-        private int _sessionId = -1;
-        private Random rnd = new Random();
+        protected string filePath;
+        protected int sessionId = -1;
+        protected Random rnd = new Random();
 
         public static Logger Instance
         {
@@ -31,38 +31,40 @@ namespace Tasty.Logging
             }
         }
 
-        public string FilePath => _logFilePath;
+        public static IConsole AttachedConsole { get; set; }
 
-        public int SessionID { get => _sessionId; }
+        public string FilePath => filePath;
+
+        public int SessionID => sessionId;
 
         public bool ShowSessionId => false;
 
-        private Logger()
+        protected Logger()
         {
-            _sessionId = rnd.Next(10000000, 99999999);
-            _logFilePath = Path.Combine(_logFolderPath, _fileName);
+            sessionId = rnd.Next(10000000, 99999999);
+            filePath = Path.Combine(logFolderPath, fileName);
             LogFileStart = "";
         }
 
         public static string LogFileStart { get; set; }
 
         /// <summary>
-        /// Writes a formatted message into the log with <see cref="LogType.INFO"/> tag
+        /// Writes a formatted message into the log with <see cref="LogType.INFO"/> tag.
         /// </summary>
-        /// <param name="msg">The message to print (with formatters)</param>
-        /// <param name="param">Optional: All parameters for the formatted string</param>
-        public void WriteLog(string msg, params object[] param)
+        /// <param name="msg">The message to print (with formatters).</param>
+        /// <param name="param">Optional: All parameters for the formatted string.</param>
+        public virtual void WriteLog(string msg, params object[] param)
         {
             WriteLog(msg, LogType.INFO, param);
         }
 
         /// <summary>
-        /// Writes a formatted exception message into the log with <see cref="LogType.WARNING"/>
+        /// Writes a formatted exception message into the log with <see cref="LogType.WARNING"/>.
         /// </summary>
-        /// <param name="msg">The message to print (with formatters)</param>
-        /// <param name="ex">The exception to write into the log</param>
-        /// <param name="param">Optional: All parameters for the formatted string</param>
-        public void WriteLog(string msg, Exception ex, params object[] param)
+        /// <param name="msg">The message to print (with formatters).</param>
+        /// <param name="ex">The exception to write into the log.</param>
+        /// <param name="param">Optional: All parameters for the formatted string.</param>
+        public virtual void WriteLog(string msg, Exception ex, params object[] param)
         {
             WriteLog(msg, LogType.WARNING, ex, param);
         }
@@ -71,17 +73,17 @@ namespace Tasty.Logging
         /// Writes a message into the log with <see cref="LogType.INFO"/>
         /// </summary>
         /// <param name="msg">The message to print</param>
-        public void WriteLog(string msg)
+        public virtual void WriteLog(string msg)
         {
             WriteLog(msg, LogType.INFO);
         }
 
         /// <summary>
-        /// Writes an exception message into the log with <see cref="LogType.WARNING"/>
+        /// Writes an exception message into the log with <see cref="LogType.WARNING"/>.
         /// </summary>
-        /// <param name="msg">The message to print</param>
-        /// <param name="ex">The exception to write into the log</param>
-        public void WriteLog(string msg, Exception ex)
+        /// <param name="msg">The message to print.</param>
+        /// <param name="ex">The exception to write into the log.</param>
+        public virtual void WriteLog(string msg, Exception ex)
         {
             WriteLog(msg, LogType.WARNING, ex);
         }
@@ -90,112 +92,91 @@ namespace Tasty.Logging
         /// Writes a formatted message into the log
         /// </summary>
         /// <param name="msg">The message to print (with formatters)</param>
-        /// <param name="mode">The <see cref="LogType"/> tag</param>
+        /// <param name="type">The <see cref="LogType"/> tag</param>
         /// <param name="param">Optional: All parameters for the formatted string</param>
-        public void WriteLog(string msg, LogType mode, params object[] param)
+        public virtual void WriteLog(string msg, LogType type, params object[] param)
         {
-            WriteLog(string.Format(msg, param), mode);
+            WriteLog(string.Format(msg, param), type);
         }
 
         /// <summary>
-        /// Writes a formatted exception message into the log
+        /// Writes a formatted exception message into the log.
         /// </summary>
-        /// <param name="msg">The message to print (with formatters)</param>
-        /// <param name="mode">The <see cref="LogType"/> tag</param>
-        /// <param name="ex">The exception to write into the log</param>
-        /// <param name="param">All parameters for the formatted string</param>
-        public void WriteLog(string msg, LogType mode, Exception ex, params object[] param)
+        /// <param name="msg">The message to print (with formatters).</param>
+        /// <param name="type">The <see cref="LogType"/> tag.</param>
+        /// <param name="ex">The exception to write into the log.</param>
+        /// <param name="param">All parameters for the formatted string.</param>
+        public virtual void WriteLog(string msg, LogType type, Exception ex, params object[] param)
         {
-            WriteLog(string.Format(msg, param), mode, ex);
+            WriteLog(string.Format(msg, param), type, ex);
         }
 
-
         /// <summary>
-        /// Writes an exception message into the log
+        /// Writes an exception message into the log.
         /// </summary>
-        /// <param name="msg">The message to print</param>
-        /// <param name="mode">The <see cref="LogType"/> tag</param>
-        /// <param name="ex">The exception to write into the log</param>
-        public void WriteLog(string msg, LogType mode, Exception ex)
+        /// <param name="msg">The message to print.</param>
+        /// <param name="type">The <see cref="LogType"/> tag.</param>
+        /// <param name="ex">The exception to write into the log.</param>
+        public virtual void WriteLog(string msg, LogType type, Exception ex)
         {
-            WriteLog(msg, mode, ex, false);
+            WriteInnerException(msg, type, ex, false);
             if (ex.InnerException != null)
-                WriteLog(msg, mode, ex.InnerException, true);
-        }
-
-        private void WriteLog(string msg, LogType mode, Exception ex, bool isInner)
-        {
-            string stackTrace = GetExceptionLine(ex);
-
-            if (msg == string.Empty)
-            {
-                if (stackTrace != "-1")
-                    WriteLog(string.Format("[{0}] {1} \"{2}\": {3} (Class \"{4}\", Line {5})",
-                        ex.GetType().Name, GetExceptionText(isInner), ex.TargetSite, ex.Message, ex.Source, stackTrace),
-                        mode);
-                else
-                    WriteLog(string.Format("[{0}] {1} \"{2}\": {3} (Class \"{4}\")",
-                        ex.GetType().Name, GetExceptionText(isInner), ex.TargetSite, ex.Message, ex.Source),
-                        mode);
-            }
-            else
-            {
-                if (stackTrace != "-1")
-                    WriteLog(string.Format("[{0}] {1} - {2} \"{3}\": {4} (Class \"{5}\", Line {6})",
-                        ex.GetType().Name, msg, GetExceptionText(isInner), ex.TargetSite, ex.Message, ex.Source, stackTrace), 
-                        mode);
-                else
-                    WriteLog(string.Format("[{0}] {1} - {2} \"{3}\": {4} (Class \"{5}\")",
-                        ex.GetType().Name, msg, GetExceptionText(isInner), ex.TargetSite, ex.Message, ex.Source),
-                        mode);
-            }
+                WriteInnerException(msg, type, ex.InnerException, true);
         }
 
         /// <summary>
         /// Writes a message into the log. This is the core method!
         /// </summary>
-        /// <param name="msg">The message to print</param>
-        /// <param name="mode">The <see cref="LogType"/> tag</param>
-        public void WriteLog(string msg, LogType mode)
+        /// <param name="msg">The message to print.</param>
+        /// <param name="type">The <see cref="LogType"/> tag.</param>
+        public virtual void WriteLog(string msg, LogType type)
         {
             for (int i = 0; i < 3; i++)
             {
                 try
                 {
-                    Directory.CreateDirectory(_logFolderPath);
+                    Directory.CreateDirectory(logFolderPath);
 
-                    if (!File.Exists(_logFilePath) && _fileName != null)
+                    if (!File.Exists(filePath) && fileName != null)
                     {
                         string logStart = LogFileStart;
-                        logStart = logStart.Replace("[DATE]", Util.GetDate());
-                        logStart = logStart.Replace("[TIME]", Util.GetTime());
-                        logStart = logStart.Replace("[NAME]", _fileName);
-                        File.WriteAllText(_logFilePath, logStart);
+                        logStart = logStart.Replace("[DATE]", DateTimeManager.GetDate());
+                        logStart = logStart.Replace("[TIME]", DateTimeManager.GetTime());
+                        logStart = logStart.Replace("[NAME]", fileName);
+                        File.WriteAllText(filePath, logStart);
                     }
 
                     StringBuilder logBuilder = new StringBuilder();
                     string identifier = "";
 
-                    switch (mode)
+                    switch (type)
                     {
                         case LogType.INFO:
-                            identifier = "[INF]";
+                            identifier = "[INF] ";
                             break;
 
                         case LogType.WARNING:
-                            identifier = "[WRN]";
+                            identifier = "[WRN] ";
                             break;
 
                         case LogType.ERROR:
-                            identifier = "[ERR]";
+                            identifier = "[ERR] ";
                             break;
 
                         case LogType.DEBUG:
-                            identifier = "[DBG]";
+                            identifier = "[DBG] ";
+                            break;
+
+                        case LogType.VERBOSE:
+                            identifier = "[VER] ";
+                            break;
+
+                        case LogType.FATAL:
+                            identifier = "[FAT] ";
                             break;
 
                         case LogType.CONSOLE:
-                            identifier = "[CON]";
+                            identifier = "[CON] ";
                             break;
                     }
 
@@ -211,27 +192,72 @@ namespace Tasty.Logging
 
                     if (ShowSessionId)
                     {
-                        msg = string.Format(" ({0}) {1}: {2}", _sessionId, Util.GetDateAndTime(), msg);
+                        msg = string.Format("({0}) {1}: {2}", sessionId, DateTimeManager.GetDateAndTime(), msg);
                     }
                     else
                     {
-                        msg = string.Format(" {0}: {1}", Util.GetDateAndTime(), msg);
+                        msg = string.Format("{0}: {1}", DateTimeManager.GetDateAndTime(), msg);
                     }
 
                     logFileBuilder.Append(msg);
                     logBuilder.Append(msg);
 
-                    if (_fileName != null)
+                    if (fileName != null)
                     {
-                        File.AppendAllText(_logFilePath, logFileBuilder.ToString() + "\r");
+                        if (type != LogType.VERBOSE)
+                        {
+                            File.AppendAllText(filePath, logFileBuilder.ToString() + "\r");
+                        }
+                        else
+                        {
+                            File.AppendAllText(filePath + ".verbose", logFileBuilder.ToString() + "\r");
+                        }
                     }
+                    #if DEBUG
                     Console.WriteLine(logBuilder.ToString());
+                    #endif
+
+                    if (AttachedConsole != null)
+                    {
+                        if (fileName != null)
+                            AttachedConsole.WriteString(string.Format("({0}) {1}\n", fileName, logBuilder), type);
+                        else
+                            AttachedConsole.WriteString(string.Format("{0}\n", logBuilder), type);
+                    }
                     break;
                 }
                 catch
                 {
 
                 }
+            }
+        }
+
+        protected virtual void WriteInnerException(string msg, LogType type, Exception ex, bool isInner)
+        {
+            string stackTrace = GetExceptionLine(ex);
+
+            if (msg == string.Empty)
+            {
+                if (stackTrace != "-1")
+                    WriteLog(string.Format("[{0}] {1} \"{2}\": {3} (Class \"{4}\", Line {5})",
+                        ex.GetType().Name, GetExceptionText(isInner), ex.TargetSite, ex.Message, ex.Source, stackTrace),
+                        type);
+                else
+                    WriteLog(string.Format("[{0}] {1} \"{2}\": {3} (Class \"{4}\")",
+                        ex.GetType().Name, GetExceptionText(isInner), ex.TargetSite, ex.Message, ex.Source),
+                        type);
+            }
+            else
+            {
+                if (stackTrace != "-1")
+                    WriteLog(string.Format("[{0}] {1} - {2} \"{3}\": {4} (Class \"{5}\", Line {6})",
+                        ex.GetType().Name, msg, GetExceptionText(isInner), ex.TargetSite, ex.Message, ex.Source, stackTrace),
+                        type);
+                else
+                    WriteLog(string.Format("[{0}] {1} - {2} \"{3}\": {4} (Class \"{5}\")",
+                        ex.GetType().Name, msg, GetExceptionText(isInner), ex.TargetSite, ex.Message, ex.Source),
+                        type);
             }
         }
 

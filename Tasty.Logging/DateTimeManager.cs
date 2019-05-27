@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Tasty.Logging
 {
-    public static class Util
+    public static class DateTimeManager
     {
         public static string GetDate(char splitter = '.')
         {

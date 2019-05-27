@@ -16,18 +16,39 @@ namespace Tasty.SQLiteManager
         protected List<TableDescriptor> tables = new List<TableDescriptor>();
 
         #region IList implementation
+        /// <summary>
+        /// Gets the number of tables in this database.
+        /// </summary>
         public int Count => tables.Count;
 
         public bool IsReadOnly => true;
 
-        public TableDescriptor this[int index] { get => tables[index]; set => tables[index] = value; }
-
-        public TableDescriptor this[string columnName]
+        /// <summary>
+        /// Gets or sets the table at the specified index.
+        /// </summary>
+        /// <param name="index">The zero-based index of the table to get or set.</param>
+        /// <returns></returns>
+        public TableDescriptor this[int index]
         {
-            get => tables.Find(x => x.Name == columnName);
-            set => tables[tables.IndexOf(tables.Find(x => x.Name == columnName))] = value;
+            get => tables[index];
+            set => tables[index] = value;
         }
 
+        /// <summary>
+        /// Gets or sets the table with the specified table name.
+        /// </summary>
+        /// <param name="tableName">The table with the specified name.</param>
+        /// <returns></returns>
+        public TableDescriptor this[string tableName]
+        {
+            get => tables.Find(x => x.Name == tableName);
+            set => tables[tables.IndexOf(tables.Find(x => x.Name == tableName))] = value;
+        }
+
+        /// <summary>
+        /// Adds a table
+        /// </summary>
+        /// <param name="item"></param>
         public void Add(TableDescriptor item)
         {
             tables.Add(item);
@@ -84,11 +105,16 @@ namespace Tasty.SQLiteManager
         
         private string dbPath;
         private string connString;
-
+        
         public static Database Instance
         {
             get
             {
+                if (instance == null)
+                {
+                    throw new DatabaseNotInitializedException();
+                }
+
                 if (loops > 5)
                 {
                     throw new StackOverflowException("Do not execute code on the database while it is being initialized!");
@@ -100,8 +126,16 @@ namespace Tasty.SQLiteManager
             }
         }
 
+        /// <summary>
+        /// Returns if the database file exists
+        /// </summary>
         public bool FileExists { get => File.Exists(dbPath); }
 
+        /// <summary>
+        /// Initializes the database.
+        /// </summary>
+        /// <param name="dbPath">The path to your SQLite database</param>
+        /// <param name="tables">A list of <see cref="TableDescriptor"/> which represent the database structure</param>
         public static void Initialize(string dbPath, List<TableDescriptor> tables)
         {
             if (instance == null)
