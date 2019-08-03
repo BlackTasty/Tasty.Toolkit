@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IConsole.cs" />
+    <Compile Include="InputHistory.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="LogInjector.cs" />
     <Compile Include="LogType.cs" />

@@ -40,6 +40,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -58,6 +59,7 @@
     <Compile Include="DatabaseNotInitializedException.cs" />
     <Compile Include="Table\CacheMethod.cs" />
     <Compile Include="Table\CacheTableDescriptor.cs" />
+    <Compile Include="Table\Column\Base64Encoding.cs" />
     <Compile Include="Table\Column\ColumnDescriptor.cs" />
     <Compile Include="Table\Column\ColumnMode.cs" />
     <Compile Include="Table\Column\ColumnType.cs" />

@@ -12,11 +12,12 @@ namespace Tasty.Logging
     {
         protected static Logger instance;
         protected static readonly string logFolderPath = AppDomain.CurrentDomain.BaseDirectory + "Logs\\";
-        protected string fileName = "log.txt";
+        protected string fileName;
 
         protected string filePath;
         protected int sessionId = -1;
         protected Random rnd = new Random();
+        protected bool isDebug;
 
         public static Logger Instance
         {
@@ -24,11 +25,25 @@ namespace Tasty.Logging
             {
                 if (instance == null)
                 {
-                    instance = new Logger();
+                    instance = new Logger(false);
                 }
 
                 return instance;
             }
+        }
+
+        public static Logger Initialize(bool isDebug)
+        {
+            instance = new Logger(isDebug);
+            return instance;
+        }
+
+        public static Logger Initialize(bool isDebug, string fileName = "log.log", 
+            bool generateId = false, bool regenerateFile = false)
+        {
+            instance = new Logger(fileName, generateId, regenerateFile);
+            instance.isDebug = true;
+            return instance;
         }
 
         public static IConsole AttachedConsole { get; set; }
@@ -39,10 +54,24 @@ namespace Tasty.Logging
 
         public bool ShowSessionId => false;
 
-        protected Logger()
+        public Logger(bool isDebug) : this("log.log", false, false)
         {
-            sessionId = rnd.Next(10000000, 99999999);
+            this.isDebug = isDebug;
+        }
+
+        public Logger(string fileName, bool generateId, bool regenerateFile)
+        {
+            this.fileName = fileName;
             filePath = Path.Combine(logFolderPath, fileName);
+            if (generateId)
+            {
+                sessionId = rnd.Next(10000000, 99999999);
+            }
+
+            if (regenerateFile && File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
             LogFileStart = "";
         }
 
@@ -131,6 +160,11 @@ namespace Tasty.Logging
         /// <param name="type">The <see cref="LogType"/> tag.</param>
         public virtual void WriteLog(string msg, LogType type)
         {
+            if (!isDebug && (type == LogType.DEBUG || type == LogType.VERBOSE))
+            {
+                return;
+            }
+
             for (int i = 0; i < 3; i++)
             {
                 try
@@ -213,9 +247,11 @@ namespace Tasty.Logging
                             File.AppendAllText(filePath + ".verbose", logFileBuilder.ToString() + "\r");
                         }
                     }
-                    #if DEBUG
-                    Console.WriteLine(logBuilder.ToString());
-                    #endif
+                    
+                    if (isDebug)
+                    {
+                        Console.WriteLine(logBuilder.ToString());
+                    }
 
                     if (AttachedConsole != null)
                     {

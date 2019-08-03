@@ -8,17 +8,28 @@ namespace Tasty.Logging.Sentry
     {
         private RavenClient ravenClient;
 
-        public static new SentryLogger Instance
+        public static new Logger Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new SentryLogger();
+                    instance = new Logger(false);
                 }
 
-                return instance as SentryLogger;
+                return instance as Logger;
             }
+        }
+
+        public static new Logger Initialize(bool isDebug)
+        {
+            instance = new Logger(isDebug);
+            return instance;
+        }
+
+        public SentryLogger(): base(false)
+        {
+
         }
 
         /// <summary>
@@ -28,7 +39,13 @@ namespace Tasty.Logging.Sentry
         /// <param name="dsn">Required by Sentry to work properly.</param>
         public void SetRavenDSN(string dsn)
         {
-            ravenClient = new RavenClient(dsn);
+            ravenClient = new RavenClient(dsn)
+            {
+                ErrorOnCapture = exception =>
+                {
+                    WriteLog("Sentry.io caused an exception!", LogType.WARNING, exception, false, false);
+                }
+            };
         }
 
         /// <summary>

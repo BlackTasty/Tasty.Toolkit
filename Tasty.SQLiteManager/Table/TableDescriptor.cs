@@ -321,6 +321,23 @@ namespace Tasty.SQLiteManager.Table
                 }
             }
 
+            foreach (var column in columns)
+            {
+                if (!column.PrimaryKey && !data.ContainsKey(column) && column.DefaultValue != null)
+                {
+                    if (string.IsNullOrEmpty(rows))
+                    {
+                        rows = column.Name;
+                        values = column.ParseColumnValue(column.DefaultValue);
+                    }
+                    else
+                    {
+                        rows += ", " + column.Name;
+                        values += ", " + column.ParseColumnValue(column.DefaultValue);
+                    }
+                }
+            }
+
             return string.Format("INSERT INTO {0} ({1}) VALUES ({2});", name, rows, values);
         }
 

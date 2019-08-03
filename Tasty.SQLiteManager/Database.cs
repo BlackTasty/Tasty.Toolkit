@@ -8,6 +8,7 @@ using System.Linq;
 using Tasty.SQLiteManager.Table;
 using Tasty.SQLiteManager.Table.Column;
 using System.Collections;
+using System.Text;
 
 namespace Tasty.SQLiteManager
 {
@@ -231,7 +232,8 @@ namespace Tasty.SQLiteManager
         internal string ImportFromSQL(string path)
         {
             //TODO: Import sql file into database
-            throw new NotImplementedException("This method is currently not implemented!");
+            string fileContent = File.ReadAllText(path);
+            return null;
         }
 
         #region  Database
@@ -249,12 +251,12 @@ namespace Tasty.SQLiteManager
             }
             #endregion
 
-            Logger.Instance.WriteLog("Database", "Database created!");
+            Logger.Instance.WriteLog("Database created!");
         }
 
         private void CheckTables()
         {
-            Logger.Instance.WriteLog("Database", "Scanning database for changes...");
+            Logger.Instance.WriteLog("Scanning database for changes...");
             foreach (TableDescriptor table in this)
             {
                 string tableExistsSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table.Name + "';";
@@ -269,16 +271,16 @@ namespace Tasty.SQLiteManager
                         {
                             if (!column.Unique)
                             {
-                                Logger.Instance.WriteLog("Database", "Missing column in table \"{0}\" detected! (Column: {1}; SQL: {2})",
+                                Logger.Instance.WriteLog("Missing column in table \"{0}\" detected! (Column: {1}; SQL: {2})",
                                     LogType.WARNING, table.Name, column.Name, column.ToString());
 
                                 ExecuteSQL(string.Format("ALTER TABLE {0} ADD COLUMN {1}",
                                     table.Name, column.ToString()));
-                                Logger.Instance.WriteLog("Database", "Missing column added!");
+                                Logger.Instance.WriteLog("Missing column added!");
                             }
                             else
                             {
-                                Logger.Instance.WriteLog("Database", "Unable to add a unique column to \"{0}\" with ALTER TABLE! (Column: {1}; SQL: {2})",
+                                Logger.Instance.WriteLog("Unable to add a unique column to \"{0}\" with ALTER TABLE! (Column: {1}; SQL: {2})",
                                     LogType.ERROR, table.Name, column.Name, column.ToString());
                             }
                         }
@@ -295,7 +297,7 @@ namespace Tasty.SQLiteManager
 
                     if (removableColumns.Count > 0)
                     {
-                        Logger.Instance.WriteLog("Database", "Leftover columns in table \"{0}\" detected! (Columns: {1})",
+                        Logger.Instance.WriteLog("Leftover columns in table \"{0}\" detected! (Columns: {1})",
                             LogType.WARNING, table.Name, string.Join(", ", removableColumns.ToArray()));
 
                         bool columnsRemoved = false;
@@ -308,7 +310,7 @@ namespace Tasty.SQLiteManager
                             {
                                 Console.WriteLine();
                                 #region Copy data
-                                Logger.Instance.WriteLog("Database", "(1/3) Copying data...");
+                                Logger.Instance.WriteLog("(1/3) Copying data...");
 
                                 #region Build SELECT
                                 string selector = null;
@@ -345,13 +347,13 @@ namespace Tasty.SQLiteManager
 
                                 #region Rebuild original table
                                 Console.WriteLine();
-                                Logger.Instance.WriteLog("Database", "(2/3) Rebuilding table...");
+                                Logger.Instance.WriteLog("(2/3) Rebuilding table...");
                                 ExecuteSQL("DROP TABLE " + table.Name + ";");
                                 ExecuteSQL(table.ToString());
                                 #endregion
 
                                 #region Restoring data
-                                Logger.Instance.WriteLog("Database", "(3/3) Restoring data...");
+                                Logger.Instance.WriteLog("(3/3) Restoring data...");
                                 ExecuteSQL(table.GenerateBulkInsert(dataBackup));
                                 #endregion
 
@@ -361,11 +363,11 @@ namespace Tasty.SQLiteManager
 
                         if (columnsRemoved)
                         {
-                            Logger.Instance.WriteLog("Database", "Columns removed!");
+                            Logger.Instance.WriteLog("Columns removed!");
                         }
                         else
                         {
-                            Logger.Instance.WriteLog("Database", "Columns kept!");
+                            Logger.Instance.WriteLog("Columns kept!");
                         }
                     }
                     #endregion
@@ -387,7 +389,7 @@ namespace Tasty.SQLiteManager
                 {
                     string[] data = cacheTable.ClearCache();
                     ExecuteSQL(data[0]);
-                    Logger.Instance.WriteLog("Database", data[1]);
+                    Logger.Instance.WriteLog(data[1]);
                 }
             }
         }
@@ -431,13 +433,66 @@ namespace Tasty.SQLiteManager
             {
                 CheckTables();
             }
-            Logger.Instance.WriteLog("Database", "Database is working and ready!");
+            Logger.Instance.WriteLog("Database is working and ready!");
         }
 
         public void ResetDatabase()
         {
             File.Delete(dbPath);
             CreateDatabase();
+        }
+
+        public bool ExecuteSQL(TableDescriptor table, Dictionary<IColumn, dynamic> data, string method = "insert")
+        {
+            string sql = "";
+
+            switch (method)
+            {
+                case "insert":
+                    sql = "INSERT INTO {0} ({1}) VALUES ({2})";
+                    break;
+            }
+
+            string columns = null;
+            string values = null;
+            foreach (KeyValuePair<IColumn, dynamic> column in data)
+            {
+                if (columns == null)
+                {
+                    columns = column.Key.Name;
+                    values = "@" + column.Key.Name;
+                }
+                else
+                {
+                    columns += ", " + column.Key.Name;
+                    values += ", @" + column.Key.Name;
+                }
+            }
+
+            sql = string.Format(sql, table.Name, columns, values);
+
+            try
+            {
+                using (SQLiteConnection con = new SQLiteConnection(connString))
+                {
+                    con.Open();
+                    using (SQLiteCommand cmd = new SQLiteCommand(sql, con))
+                    {
+                        foreach (KeyValuePair<IColumn, dynamic> column in data)
+                        {
+                            cmd.Parameters.AddWithValue("@" + column.Key.Name, column.Value);
+                        }
+
+                        cmd.ExecuteNonQuery();
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.WriteLog("Can't execute database command \"" + sql + "\"!", ex);
+                return false;
+            }
         }
 
         public bool ExecuteSQL(string sql)
@@ -453,13 +508,13 @@ namespace Tasty.SQLiteManager
                     }
                 }
 
-                Logger.Instance.WriteLog("Database", "Executed sql query against database!");
-                Logger.Instance.WriteLog("Database", "Query: {0}", sql.Replace("\n", ""));
+                Logger.Instance.WriteLog("Executed sql query against database!");
+                Logger.Instance.WriteLog("Query: {0}", sql.Replace("\n", ""));
                 return true;
             }
             catch (Exception ex)
             {
-                Logger.Instance.WriteLog("Database", "Can't execute database command \"" + sql + "\"!", ex);
+                Logger.Instance.WriteLog("Can't execute database command \"" + sql + "\"!", ex);
                 return false;
             }
         }
@@ -511,7 +566,7 @@ namespace Tasty.SQLiteManager
                                                 }
                                                 break;
                                             case ColumnType.TEXT:
-                                                columns.Add(colName, value);
+                                                columns.Add(colName, value.Replace("''", "\""));
                                                 break;
                                             default:
                                                 columns.Add(colName, reader.GetValue(i));
@@ -533,7 +588,7 @@ namespace Tasty.SQLiteManager
             }
             catch (Exception ex)
             {
-                Logger.Instance.WriteLog("Database", "Unknown error while reading column {0}! (Select)", LogType.ERROR, ex, colName);
+                Logger.Instance.WriteLog("Unknown error while reading column {0}! (Select)", LogType.ERROR, ex, colName);
                 return null;
             }
 

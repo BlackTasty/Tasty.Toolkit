@@ -94,7 +94,8 @@ namespace Tasty.SQLiteManager.Table.Column
             {
                 if (stringFormatter == null)
                 {
-                    return "\"" + value + "\"";
+                    return "\"" + ((string)value).Replace("\"", "''") + "\"";
+                    //return "\"data://" + Base64Encoding.EncodeBase64(Encoding.UTF8, value) + "\"";
                 }
                 else
                 {
