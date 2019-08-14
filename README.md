@@ -3,7 +3,7 @@
 ## Tasty.Logging
 Contains classes for logging to a file. 
 
-Hooking up a control with the "IConsole" interface allows to catch the logged strings and output them for example into a textbox..
+Hooking up a control to the "IConsole" interface allows to catch the logged strings and output them for example into a textbox.
 
 ## Tasty.Logging.Colorful
 *Not implemented yet!*
