@@ -90,6 +90,11 @@ namespace Tasty.SQLiteManager.Table.Column
 
         public string ParseColumnValue(dynamic value)
         {
+            if (value == null)
+            {
+                return "NULL";
+            }
+
             if (columnType == ColumnType.TEXT)
             {
                 if (stringFormatter == null)
