@@ -233,7 +233,18 @@ namespace Tasty.SQLiteManager.Table
         /// <exception cref="MissingRequiredColumnsException"></exception>
         public bool Insert(Dictionary<IColumn, dynamic> data)
         {
-            return Database.Instance.ExecuteSQL(Generate_Insert_SQL(data));
+            return Database.Instance.ExecuteSQL(Generate_Insert_SQL(data, false));
+        }
+
+        /// <summary>
+        /// Inserts a new dataset into the table or replaces an existing entry
+        /// </summary>
+        /// <param name="data">The data to insert/replace into the table</param>
+        /// <returns>Returns false if the query failed, otherwise true</returns>
+        /// <exception cref="MissingRequiredColumnsException"></exception>
+        public bool Replace(Dictionary<IColumn, dynamic> data)
+        {
+            return Database.Instance.ExecuteSQL(Generate_Insert_SQL(data, true));
         }
 
         /// <summary>
@@ -244,7 +255,7 @@ namespace Tasty.SQLiteManager.Table
         /// <exception cref="MissingRequiredColumnsException"></exception>
         public int Insert_GetIndex(Dictionary<IColumn, dynamic> data)
         {
-            if (Database.Instance.ExecuteSQL(Generate_Insert_SQL(data)))
+            if (Database.Instance.ExecuteSQL(Generate_Insert_SQL(data, false)))
             {
                 string query = "SELECT ID FROM '" + Name + "' WHERE ";
                 string conditions = "";
@@ -281,14 +292,14 @@ namespace Tasty.SQLiteManager.Table
             string sql = "BEGIN TRANSACTION;\n";
             foreach (Dictionary<IColumn, dynamic> row in data)
             {
-                sql += Generate_Insert_SQL(row) + "\n";
+                sql += Generate_Insert_SQL(row, false) + "\n";
             }
             sql += "COMMIT;";
 
             return sql;
         }
 
-        private string Generate_Insert_SQL(Dictionary<IColumn, dynamic> data)
+        private string Generate_Insert_SQL(Dictionary<IColumn, dynamic> data, bool isReplace)
         {
             List<IColumn> requiredColumns = columns.FindAll(x => !x.PrimaryKey && x.NotNull);
             for (int i = 0; i < requiredColumns.Count; i++)
@@ -312,15 +323,31 @@ namespace Tasty.SQLiteManager.Table
                 if (string.IsNullOrEmpty(rows))
                 {
                     rows = entry.Key.Name;
-                    values = entry.Key.ParseColumnValue(entry.Value);
+
+                    if (entry.Value != null)
+                    { 
+                        values = entry.Key.ParseColumnValue(entry.Value);
+                    }
+                    else
+                    {
+                        values = "NULL";
+                    }
                 }
                 else
                 {
                     rows += ", " + entry.Key.Name;
-                    values += ", " + entry.Key.ParseColumnValue(entry.Value);
+                    if (entry.Value != null)
+                    {
+                        values += ", " + entry.Key.ParseColumnValue(entry.Value);
+                    }
+                    else
+                    {
+                        values += ", NULL";
+                    }
                 }
             }
 
+            // Add missing columns with their default values
             foreach (var column in columns)
             {
                 if (!column.PrimaryKey && !data.ContainsKey(column) && column.DefaultValue != null)
@@ -338,7 +365,7 @@ namespace Tasty.SQLiteManager.Table
                 }
             }
 
-            return string.Format("INSERT INTO {0} ({1}) VALUES ({2});", name, rows, values);
+            return string.Format("{0} INTO {1} ({2}) VALUES ({3});", isReplace ? "REPLACE" : "INSERT", name, rows, values);
         }
 
         /// <summary>
