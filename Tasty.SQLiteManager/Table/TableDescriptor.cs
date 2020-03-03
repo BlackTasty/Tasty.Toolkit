@@ -299,7 +299,19 @@ namespace Tasty.SQLiteManager.Table
             return sql;
         }
 
-        private string Generate_Insert_SQL(Dictionary<IColumn, dynamic> data, bool isReplace)
+        public string GenerateBulkUpdate(Dictionary<IColumn, dynamic>[] data)
+        {
+            string sql = "BEGIN TRANSACTION;\n";
+            foreach (Dictionary<IColumn, dynamic> row in data)
+            {
+                sql += Generate_Insert_SQL(row, true) + "\n";
+            }
+            sql += "COMMIT;";
+
+            return sql;
+        }
+
+        private string Generate_Insert_SQL(Dictionary<IColumn, dynamic> data, bool isReplace, params Condition[] conditions)
         {
             List<IColumn> requiredColumns = columns.FindAll(x => !x.PrimaryKey && x.NotNull);
             for (int i = 0; i < requiredColumns.Count; i++)
@@ -318,31 +330,46 @@ namespace Tasty.SQLiteManager.Table
 
             string rows = "";
             string values = "";
+            string combinedRowAndValue = "";
             foreach (KeyValuePair<IColumn, dynamic> entry in data)
             {
-                if (string.IsNullOrEmpty(rows))
+                if (!isReplace)
                 {
-                    rows = entry.Key.Name;
+                    if (string.IsNullOrEmpty(rows))
+                    {
+                        rows = entry.Key.Name;
 
-                    if (entry.Value != null)
-                    { 
-                        values = entry.Key.ParseColumnValue(entry.Value);
+                        if (entry.Value != null)
+                        {
+                            values = entry.Key.ParseColumnValue(entry.Value);
+                        }
+                        else
+                        {
+                            values = "NULL";
+                        }
                     }
                     else
                     {
-                        values = "NULL";
+                        rows += ", " + entry.Key.Name;
+                        if (entry.Value != null)
+                        {
+                            values += ", " + entry.Key.ParseColumnValue(entry.Value);
+                        }
+                        else
+                        {
+                            values += ", NULL";
+                        }
                     }
                 }
                 else
                 {
-                    rows += ", " + entry.Key.Name;
-                    if (entry.Value != null)
+                    if (string.IsNullOrEmpty(combinedRowAndValue))
                     {
-                        values += ", " + entry.Key.ParseColumnValue(entry.Value);
+                        combinedRowAndValue = string.Format("{0} = {1}", entry.Key.Name, entry.Value != null ?  entry.Key.ParseColumnValue(entry.Value) : "NULL");
                     }
                     else
                     {
-                        values += ", NULL";
+                        combinedRowAndValue += string.Format(", {0} = {1}", entry.Key.Name, entry.Value != null ? entry.Key.ParseColumnValue(entry.Value) : "NULL");
                     }
                 }
             }
@@ -352,20 +379,45 @@ namespace Tasty.SQLiteManager.Table
             {
                 if (!column.PrimaryKey && !data.ContainsKey(column) && column.DefaultValue != null)
                 {
-                    if (string.IsNullOrEmpty(rows))
+                    if (!isReplace)
                     {
-                        rows = column.Name;
-                        values = column.ParseColumnValue(column.DefaultValue);
+                        if (string.IsNullOrEmpty(rows))
+                        {
+                            rows = column.Name;
+                            values = column.ParseColumnValue(column.DefaultValue);
+                        }
+                        else
+                        {
+                            rows += ", " + column.Name;
+                            values += ", " + column.ParseColumnValue(column.DefaultValue);
+                        }
                     }
                     else
                     {
-                        rows += ", " + column.Name;
-                        values += ", " + column.ParseColumnValue(column.DefaultValue);
+                        if (string.IsNullOrEmpty(combinedRowAndValue))
+                        {
+                            combinedRowAndValue = string.Format("{0} = {1}", column.Name, column.ParseColumnValue(column.DefaultValue));
+                        }
+                        else
+                        {
+                            combinedRowAndValue = string.Format(", {0} = {1}", column.Name, column.ParseColumnValue(column.DefaultValue));
+                        }
                     }
                 }
             }
 
-            return string.Format("{0} INTO {1} ({2}) VALUES ({3});", isReplace ? "REPLACE" : "INSERT", name, rows, values);
+            string conditionParameter = ParseConditions(conditions);
+
+            if (!isReplace)
+            {
+                return string.IsNullOrWhiteSpace(conditionParameter) ? string.Format("INSERT INTO {0} ({1}) VALUES ({2});", name, rows, values) : 
+                    string.Format("INSERT INTO {0} ({1}) VALUES ({2}) WHERE {3};", name, rows, values, conditionParameter);
+            }
+            else
+            {
+                return string.IsNullOrWhiteSpace(conditionParameter) ? string.Format("UPDATE {0} SET {1};", name, combinedRowAndValue) :
+                    string.Format("UPDATE {0} SET {1} WHERE {2};", name, combinedRowAndValue, conditionParameter);
+            }
         }
 
         /// <summary>

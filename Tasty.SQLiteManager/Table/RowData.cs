@@ -31,5 +31,48 @@ namespace Tasty.SQLiteManager.Table
         {
             this.columns = columns;
         }
+
+        public bool ColumnExists(string columnName)
+        {
+            return Columns.ContainsKey(columnName);
+        }
+
+        public dynamic GetColumn(string columnName, char columnType = 'a')
+        {
+            if (ColumnExists(columnName))
+            {
+                dynamic value = Columns[columnName];
+
+                if (value == null && columnType != 'a')
+                {
+                    return GetDefaultValue(columnType);
+                }
+                else
+                {
+                    return Columns[columnName];
+                }
+            }
+            else
+            {
+                return GetDefaultValue(columnType);
+            }
+        }
+
+        private dynamic GetDefaultValue(char columnType)
+        {
+            switch (columnType)
+            {
+                case 'i':
+                    return default(int);
+                case 'b':
+                    return default(bool);
+                case 'd':
+                    return default(double);
+                case 't':
+                    return DateTime.Now;
+                default:
+                    return null;
+            }
+        }
     }
 }

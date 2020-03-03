@@ -13,18 +13,23 @@ namespace Tasty.Logging
             return DateTime.Now.ToString(string.Format("dd{0}MM{0}yyyy", splitter));
         }
 
-        public static string GetTime(char splitter = ':')
+        public static string GetTime(char splitter = ':', bool includeMilliseconds = false)
         {
-            return DateTime.Now.ToString(string.Format("HH{0}mm{0}ss", splitter));
+            return DateTime.Now.ToString(string.Format(!includeMilliseconds ? "HH{0}mm{0}ss" : "HH{0}mm{0}ss.fff", splitter));
         }
         public static string GetDateAndTime()
         {
-            return GetDate() + ", " + GetTime();
+            return GetDate() + ", " + GetTime(':', true);
         }
+
+        /*public static string GetDateAndTime(bool includeMilliseconds)
+        {
+            return GetDate() + ", " + GetTime(':', includeMilliseconds);
+        }*/
 
         public static string GetDateAndTime(char mainSplitter, char splitter)
         {
-            return GetDate(splitter) + mainSplitter + GetTime(splitter);
+            return GetDate(splitter) + mainSplitter + GetTime(splitter, true);
         }
     }
 }

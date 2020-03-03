@@ -137,9 +137,10 @@ namespace Tasty.SQLiteManager
         /// </summary>
         /// <param name="dbPath">The path to your SQLite database</param>
         /// <param name="tables">A list of <see cref="TableDescriptor"/> which represent the database structure</param>
-        public static void Initialize(string dbPath, List<TableDescriptor> tables)
+        /// <param name="forceInitialize">Forces the re-initialization of the <see cref="Database"/> singleton object</param>
+        public static void Initialize(string dbPath, List<TableDescriptor> tables, bool forceInitialize = false)
         {
-            if (instance == null)
+            if (instance == null || forceInitialize)
             {
                 if (tables == null)
                 {
@@ -399,7 +400,7 @@ namespace Tasty.SQLiteManager
 
         }
 
-        private List<string> GetTableColumns(string tableName)
+        public List<string> GetTableColumns(string tableName)
         {
             List<string> columnNames = new List<string>();
             using (SQLiteConnection con = new SQLiteConnection(connString))
