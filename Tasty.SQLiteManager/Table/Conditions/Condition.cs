@@ -13,15 +13,18 @@ namespace Tasty.SQLiteManager.Table.Conditions
         private KeyValuePair<IColumn, dynamic> right;
         ConditionType conditionType;
 
-        public Condition(KeyValuePair<IColumn, dynamic> left, KeyValuePair<IColumn, dynamic> right, ConditionType conditionType)
+        public Condition(IColumn columnLeft, dynamic valueLeft, IColumn columnRight, dynamic valueRight, ConditionType conditionType)
         {
-            this.left = left;
-            this.right = right;
+            this.left = new KeyValuePair<IColumn, dynamic>(columnLeft, valueLeft);
+            this.right = new KeyValuePair<IColumn, dynamic>(columnRight, valueRight);
             this.conditionType = conditionType;
         }
 
-        public Condition(KeyValuePair<IColumn, dynamic> left) : this(left, default(KeyValuePair<IColumn, dynamic>), ConditionType.NONE)
+        public Condition(IColumn column, dynamic value)
         {
+            this.left = new KeyValuePair<IColumn, dynamic>(column, value);
+            this.right = default;
+            this.conditionType = ConditionType.NONE;
         }
 
         public override string ToString()

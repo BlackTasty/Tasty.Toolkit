@@ -57,6 +57,11 @@ namespace Tasty.SQLiteManager.Table.Column
                 stringFormatter = "dd-MM-yyyy HH:mm:ss";
                 trueColumnType = "datetime";
             }
+            else if (inputType == typeof(ulong))
+            {
+                columnType = ColumnType.TEXT;
+                trueColumnType = "ulong";
+            }
             else if (inputType == typeof(bool))
             {
                 columnType = ColumnType.BOOLEAN;
@@ -131,6 +136,8 @@ namespace Tasty.SQLiteManager.Table.Column
                         return date.ToString(stringFormatter);
                     }
                     return default(DateTime).ToString(stringFormatter);
+                case "ulong":
+                    return default(ulong).ToString();
                 default:
                     return value;
             }

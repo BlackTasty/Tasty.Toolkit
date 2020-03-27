@@ -80,7 +80,7 @@ namespace Tasty.Tests.SQLiteManager
         {
             var result = Database.Instance["foobar"].Select(
                 new Condition[] {
-                    new Condition(new KeyValuePair<IColumn, dynamic>(Database.Instance["foobar"]["name"], "Jon"))
+                    new Condition(Database.Instance["foobar"]["name"], "Jon")
                 }
             );
 
