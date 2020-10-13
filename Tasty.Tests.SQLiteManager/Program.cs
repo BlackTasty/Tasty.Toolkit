@@ -13,13 +13,13 @@ namespace Tasty.Tests.SQLiteManager
     class Program
     {
         private static string dbPath = AppDomain.CurrentDomain.BaseDirectory + "\\test.db";
-        private static List<TableDescriptor> tables = new List<TableDescriptor>()
+        private static List<TableDefinition> tables = new List<TableDefinition>()
         {
-            new TableDescriptor("foobar", new List<IColumn>()
+            new TableDefinition("foobar", new List<IColumn>()
             {
-                new ColumnDescriptor<int>("ID", ColumnMode.PRIMARY_KEY),
-                new ColumnDescriptor<string>("name", ColumnMode.NOT_NULL),
-                new ColumnDescriptor<string>("email")
+                new ColumnDefinition<int>("ID", ColumnMode.PRIMARY_KEY),
+                new ColumnDefinition<string>("name", ColumnMode.NOT_NULL),
+                new ColumnDefinition<string>("email")
             })
         };
 

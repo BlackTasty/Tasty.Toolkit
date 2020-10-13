@@ -10,26 +10,24 @@ namespace Tasty.Logging
     {
         public static string GetDate(char splitter = '.')
         {
-            return DateTime.Now.ToString(string.Format("dd{0}MM{0}yyyy", splitter));
+            return string.Format("{0:" + LoggerSettings.TIMESTAMP_FORMAT_DATE + "}", DateTime.Now);
         }
 
         public static string GetTime(char splitter = ':', bool includeMilliseconds = false)
         {
-            return DateTime.Now.ToString(string.Format(!includeMilliseconds ? "HH{0}mm{0}ss" : "HH{0}mm{0}ss.fff", splitter));
-        }
-        public static string GetDateAndTime()
-        {
-            return GetDate() + ", " + GetTime(':', true);
+            return string.Format("{0:" + LoggerSettings.TIMESTAMP_FORMAT_TIME + "}", DateTime.Now);
         }
 
-        /*public static string GetDateAndTime(bool includeMilliseconds)
+        public static string GetTimestamp(string splitterOverride)
         {
-            return GetDate() + ", " + GetTime(':', includeMilliseconds);
-        }*/
+            return string.Format("{0:" + LoggerSettings.TIMESTAMP_FORMAT_DATE + "}{1}{0:" + LoggerSettings.TIMESTAMP_FORMAT_TIME + "}",
+                DateTime.Now, LoggerSettings.TIMESTAMP_FORMAT_SEPARATOR);
+        }
 
-        public static string GetDateAndTime(char mainSplitter, char splitter)
+        public static string GetTimestamp()
         {
-            return GetDate(splitter) + mainSplitter + GetTime(splitter, true);
+            return string.Format("{0:" + LoggerSettings.TIMESTAMP_FORMAT_DATE + "}{1}{0:" + LoggerSettings.TIMESTAMP_FORMAT_TIME + "}",
+                DateTime.Now, LoggerSettings.TIMESTAMP_FORMAT_SEPARATOR);
         }
     }
 }

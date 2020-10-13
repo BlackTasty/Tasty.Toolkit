@@ -12,9 +12,14 @@ using System.Text;
 
 namespace Tasty.SQLiteManager
 {
-    public class Database : IList<TableDescriptor>
+    /// <summary>
+    /// The heart of the SQLiteManager. Manages the database
+    /// </summary>
+    public class Database : IList<TableDefinition>
     {
-        protected List<TableDescriptor> tables = new List<TableDescriptor>();
+        /// <summary>
+        /// </summary>
+        protected List<TableDefinition> tables = new List<TableDefinition>();
 
         #region IList implementation
         /// <summary>
@@ -22,6 +27,7 @@ namespace Tasty.SQLiteManager
         /// </summary>
         public int Count => tables.Count;
 
+        /// <inheritdoc/>
         public bool IsReadOnly => true;
 
         /// <summary>
@@ -29,7 +35,7 @@ namespace Tasty.SQLiteManager
         /// </summary>
         /// <param name="index">The zero-based index of the table to get or set.</param>
         /// <returns></returns>
-        public TableDescriptor this[int index]
+        public TableDefinition this[int index]
         {
             get => tables[index];
             set => tables[index] = value;
@@ -40,7 +46,7 @@ namespace Tasty.SQLiteManager
         /// </summary>
         /// <param name="tableName">The table with the specified name.</param>
         /// <returns></returns>
-        public TableDescriptor this[string tableName]
+        public TableDefinition this[string tableName]
         {
             get => tables.Find(x => x.Name == tableName);
             set => tables[tables.IndexOf(tables.Find(x => x.Name == tableName))] = value;
@@ -49,33 +55,52 @@ namespace Tasty.SQLiteManager
         /// <summary>
         /// Adds a table
         /// </summary>
-        /// <param name="item"></param>
-        public void Add(TableDescriptor item)
+        /// <param name="item">The table to add</param>
+        public void Add(TableDefinition item)
         {
             tables.Add(item);
         }
 
+        /// <summary>
+        /// Clears all tables
+        /// </summary>
         public void Clear()
         {
             tables.Clear();
         }
 
-        public bool Contains(TableDescriptor item)
+        /// <summary>
+        /// Returns if the specified table exists 
+        /// </summary>
+        /// <param name="item">The table definition to search</param>
+        /// <returns></returns>
+        public bool Contains(TableDefinition item)
         {
             return tables.Contains(item);
         }
 
-        public void CopyTo(TableDescriptor[] array, int arrayIndex)
+        /// <summary>
+        /// Copies all <see cref="TableDefinition"/> objects into a new array.
+        /// </summary>
+        /// <param name="array">Copy of all table definitions</param>
+        /// <param name="arrayIndex">Starting index from where the copying should begin</param>
+        public void CopyTo(TableDefinition[] array, int arrayIndex)
         {
             tables.CopyTo(array, arrayIndex);
         }
 
-        public bool Remove(TableDescriptor item)
+        /// <summary>
+        /// Removes a table.
+        /// </summary>
+        /// <param name="item">The <see cref="TableDefinition"/> to remove</param>
+        /// <returns></returns>
+        public bool Remove(TableDefinition item)
         {
             return tables.Remove(item);
         }
 
-        public IEnumerator<TableDescriptor> GetEnumerator()
+        /// <inheritdoc/>
+        public IEnumerator<TableDefinition> GetEnumerator()
         {
             return tables.GetEnumerator();
         }
@@ -85,16 +110,30 @@ namespace Tasty.SQLiteManager
             return tables.GetEnumerator();
         }
 
-        public int IndexOf(TableDescriptor item)
+        /// <summary>
+        /// Returns the index of the specified table.
+        /// </summary>
+        /// <param name="item">The <see cref="TableDefinition"/> of which you want the index</param>
+        /// <returns>The index of the specified table</returns>
+        public int IndexOf(TableDefinition item)
         {
             return tables.IndexOf(item);
         }
 
-        public void Insert(int index, TableDescriptor item)
+        /// <summary>
+        /// Inserts a new table
+        /// </summary>
+        /// <param name="index">The index where you want to insert the table</param>
+        /// <param name="item">The <see cref="TableDefinition"/> to insert</param>
+        public void Insert(int index, TableDefinition item)
         {
             tables.Insert(index, item);
         }
 
+        /// <summary>
+        /// Remove a table at the specified index.
+        /// </summary>
+        /// <param name="index">The index of the table you want to remove</param>
         public void RemoveAt(int index)
         {
             tables.RemoveAt(index);
@@ -103,10 +142,14 @@ namespace Tasty.SQLiteManager
 
         private static Database instance;
         private static int loops;
+        private Logger logger;
         
         private string dbPath;
         private string connString;
         
+        /// <summary>
+        /// Allows access to the <see cref="Database"/> instance if initialized, else an exception is thrown.
+        /// </summary>
         public static Database Instance
         {
             get
@@ -136,23 +179,25 @@ namespace Tasty.SQLiteManager
         /// Initializes the database.
         /// </summary>
         /// <param name="dbPath">The path to your SQLite database</param>
-        /// <param name="tables">A list of <see cref="TableDescriptor"/> which represent the database structure</param>
-        /// <param name="forceInitialize">Forces the re-initialization of the <see cref="Database"/> singleton object</param>
-        public static void Initialize(string dbPath, List<TableDescriptor> tables, bool forceInitialize = false)
+        /// <param name="tables">A list of <see cref="TableDefinition"/> which represent the database structure</param>
+        /// <param name="logger">(optional) A custom <see cref="Logger"/> to redirect output to another file</param>
+        /// <param name="forceInitialize">(optional) Forces the re-initialization of the <see cref="Database"/> singleton object</param>
+        public static void Initialize(string dbPath, List<TableDefinition> tables, Logger logger = null, bool forceInitialize = false)
         {
             if (instance == null || forceInitialize)
             {
                 if (tables == null)
                 {
-                    tables = new List<TableDescriptor>();
+                    tables = new List<TableDefinition>();
                 }
-                instance = new Database(dbPath, tables);
+                instance = new Database(dbPath, tables, logger);
                 instance.ClearCacheTables();
             }
         }
 
-        private Database(string dbPath, List<TableDescriptor> tables)
+        private Database(string dbPath, List<TableDefinition> tables, Logger logger = null)
         {
+            this.logger = logger != null ? logger : Logger.Instance; 
             this.dbPath = dbPath;
             connString = string.Format("Data Source={0};Version=3;", dbPath);
 
@@ -161,13 +206,17 @@ namespace Tasty.SQLiteManager
             CheckDatabase();
         }
 
-        internal string ExportToSQL()
+        /// <summary>
+        /// Converts all tables, columns and rows to a SQL query string. Useful for exporting the database as a text
+        /// </summary>
+        /// <returns></returns>
+        public string ExportToSQL()
         {
             string tableSql = "";
             string dataSql = "";
             //TODO: Iterate through all tables, get all rows of each table and "convert" those entries into INSERT statements
-            //Logger.Instance.WriteLog("Starting database export...", Color.Magenta);
-            foreach (TableDescriptor table in this)
+            //this.logger.WriteLog("Starting database export...", Color.Magenta);
+            foreach (TableDefinition table in this)
             {
                 #region Create DROP TABLE
                 tableSql += string.Format("-- Recreate table '{0}'\n" +
@@ -246,19 +295,19 @@ namespace Tasty.SQLiteManager
             SQLiteConnection.CreateFile(dbPath);
 
             #region Initializing database
-            foreach (TableDescriptor table in this)
+            foreach (TableDefinition table in this)
             {
                 ExecuteSQL(table.ToString());
             }
             #endregion
 
-            Logger.Instance.WriteLog("Database created!");
+            this.logger.WriteLog("Database created!");
         }
 
         private void CheckTables()
         {
-            Logger.Instance.WriteLog("Scanning database for changes...");
-            foreach (TableDescriptor table in this)
+            this.logger.WriteLog("Scanning database for changes...");
+            foreach (TableDefinition table in this)
             {
                 string tableExistsSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table.Name + "';";
                 bool tableExists = SelectData(tableExistsSql, table).Count > 0;
@@ -272,16 +321,16 @@ namespace Tasty.SQLiteManager
                         {
                             if (!column.Unique)
                             {
-                                Logger.Instance.WriteLog("Missing column in table \"{0}\" detected! (Column: {1}; SQL: {2})",
+                                this.logger.WriteLog("Missing column in table \"{0}\" detected! (Column: {1}; SQL: {2})",
                                     LogType.WARNING, table.Name, column.Name, column.ToString());
 
                                 ExecuteSQL(string.Format("ALTER TABLE {0} ADD COLUMN {1}",
                                     table.Name, column.ToString()));
-                                Logger.Instance.WriteLog("Missing column added!");
+                                this.logger.WriteLog("Missing column added!");
                             }
                             else
                             {
-                                Logger.Instance.WriteLog("Unable to add a unique column to \"{0}\" with ALTER TABLE! (Column: {1}; SQL: {2})",
+                                this.logger.WriteLog("Unable to add a unique column to \"{0}\" with ALTER TABLE! (Column: {1}; SQL: {2})",
                                     LogType.ERROR, table.Name, column.Name, column.ToString());
                             }
                         }
@@ -298,7 +347,7 @@ namespace Tasty.SQLiteManager
 
                     if (removableColumns.Count > 0)
                     {
-                        Logger.Instance.WriteLog("Leftover columns in table \"{0}\" detected! (Columns: {1})",
+                        this.logger.WriteLog("Leftover columns in table \"{0}\" detected! (Columns: {1})",
                             LogType.WARNING, table.Name, string.Join(", ", removableColumns.ToArray()));
 
                         bool columnsRemoved = false;
@@ -311,7 +360,7 @@ namespace Tasty.SQLiteManager
                             {
                                 Console.WriteLine();
                                 #region Copy data
-                                Logger.Instance.WriteLog("(1/3) Copying data...");
+                                this.logger.WriteLog("(1/3) Copying data...");
 
                                 #region Build SELECT
                                 string selector = null;
@@ -348,13 +397,13 @@ namespace Tasty.SQLiteManager
 
                                 #region Rebuild original table
                                 Console.WriteLine();
-                                Logger.Instance.WriteLog("(2/3) Rebuilding table...");
+                                this.logger.WriteLog("(2/3) Rebuilding table...");
                                 ExecuteSQL("DROP TABLE " + table.Name + ";");
                                 ExecuteSQL(table.ToString());
                                 #endregion
 
                                 #region Restoring data
-                                Logger.Instance.WriteLog("(3/3) Restoring data...");
+                                this.logger.WriteLog("(3/3) Restoring data...");
                                 ExecuteSQL(table.GenerateBulkInsert(dataBackup));
                                 #endregion
 
@@ -364,11 +413,11 @@ namespace Tasty.SQLiteManager
 
                         if (columnsRemoved)
                         {
-                            Logger.Instance.WriteLog("Columns removed!");
+                            this.logger.WriteLog("Columns removed!");
                         }
                         else
                         {
-                            Logger.Instance.WriteLog("Columns kept!");
+                            this.logger.WriteLog("Columns kept!");
                         }
                     }
                     #endregion
@@ -382,15 +431,18 @@ namespace Tasty.SQLiteManager
             }
         }
 
+        /// <summary>
+        /// Iterate through all cache tables and clear them.
+        /// </summary>
         public void ClearCacheTables()
         {
-            foreach (TableDescriptor table in this)
+            foreach (TableDefinition table in this)
             {
-                if (table is CacheTableDescriptor cacheTable)
+                if (table is CacheTableDefinition cacheTable)
                 {
                     string[] data = cacheTable.ClearCache();
                     ExecuteSQL(data[0]);
-                    Logger.Instance.WriteLog(data[1]);
+                    this.logger.WriteLog(data[1]);
                 }
             }
         }
@@ -400,6 +452,11 @@ namespace Tasty.SQLiteManager
 
         }
 
+        /// <summary>
+        /// Returns a list of all column names of the specified table
+        /// </summary>
+        /// <param name="tableName">The name of the table</param>
+        /// <returns></returns>
         public List<string> GetTableColumns(string tableName)
         {
             List<string> columnNames = new List<string>();
@@ -424,6 +481,9 @@ namespace Tasty.SQLiteManager
             return columnNames;
         }
 
+        /// <summary>
+        /// Checks if the database exists and if the structure has changed.
+        /// </summary>
         public void CheckDatabase()
         {
             if (!FileExists)
@@ -434,16 +494,55 @@ namespace Tasty.SQLiteManager
             {
                 CheckTables();
             }
-            Logger.Instance.WriteLog("Database is working and ready!");
+            this.logger.WriteLog("Database is working and ready!");
         }
 
+        /// <summary>
+        /// Re-creates the database.
+        /// </summary>
         public void ResetDatabase()
         {
             File.Delete(dbPath);
             CreateDatabase();
         }
 
-        public bool ExecuteSQL(TableDescriptor table, Dictionary<IColumn, dynamic> data, string method = "insert")
+        /// <summary>
+        /// Execute a custom SQL query against the database.
+        /// </summary>
+        /// <param name="sql">The SQL query to execute</param>
+        /// <returns></returns>
+        public bool ExecuteSQL(string sql)
+        {
+            try
+            {
+                using (SQLiteConnection con = new SQLiteConnection(connString))
+                {
+                    con.Open();
+                    using (SQLiteCommand cmd = new SQLiteCommand(sql, con))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                this.logger.WriteLog("Executed sql query against database!", LogType.DEBUG);
+                this.logger.WriteLog("Query: {0}", sql.Replace("\n", ""), LogType.DEBUG);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                this.logger.WriteLog("Can't execute database command \"" + sql + "\"!", LogType.ERROR, ex);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Execute a custom SQL query against a tablee.
+        /// </summary>
+        /// <param name="table">The target table</param>
+        /// <param name="data">The data to insert into the table</param>
+        /// <param name="method">(optional) Either "insert" or "update".</param>
+        /// <returns></returns>
+        public bool ExecuteSQL(TableDefinition table, Dictionary<IColumn, dynamic> data, string method = "insert")
         {
             string sql = "";
 
@@ -491,36 +590,18 @@ namespace Tasty.SQLiteManager
             }
             catch (Exception ex)
             {
-                Logger.Instance.WriteLog("Can't execute database command \"" + sql + "\"!", ex);
+                this.logger.WriteLog("Can't execute database command \"" + sql + "\"!", ex);
                 return false;
             }
         }
 
-        public bool ExecuteSQL(string sql)
-        {
-            try
-            {
-                using (SQLiteConnection con = new SQLiteConnection(connString))
-                {
-                    con.Open();
-                    using (SQLiteCommand cmd = new SQLiteCommand(sql, con))
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-
-                Logger.Instance.WriteLog("Executed sql query against database!");
-                Logger.Instance.WriteLog("Query: {0}", sql.Replace("\n", ""));
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.WriteLog("Can't execute database command \"" + sql + "\"!", ex);
-                return false;
-            }
-        }
-
-        public ResultSet SelectData(string sql, TableDescriptor table)
+        /// <summary>
+        /// Execute a SQL query which expects results.
+        /// </summary>
+        /// <param name="sql">The SQL query to execute</param>
+        /// <param name="table">The table on which the query shall be executed</param>
+        /// <returns></returns>
+        public ResultSet SelectData(string sql, TableDefinition table)
         {
             string colName = "";
             try
@@ -546,7 +627,7 @@ namespace Tasty.SQLiteManager
                                     if (!reader.IsDBNull(i))
                                     {
                                         string value = reader[colName].ToString();
-                                        switch (table.ColumnDescriptors.Find(x => x.Name == colName)?.ColumnType)
+                                        switch (table.ColumnDefinitions.Find(x => x.Name == colName)?.ColumnType)
                                         {
                                             case ColumnType.BOOLEAN:
                                                 if (int.TryParse(value, out int result))
@@ -589,7 +670,7 @@ namespace Tasty.SQLiteManager
             }
             catch (Exception ex)
             {
-                Logger.Instance.WriteLog("Unknown error while reading column {0}! (Select)", LogType.ERROR, ex, colName);
+                this.logger.WriteLog("Unknown error while reading column {0}! (Select)", LogType.ERROR, ex, colName);
                 return null;
             }
 

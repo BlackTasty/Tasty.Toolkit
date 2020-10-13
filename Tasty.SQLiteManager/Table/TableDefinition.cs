@@ -9,49 +9,132 @@ using Tasty.SQLiteManager.Table.Conditions;
 
 namespace Tasty.SQLiteManager.Table
 {
-    public class TableDescriptor : DescriptorBase, IList<IColumn>
+    /// <summary>
+    /// Used to define a table with columns for the database
+    /// </summary>
+    public class TableDefinition : DefinitionBase, IList<IColumn>
     {
+        /// <summary>
+        /// </summary>
         protected List<IColumn> columns = new List<IColumn>();
-        protected List<ForeignKeyDescriptor> foreignKeys = new List<ForeignKeyDescriptor>();
+        /// <summary>
+        /// </summary>
+        protected List<ForeignKeyDefinition> foreignKeys = new List<ForeignKeyDefinition>();
 
-        #region IList implementation
-        public int Count => columns.Count;
+        /// <summary>
+        /// A list of all columns in this table
+        /// </summary>
+        public List<IColumn> ColumnDefinitions { get => columns; }
 
-        public bool IsReadOnly => true;
+        /// <summary>
+        /// A list of foreign keys defined for this table.
+        /// </summary>
+        public List<ForeignKeyDefinition> ForeignKeys { get => foreignKeys; }
 
-        public IColumn this[int index] { get => columns[index]; set => columns[index] = value; }
-
+        /// <summary>
+        /// Search for a column by name
+        /// </summary>
+        /// <param name="columnName">The name of the column</param>
+        /// <returns></returns>
         public IColumn this[string columnName]
         {
-            get => columns.Find(x => x.Name == columnName);
-            set => columns[columns.IndexOf(columns.Find(x => x.Name == columnName))] = value;
+            get => columns.FirstOrDefault(x => x.Name == columnName);
         }
 
+        /// <summary>
+        /// Define a new table with the specified columns.
+        /// </summary>
+        /// <param name="name">The name of the table</param>
+        public TableDefinition(string name)
+        {
+            base.name = name;
+        }
+
+        /// <summary>
+        /// Define a new table with the specified columns.
+        /// </summary>
+        /// <param name="name">The name of the table</param>
+        /// <param name="columns">A list of <see cref="ColumnDefinition{T}"/> objects for this table.</param>
+        public TableDefinition(string name, List<IColumn> columns) : this(name)
+        {
+            this.columns = columns;
+        }
+
+        /// <summary>
+        /// Define a new table with the specified columns.
+        /// </summary>
+        /// <param name="name">The name of the table</param>
+        /// <param name="columns">A list of <see cref="ColumnDefinition{T}"/> objects for this table.</param>
+        /// <param name="foreignKeys">A list of foreign key definitions.</param>
+        public TableDefinition(string name, List<IColumn> columns, List<ForeignKeyDefinition> foreignKeys) : this(name, columns)
+        {
+            this.foreignKeys = foreignKeys;
+        }
+
+        #region IList implementation
+        /// <summary>
+        /// Returns the amount of columns in this table.
+        /// </summary>
+        public int Count => columns.Count;
+
+        /// <inheritdoc/>
+        public bool IsReadOnly => true;
+
+        /// <summary>
+        /// Search for a column by index
+        /// </summary>
+        /// <param name="index">The index of the column</param>
+        /// <returns></returns>
+        public IColumn this[int index] { get => columns[index]; set => columns[index] = value; }
+
+        /// <summary>
+        /// Add a column to the table
+        /// </summary>
+        /// <param name="item"></param>
         public void Add(IColumn item)
         {
             columns.Add(item);
         }
 
+        /// <summary>
+        /// Clear all columns in this table
+        /// </summary>
         public void Clear()
         {
             columns.Clear();
         }
 
+        /// <summary>
+        /// Check if a column exists in this table
+        /// </summary>
+        /// <param name="item">The <see cref="ColumnDefinition{T}"/> to search</param>
+        /// <returns></returns>
         public bool Contains(IColumn item)
         {
             return columns.Contains(item);
         }
 
+        /// <summary>
+        /// Copies all <see cref="ColumnDefinition{T}"/> objects into a new array.
+        /// </summary>
+        /// <param name="array">Copy of all column definitions</param>
+        /// <param name="arrayIndex">Starting index from where the copying should begin</param>
         public void CopyTo(IColumn[] array, int arrayIndex)
         {
             columns.CopyTo(array, arrayIndex);
         }
 
+        /// <summary>
+        /// Removes a column from this table.
+        /// </summary>
+        /// <param name="item">The <see cref="ColumnDefinition{T}"/> to remove</param>
+        /// <returns></returns>
         public bool Remove(IColumn item)
         {
             return columns.Remove(item);
         }
 
+        /// <inheritdoc/>
         public IEnumerator<IColumn> GetEnumerator()
         {
             return columns.GetEnumerator();
@@ -62,51 +145,60 @@ namespace Tasty.SQLiteManager.Table
             return columns.GetEnumerator();
         }
 
+        /// <summary>
+        /// Returns the index of the specified column.
+        /// </summary>
+        /// <param name="item">The <see cref="ColumnDefinition{T}"/> of which you want the index</param>
+        /// <returns>The index of the specified column</returns>
         public int IndexOf(IColumn item)
         {
             return columns.IndexOf(item);
         }
 
+        /// <summary>
+        /// Inserts a new column into the table
+        /// </summary>
+        /// <param name="index">The index where you want to insert the column</param>
+        /// <param name="item">The <see cref="ColumnDefinition{T}"/> to insert</param>
         public void Insert(int index, IColumn item)
         {
             columns.Insert(index, item);
         }
 
+        /// <summary>
+        /// Remove a column at the specified index.
+        /// </summary>
+        /// <param name="index">The index of the column you want to remove</param>
         public void RemoveAt(int index)
         {
             columns.RemoveAt(index);
         }
         #endregion
 
-        public List<IColumn> ColumnDescriptors { get => columns; }
-
-        public List<ForeignKeyDescriptor> ForeignKeys { get => foreignKeys; }
-
-        public TableDescriptor(string name)
-        {
-            base.name = name;
-        }
-
-        public TableDescriptor(string name, List<IColumn> columns) : this(name)
-        {
-            this.columns = columns;
-        }
-
-        public TableDescriptor(string name, List<IColumn> columns, List<ForeignKeyDescriptor> foreignKeys) : this(name, columns)
-        {
-            this.foreignKeys = foreignKeys;
-        }
-
+        /// <summary>
+        /// Returns if the specified column exists in this table.
+        /// </summary>
+        /// <param name="target">The column to search for</param>
+        /// <returns>Returns true if the column exists</returns>
         public bool ColumnExists(IColumn target)
         {
             return columns.Exists(x => x.Equals(target));
         }
 
+        /// <summary>
+        /// Returns if a column with the specified exists in this table.
+        /// </summary>
+        /// <param name="colName">The column name to search for</param>
+        /// <returns>Returns true if the column exists</returns>
         public bool ColumnExists(string colName)
         {
             return columns.Exists(x => x.Name.Equals(colName));
         }
 
+        /// <summary>
+        /// Returns if this table exists in the database.
+        /// </summary>
+        /// <returns>Returns true if the table has been found</returns>
         public bool TableExists()
         {
             return Query("SELECT name FROM sqlite_master WHERE type='table' AND name='" + Name + "';", true).Count > 0;
@@ -233,7 +325,7 @@ namespace Tasty.SQLiteManager.Table
         /// <exception cref="MissingRequiredColumnsException"></exception>
         public bool Insert(Dictionary<IColumn, dynamic> data)
         {
-            return Database.Instance.ExecuteSQL(Generate_Insert_SQL(data, false));
+            return Database.Instance.ExecuteSQL(GenerateInsertSQL(data, false));
         }
 
         /// <summary>
@@ -244,7 +336,7 @@ namespace Tasty.SQLiteManager.Table
         /// <exception cref="MissingRequiredColumnsException"></exception>
         public bool Replace(Dictionary<IColumn, dynamic> data)
         {
-            return Database.Instance.ExecuteSQL(Generate_Insert_SQL(data, true));
+            return Database.Instance.ExecuteSQL(GenerateInsertSQL(data, true));
         }
 
         /// <summary>
@@ -255,7 +347,7 @@ namespace Tasty.SQLiteManager.Table
         /// <exception cref="MissingRequiredColumnsException"></exception>
         public int Insert_GetIndex(Dictionary<IColumn, dynamic> data)
         {
-            if (Database.Instance.ExecuteSQL(Generate_Insert_SQL(data, false)))
+            if (Database.Instance.ExecuteSQL(GenerateInsertSQL(data, false)))
             {
                 string query = "SELECT ID FROM '" + Name + "' WHERE ";
                 string conditions = "";
@@ -287,31 +379,41 @@ namespace Tasty.SQLiteManager.Table
             }
         }
 
+        /// <summary>
+        /// Generates a SQL query for inserting multiple data into the table.
+        /// </summary>
+        /// <param name="data">A <see cref="Dictionary{TKey, TValue}"/> of <see cref="ColumnDefinition{T}"/> objects and values. These get transformed into a SQL query</param>
+        /// <returns>Returns the formatted INSERT statement</returns>
         public string GenerateBulkInsert(Dictionary<IColumn, dynamic>[] data)
         {
             string sql = "BEGIN TRANSACTION;\n";
             foreach (Dictionary<IColumn, dynamic> row in data)
             {
-                sql += Generate_Insert_SQL(row, false) + "\n";
+                sql += GenerateInsertSQL(row, false) + "\n";
             }
             sql += "COMMIT;";
 
             return sql;
         }
 
+        /// <summary>
+        /// Generates a SQL query for updating multiple data into the table.
+        /// </summary>
+        /// <param name="data">A <see cref="Dictionary{TKey, TValue}"/> of <see cref="ColumnDefinition{T}"/> objects and values. These get transformed into a SQL query</param>
+        /// <returns>Returns the formatted UPDATE statement</returns>
         public string GenerateBulkUpdate(Dictionary<IColumn, dynamic>[] data)
         {
             string sql = "BEGIN TRANSACTION;\n";
             foreach (Dictionary<IColumn, dynamic> row in data)
             {
-                sql += Generate_Insert_SQL(row, true) + "\n";
+                sql += GenerateInsertSQL(row, true) + "\n";
             }
             sql += "COMMIT;";
 
             return sql;
         }
 
-        private string Generate_Insert_SQL(Dictionary<IColumn, dynamic> data, bool isReplace, params Condition[] conditions)
+        private string GenerateInsertSQL(Dictionary<IColumn, dynamic> data, bool isReplace, params Condition[] conditions)
         {
             List<IColumn> requiredColumns = columns.FindAll(x => !x.PrimaryKey && x.NotNull);
             for (int i = 0; i < requiredColumns.Count; i++)
@@ -485,6 +587,10 @@ namespace Tasty.SQLiteManager.Table
             return Database.Instance.ExecuteSQL(sql);
         }
 
+        /// <summary>
+        /// Returns the CREATE statement for this table.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return string.Format("CREATE TABLE IF NOT EXISTS \"{0}\" ({1});", name, ParseColumns());
@@ -523,7 +629,7 @@ namespace Tasty.SQLiteManager.Table
                 }
             }
 
-            foreach (ForeignKeyDescriptor foreignKey in foreignKeys)
+            foreach (ForeignKeyDefinition foreignKey in foreignKeys)
             {
                 sql_inner += ",\n\t" + foreignKey.ToString();
             }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Tasty.Logging
 {
-    public class Logger
+    public class Logger : LoggerSettings
     {
         protected static Logger instance;
         protected static readonly string logFolderPath = AppDomain.CurrentDomain.BaseDirectory + "Logs\\";
@@ -18,6 +18,8 @@ namespace Tasty.Logging
         protected int sessionId = -1;
         protected Random rnd = new Random();
         protected bool isDebug;
+
+        public event EventHandler<ExceptionLoggedEventArgs> ExceptionLogged;
 
         public static Logger Instance
         {
@@ -47,6 +49,10 @@ namespace Tasty.Logging
         }
 
         public static IConsole AttachedConsole { get; set; }
+
+        public bool DisableLogging { get; set; }
+
+        public bool LogToAttachedConsole { get; set; } = true;
 
         public string FilePath => filePath;
 
@@ -150,7 +156,11 @@ namespace Tasty.Logging
         {
             WriteInnerException(msg, type, ex, false);
             if (ex.InnerException != null)
+            {
                 WriteInnerException(msg, type, ex.InnerException, true);
+            }
+
+            OnExceptionLogged(new ExceptionLoggedEventArgs(msg, type, ex));
         }
 
         /// <summary>
@@ -160,7 +170,7 @@ namespace Tasty.Logging
         /// <param name="type">The <see cref="LogType"/> tag.</param>
         public virtual void WriteLog(string msg, LogType type)
         {
-            if (!isDebug && (type == LogType.DEBUG || type == LogType.VERBOSE))
+            if (DisableLogging || !isDebug && (type == LogType.DEBUG || type == LogType.VERBOSE))
             {
                 return;
             }
@@ -181,40 +191,9 @@ namespace Tasty.Logging
                     }
 
                     StringBuilder logBuilder = new StringBuilder();
-                    string identifier = "";
+                    string identifier = type.ToPrefix();
 
-                    switch (type)
-                    {
-                        case LogType.INFO:
-                            identifier = "[INF] ";
-                            break;
-
-                        case LogType.WARNING:
-                            identifier = "[WRN] ";
-                            break;
-
-                        case LogType.ERROR:
-                            identifier = "[ERR] ";
-                            break;
-
-                        case LogType.DEBUG:
-                            identifier = "[DBG] ";
-                            break;
-
-                        case LogType.VERBOSE:
-                            identifier = "[VER] ";
-                            break;
-
-                        case LogType.FATAL:
-                            identifier = "[FAT] ";
-                            break;
-
-                        case LogType.CONSOLE:
-                            identifier = "[CON] ";
-                            break;
-                    }
-
-                    StringBuilder logFileBuilder = new StringBuilder(identifier);
+                    StringBuilder logFileBuilder = new StringBuilder(identifier + " ");
                     Console.Write(identifier);
 
                     //if (!string.IsNullOrWhiteSpace(prefix))
@@ -226,11 +205,11 @@ namespace Tasty.Logging
 
                     if (ShowSessionId)
                     {
-                        msg = string.Format("({0}) {1}: {2}", sessionId, DateTimeManager.GetDateAndTime(), msg);
+                        msg = string.Format("({0}) {1}: {2}", sessionId, DateTimeManager.GetTimestamp(), msg);
                     }
                     else
                     {
-                        msg = string.Format("{0}: {1}", DateTimeManager.GetDateAndTime(), msg);
+                        msg = string.Format("{0}: {1}", DateTimeManager.GetTimestamp(), msg);
                     }
 
                     logFileBuilder.Append(msg);
@@ -253,9 +232,9 @@ namespace Tasty.Logging
                         Console.WriteLine(logBuilder.ToString());
                     }
 
-                    if (AttachedConsole != null)
+                    if (AttachedConsole != null && LogToAttachedConsole)
                     {
-                        if (fileName != null)
+                        if (fileName != null && SHOW_LOG_NAME)
                             AttachedConsole.WriteString(string.Format("({0}) {1}\n", fileName, logBuilder), type);
                         else
                             AttachedConsole.WriteString(string.Format("{0}\n", logBuilder), type);
@@ -312,6 +291,11 @@ namespace Tasty.Logging
         private string GetExceptionText(bool isInner)
         {
             return !isInner ? "Exception thrown in method" : "Inner exception";
+        }
+
+        protected virtual void OnExceptionLogged(ExceptionLoggedEventArgs e)
+        {
+            ExceptionLogged?.Invoke(this, e);
         }
     }
 }

@@ -52,9 +52,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExceptionLoggedEventArgs.cs" />
+    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="IConsole.cs" />
     <Compile Include="InputHistory.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="LoggerSettings.cs" />
     <Compile Include="LogInjector.cs" />
     <Compile Include="LogType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

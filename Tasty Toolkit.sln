@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.572
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29920.165
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Logging", "Tasty.Logging\Tasty.Logging.csproj", "{24CA2AFE-776E-49DF-BDC7-3179ED3E38FF}"
 EndProject
@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Tests.SQLiteManager",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.SQLiteManager", "Tasty.SQLiteManager\Tasty.SQLiteManager.csproj", "{A2001B55-D38A-47B7-B33D-0C5B2B710A36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Logging.Sentry", "Tasty.Logging.Sentry\Tasty.Logging.Sentry.csproj", "{C8153844-CD00-4433-828A-3971BD412A05}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Patcher", "Tasty.Patcher\Tasty.Patcher.csproj", "{A208D3EB-17FC-47FD-9A6E-0D24BA437ACF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,12 +43,12 @@ Global
 		{A2001B55-D38A-47B7-B33D-0C5B2B710A36}.Production|Any CPU.Build.0 = Production|Any CPU
 		{A2001B55-D38A-47B7-B33D-0C5B2B710A36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2001B55-D38A-47B7-B33D-0C5B2B710A36}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C8153844-CD00-4433-828A-3971BD412A05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C8153844-CD00-4433-828A-3971BD412A05}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C8153844-CD00-4433-828A-3971BD412A05}.Production|Any CPU.ActiveCfg = Production|Any CPU
-		{C8153844-CD00-4433-828A-3971BD412A05}.Production|Any CPU.Build.0 = Production|Any CPU
-		{C8153844-CD00-4433-828A-3971BD412A05}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C8153844-CD00-4433-828A-3971BD412A05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A208D3EB-17FC-47FD-9A6E-0D24BA437ACF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A208D3EB-17FC-47FD-9A6E-0D24BA437ACF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A208D3EB-17FC-47FD-9A6E-0D24BA437ACF}.Production|Any CPU.ActiveCfg = Release|Any CPU
+		{A208D3EB-17FC-47FD-9A6E-0D24BA437ACF}.Production|Any CPU.Build.0 = Release|Any CPU
+		{A208D3EB-17FC-47FD-9A6E-0D24BA437ACF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A208D3EB-17FC-47FD-9A6E-0D24BA437ACF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

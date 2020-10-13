@@ -27,7 +27,7 @@
         /// </summary>
         DEBUG,
         /// <summary>
-        /// Similar to the <see cref="LogType.DEBUG"/> flag. Logging only happens if an <see cref="IConsole"/> is attached an "VerboseLogging()" returns true. (Prefix: [VER])
+        /// Similar to the <see cref="LogType.DEBUG"/> flag. Logging only happens if an <see cref="IConsole"/> is attached an "VerboseLogging()" returns true. (Prefix: [VRB])
         /// </summary>
         VERBOSE,
         /// <summary>

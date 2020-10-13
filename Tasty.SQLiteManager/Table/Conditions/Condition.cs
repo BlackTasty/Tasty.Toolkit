@@ -7,12 +7,23 @@ using Tasty.SQLiteManager.Table.Column;
 
 namespace Tasty.SQLiteManager.Table.Conditions
 {
+    /// <summary>
+    /// Define a condition for SQL queries
+    /// </summary>
     public class Condition
     {
         private KeyValuePair<IColumn, dynamic> left;
         private KeyValuePair<IColumn, dynamic> right;
         ConditionType conditionType;
 
+        /// <summary>
+        /// Define a multi-condition for SQL queries
+        /// </summary>
+        /// <param name="columnLeft">The first column to compare</param>
+        /// <param name="valueLeft">The first column value to compare</param>
+        /// <param name="columnRight">The second column to compare</param>
+        /// <param name="valueRight">The second column value to compare</param>
+        /// <param name="conditionType">The type of condition between (<see cref="ConditionType.AND"/>, <see cref="ConditionType.OR"/>)</param>
         public Condition(IColumn columnLeft, dynamic valueLeft, IColumn columnRight, dynamic valueRight, ConditionType conditionType)
         {
             this.left = new KeyValuePair<IColumn, dynamic>(columnLeft, valueLeft);
@@ -20,6 +31,11 @@ namespace Tasty.SQLiteManager.Table.Conditions
             this.conditionType = conditionType;
         }
 
+        /// <summary>
+        /// Define a condition for SQL queries
+        /// </summary>
+        /// <param name="column">The column to compare</param>
+        /// <param name="value">The column value to compare</param>
         public Condition(IColumn column, dynamic value)
         {
             this.left = new KeyValuePair<IColumn, dynamic>(column, value);
@@ -27,6 +43,10 @@ namespace Tasty.SQLiteManager.Table.Conditions
             this.conditionType = ConditionType.NONE;
         }
 
+        /// <summary>
+        /// Parses the condition to SQL-friendly text
+        /// </summary>
+        /// <returns>Returns the condition as SQL query</returns>
         public override string ToString()
         {
             switch (conditionType)
