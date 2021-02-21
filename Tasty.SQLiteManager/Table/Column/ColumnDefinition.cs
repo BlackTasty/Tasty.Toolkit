@@ -156,6 +156,10 @@ namespace Tasty.SQLiteManager.Table.Column
             {
                 return value ? "1" : "0";
             }
+            else if (columnType == ColumnType.FLOAT)
+            {
+                return value.ToString().Replace(',', '.');
+            }
             else if (!string.IsNullOrWhiteSpace(trueColumnType))
             {
                 return ParseSpecialColumnValue(value);

@@ -467,7 +467,7 @@ namespace Tasty.SQLiteManager.Table
                 {
                     if (string.IsNullOrEmpty(combinedRowAndValue))
                     {
-                        combinedRowAndValue = string.Format("{0} = {1}", entry.Key.Name, entry.Value != null ?  entry.Key.ParseColumnValue(entry.Value) : "NULL");
+                        combinedRowAndValue = string.Format("{0} = {1}", entry.Key.Name, entry.Value != null ? entry.Key.ParseColumnValue(entry.Value) : "NULL");
                     }
                     else
                     {
