@@ -13,6 +13,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.SQLiteManager", "Tast
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Patcher", "Tasty.Patcher\Tasty.Patcher.csproj", "{A208D3EB-17FC-47FD-9A6E-0D24BA437ACF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.ViewModel", "Tasty.ViewModel\Tasty.ViewModel.csproj", "{399BEDD8-352D-4F16-85C6-C20A70FBD1AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.ViewModel.JsonNet", "Tasty.ViewModel.JsonNet\Tasty.ViewModel.JsonNet.csproj", "{F5986220-001C-451B-98F0-E0DE1672D159}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Tests.ViewModel", "Tasty.Tests.ViewModel\Tasty.Tests.ViewModel.csproj", "{2BC336EC-2F18-4A9E-BA39-9FB9D1E962EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Tests.Base", "Tasty.Tests.Base\Tasty.Tests.Base.csproj", "{D1667B21-AE47-4EBD-AEB2-9546B29013A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +57,30 @@ Global
 		{A208D3EB-17FC-47FD-9A6E-0D24BA437ACF}.Production|Any CPU.Build.0 = Release|Any CPU
 		{A208D3EB-17FC-47FD-9A6E-0D24BA437ACF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A208D3EB-17FC-47FD-9A6E-0D24BA437ACF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{399BEDD8-352D-4F16-85C6-C20A70FBD1AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{399BEDD8-352D-4F16-85C6-C20A70FBD1AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{399BEDD8-352D-4F16-85C6-C20A70FBD1AE}.Production|Any CPU.ActiveCfg = Release|Any CPU
+		{399BEDD8-352D-4F16-85C6-C20A70FBD1AE}.Production|Any CPU.Build.0 = Release|Any CPU
+		{399BEDD8-352D-4F16-85C6-C20A70FBD1AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{399BEDD8-352D-4F16-85C6-C20A70FBD1AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5986220-001C-451B-98F0-E0DE1672D159}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5986220-001C-451B-98F0-E0DE1672D159}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5986220-001C-451B-98F0-E0DE1672D159}.Production|Any CPU.ActiveCfg = Release|Any CPU
+		{F5986220-001C-451B-98F0-E0DE1672D159}.Production|Any CPU.Build.0 = Release|Any CPU
+		{F5986220-001C-451B-98F0-E0DE1672D159}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5986220-001C-451B-98F0-E0DE1672D159}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BC336EC-2F18-4A9E-BA39-9FB9D1E962EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BC336EC-2F18-4A9E-BA39-9FB9D1E962EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BC336EC-2F18-4A9E-BA39-9FB9D1E962EA}.Production|Any CPU.ActiveCfg = Release|Any CPU
+		{2BC336EC-2F18-4A9E-BA39-9FB9D1E962EA}.Production|Any CPU.Build.0 = Release|Any CPU
+		{2BC336EC-2F18-4A9E-BA39-9FB9D1E962EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BC336EC-2F18-4A9E-BA39-9FB9D1E962EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1667B21-AE47-4EBD-AEB2-9546B29013A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1667B21-AE47-4EBD-AEB2-9546B29013A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1667B21-AE47-4EBD-AEB2-9546B29013A5}.Production|Any CPU.ActiveCfg = Release|Any CPU
+		{D1667B21-AE47-4EBD-AEB2-9546B29013A5}.Production|Any CPU.Build.0 = Release|Any CPU
+		{D1667B21-AE47-4EBD-AEB2-9546B29013A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1667B21-AE47-4EBD-AEB2-9546B29013A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,6 +9,7 @@ using Tasty.SQLiteManager.Table;
 using Tasty.SQLiteManager.Table.Column;
 using System.Collections;
 using System.Text;
+using System.Runtime.InteropServices;
 
 namespace Tasty.SQLiteManager
 {
@@ -17,6 +18,9 @@ namespace Tasty.SQLiteManager
     /// </summary>
     public class Database : IList<TableDefinition>
     {
+        [DllImport("kernel32.dll")]
+        static extern IntPtr GetConsoleWindow();
+
         /// <summary>
         /// </summary>
         protected List<TableDefinition> tables = new List<TableDefinition>();
@@ -351,12 +355,24 @@ namespace Tasty.SQLiteManager
                             LogType.WARNING, table.Name, string.Join(", ", removableColumns.ToArray()));
 
                         bool columnsRemoved = false;
-                        Console.WriteLine("Would you like to remove these columns? (y/N)");
-                        if (Console.ReadKey().Key == ConsoleKey.Y)
+                        bool consoleWindowAttached = GetConsoleWindow() != IntPtr.Zero;
+                        ConsoleKey pressedKey = ConsoleKey.Y;
+
+                        if (consoleWindowAttached)
                         {
-                            Console.WriteLine("\n\t\tWARNING: Any data stored in these columns will be lost forever!\n");
-                            Console.WriteLine("Would you like to proceed? (y/N)");
-                            if (Console.ReadKey().Key == ConsoleKey.Y)
+                            Console.WriteLine("Would you like to remove these columns? (y/N)");
+                            pressedKey = Console.ReadKey().Key;
+                        }
+
+                        if (pressedKey == ConsoleKey.Y)
+                        {
+                            if (consoleWindowAttached)
+                            {
+                                Console.WriteLine("\n\t\tWARNING: Any data stored in these columns will be lost forever!\n");
+                                Console.WriteLine("Would you like to proceed? (y/N)");
+                                pressedKey = Console.ReadKey().Key;
+                            }
+                            if (pressedKey == ConsoleKey.Y)
                             {
                                 Console.WriteLine();
                                 #region Copy data
@@ -381,10 +397,13 @@ namespace Tasty.SQLiteManager
                                 Dictionary<IColumn, dynamic>[] dataBackup = new Dictionary<IColumn, dynamic>[result.Count];
                                 for (int i = 0; i < result.Count; i++)
                                 {
-                                    Console.CursorLeft = 0;
-                                    Console.Write("                                                                     ");
-                                    Console.CursorLeft = 0;
-                                    Console.Write("Process: {0}/{1}", i + 1, result.Count);
+                                    if (consoleWindowAttached)
+                                    {
+                                        Console.CursorLeft = 0;
+                                        Console.Write("                                                                     ");
+                                        Console.CursorLeft = 0;
+                                        Console.Write("Process: {0}/{1}", i + 1, result.Count);
+                                    }
                                     RowData row = result[i];
                                     Dictionary<IColumn, dynamic> dataCopy = new Dictionary<IColumn, dynamic>();
                                     foreach (KeyValuePair<string, dynamic> data in row.Columns)

@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Authentication.ExtendedProtection;
 using System.Text;
 using System.Threading.Tasks;
 using Tasty.SQLiteManager;
 using Tasty.SQLiteManager.Table;
 using Tasty.SQLiteManager.Table.Column;
 using Tasty.SQLiteManager.Table.Conditions;
+using Tasty.Tests.Base;
 
 namespace Tasty.Tests.SQLiteManager
 {
@@ -26,51 +28,74 @@ namespace Tasty.Tests.SQLiteManager
         static void Main(string[] args)
         {
             Database.Initialize(dbPath, tables);
+            Logging.Logger.Instance.DisableLogging = true;
 
-            int testCount = 1;
+            System.Console.Clear();
+            TestRunner.RunTest(Test_CheckDatabase, "Checking if database has been setup properly"); //, "Database contains all tables and columns"
+            TestRunner.RunTest(Test_Insert_GetIndex, "Testing Insert_GetIndex method"); //, "Insert_GetIndex completed"
+            TestRunner.RunTest(Test_Select, "Testing Select method");
 
-            Console.WriteLine("Test {0}: Checking if database has been setup properly...", testCount);
-            testCount++;
-
-            bool databaseCorrect = Test_CheckDatabase();
-            Console.Write("Database contains all tables and columns:\t\t");
-            WriteLine_Status(databaseCorrect);
-
-            Console.WriteLine("Test {0}: Testing Select method...");
-            testCount++;
-            
             //Console.Write("Correct data returned:\t\t", Test_Select());
-
-            Console.ReadLine();
+            if (TestRunner.FailedTests == 0)
+            {
+                Base.Console.WriteLine_Status(string.Format("Successfully ran {0}/{0} tests!", TestRunner.TestCount), Status.Success);
+            }
+            else if (TestRunner.FailedTests < TestRunner.TestCount)
+            {
+                Base.Console.WriteLine_Status(string.Format("Ran {0}/{1} tests, but some failed!", TestRunner.TestCount - TestRunner.FailedTests, TestRunner.TestCount), Status.Warning);
+            }
+            else
+            {
+                Base.Console.WriteLine_Status("All tests failed!", Status.Fail);
+            }
+            System.Console.WriteLine("Press any key to exit.");
+            System.Console.ReadLine();
         }
 
         static bool Test_CheckDatabase()
         {
             foreach (var table in tables)
             {
-                Console.Write("Table {0} exists:\t\t\t\t\t", table.Name);
                 bool tableExists = table.TableExists();
-                WriteLine_Status(tableExists);
-                if (tableExists)
-                {
-                    foreach (var column in table)
-                    {
-                        Console.Write("\tColumn {0} exists:\t\t\t\t", column.Name);
-                        bool columnExists = table.ColumnExists(column);
-                        WriteLine_Status(columnExists);
+                Base.Console.WriteLine_Status(string.Format("Table {0} exists", table.Name), tableExists);
 
-                        if (!columnExists)
-                        {
-                            Console.WriteLine("Test aborted!");
-                            return false;
-                        }
-                    }
-                }
-                else
+                if (!tableExists)
                 {
-                    Console.WriteLine("Test aborted!");
+                    System.Console.WriteLine("Test aborted!");
                     return false;
                 }
+
+                foreach (var column in table)
+                {
+                    bool columnExists = table.ColumnExists(column);
+                    Base.Console.WriteLine_Status(string.Format("Column {0} exists", column.Name), columnExists);
+
+                    if (!columnExists)
+                    {
+                        System.Console.WriteLine("Test aborted!");
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        static bool Test_Insert_GetIndex()
+        {
+            var table = Database.Instance["foobar"];
+            int index = table.Insert_GetIndex(new Dictionary<IColumn, dynamic>()
+            {
+                { table["name"], "Jon Doe" }
+            });
+
+            bool insertSuccess = index == 1;
+            Base.Console.WriteLine_Status(string.Format("Insert into table {0} success", table.Name), insertSuccess);
+
+            if (!insertSuccess)
+            {
+                System.Console.WriteLine("Test aborted!");
+                return false;
             }
 
             return true;
@@ -78,35 +103,35 @@ namespace Tasty.Tests.SQLiteManager
 
         static bool Test_Select()
         {
-            var result = Database.Instance["foobar"].Select(
-                new Condition[] {
-                    new Condition(Database.Instance["foobar"]["name"], "Jon")
-                }
-            );
+            int index = 1;
+            var table = Database.Instance["foobar"];
+
+            var result = table.Select(new Condition(table["ID"], index));
+            bool rowExists = !result.IsEmpty;
+            Base.Console.WriteLine_Status(string.Format("Entry with ID {0} exists", index), rowExists);
+
+            if (!rowExists)
+            {
+                System.Console.WriteLine("Test aborted!");
+                return false;
+            }
+
+            string name = "Jon Doe";
+            bool nameCorrect = result[0]["name"] == name;
+            Base.Console.WriteLine_Status(string.Format("Entry name is {0}", name), nameCorrect);
+
+            if (!nameCorrect)
+            {
+                System.Console.WriteLine("Test aborted!");
+                return false;
+            }
 
             return true;
         }
 
-        static void WriteLine(string message, ConsoleColor backgroundColor)
+        static bool Test_Foo()
         {
-            Console.BackgroundColor = backgroundColor;
-            Console.ForegroundColor = ConsoleColor.Black;
-            Console.WriteLine(message);
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.ForegroundColor = ConsoleColor.Gray;
-        }
-
-        static void WriteLine_Status(bool success)
-        {
-            if (success)
-            {
-                Console.Write(" ");
-                WriteLine(" OK ", ConsoleColor.DarkGreen);
-            }
-            else
-            {
-                WriteLine(" FAIL ", ConsoleColor.DarkRed);
-            }
+            return false;
         }
     }
 }
