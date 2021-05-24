@@ -9,7 +9,7 @@ using Tasty.ViewModel.Observer;
 namespace Tasty.ViewModel.JsonNet
 {
     /// <summary>
-    /// Overrides some properties to include the [JSONIgnore] attribute.
+    /// Overrides some properties to include the <see cref="JsonIgnoreAttribute"/>.
     /// <para></para>
     /// <inheritdoc/>
     /// </summary>
@@ -31,10 +31,6 @@ namespace Tasty.ViewModel.JsonNet
         [JsonIgnore]
         /// <inheritdoc/>
         public override bool UnsavedChanged => base.UnsavedChanged;
-
-        [JsonIgnore]
-        /// <inheritdoc/>
-        public override bool AnyUnsavedChanges => base.AnyUnsavedChanges;
 
         /// <inheritdoc/>
         public JsonObservableCollection(string collectionName, bool generateObservers = false, Enum message = null) : base(collectionName, generateObservers, message)

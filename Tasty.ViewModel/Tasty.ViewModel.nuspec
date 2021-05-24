@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>TastyApps.Core.ViewModel</id>
+    <version>$version$</version>
+    <title>Tasty.ViewModel</title>
+    <authors>$author$</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">GPL-2.0-only</license>
+    <description>$description$</description>
+    <releaseNotes>Added documentation to public classes, methods, etc.</releaseNotes>
+    <copyright>$copyright$</copyright>
+    <tags>csharp databinding mvvm wpf</tags>
+	  <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="c4f987218b26b7099bb02a7987a9aa0cb2ce08d6" />
+	
+    <dependencies>
+      <group targetFramework=".NETFramework4.5.2">
+      </group>
+    </dependencies>
+
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="Microsoft.CSharp"/>
+      <frameworkAssembly assemblyName="PresentationCore"/>
+      <frameworkAssembly assemblyName="System"/>
+    </frameworkAssemblies>
+  </metadata>
+</package>

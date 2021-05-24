@@ -38,6 +38,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="Tasty.ViewModel.JsonNet.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Tasty.ViewModel\Tasty.ViewModel.csproj">
@@ -59,4 +60,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>cd $(ProjectDir)
+nuget pack -prop Configuration=Release</PostBuildEvent>
+  </PropertyGroup>
 </Project>

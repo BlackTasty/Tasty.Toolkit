@@ -7,8 +7,15 @@ using System.Threading.Tasks;
 
 namespace Tasty.ViewModel.Observer
 {
+    /// <summary>
+    /// Define a new <see cref="Observer{T}"/> for a property.
+    /// </summary>
+    /// <typeparam name="T">The type of the observed property</typeparam>
     class Observer<T> : IObserver
     {
+        /// <summary>
+        /// Gets fired whenever the current value changes
+        /// </summary>
         public event EventHandler<ChangeObservedEventArgs> ChangeObserved;
 
         private string propertyName;
@@ -17,10 +24,14 @@ namespace Tasty.ViewModel.Observer
         private T currentValue;
 
         /// <summary>
-        /// The original value
+        /// Return the original value
         /// </summary>
         public T OriginalValue => originalValue;
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <returns></returns>
         public dynamic GetOriginalValue()
         {
             return originalValue;
@@ -55,7 +66,7 @@ namespace Tasty.ViewModel.Observer
                 {
                     if (originalValue is IVeryObservableCollection originalCollection)
                     {
-                        return originalCollection.Count != currentCollection.Count && currentCollection.AnyUnsavedChanges;
+                        return originalCollection.Count != currentCollection.Count && currentCollection.UnsavedChanged;
                     }
 
                     return true;
@@ -130,6 +141,10 @@ namespace Tasty.ViewModel.Observer
             ChangeObserved?.Invoke(this, e);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <returns><inheritdoc/></returns>
         public override string ToString()
         {
             return "{ Type: " + originalValue.GetType().ToString() + " }";

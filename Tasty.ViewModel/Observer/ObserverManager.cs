@@ -7,8 +7,16 @@ using System.Threading.Tasks;
 
 namespace Tasty.ViewModel.Observer
 {
+    /// <summary>
+    /// Defines a new <see cref="ObserverManager"/>, which holds multiple <see cref="Observer{T}"/> objects.
+    /// <para></para>
+    /// This class manages registration of Observers, firing ChangeObserved events and more.
+    /// </summary>
     public class ObserverManager : ViewModelBase
     {
+        /// <summary>
+        /// Fires whenever an <see cref="Observer{T}"/> changes
+        /// </summary>
         public event EventHandler<ChangeObservedEventArgs> ChangeObserved;
 
         private string guid;
@@ -21,49 +29,46 @@ namespace Tasty.ViewModel.Observer
         /// </summary>
         public bool UnsavedChanges => changeObservers.Any(x => x.UnsavedChanges) || children.Any(x => x.UnsavedChanges);
 
+        /// <summary>
+        /// Returns all hooked observers for this <see cref="ObserverManager"/>
+        /// </summary>
         public List<IObserver> ChangeObservers => changeObservers;
 
-        public string Guid => RootGuid != null ? RootGuid : guid;
+        /// <summary>
+        /// Overrides the internal Guid used in detection of <see cref="VeryObservableCollection{T}"/> changes.
+        /// </summary>
+        public string GuidOverride { get; set; }
 
-        //public List<ObserverManager> Parents => parents;
+        internal string Guid => GuidOverride != null ? GuidOverride : guid;
 
+        /// <summary>
+        /// Initializes a new <see cref="ObserverManager"/>.
+        /// </summary>
         public ObserverManager()
         {
             guid = System.Guid.NewGuid().ToString();
         }
 
-        public string RootGuid { get; set; }
-
         ~ObserverManager()
         {
+            // Unhook all event handlers for observers and child ObserverManager classes
             foreach (var observer in changeObservers)
             {
                 observer.ChangeObserved -= Observer_ChangeObserved;
             }
-        }
 
-        public void RegisterParent(ObserverManager parent)
-        {
-            this.parent = parent;
-            /*if (!this.parent.Any((object x) => x.guid == parent.guid))
+            foreach (var child in children)
             {
-                parent.ChangeObserved += Child_ChangeObserved;
-                this.parent.Add(parent);
-            }*/
+                UnregisterChild(child);
+            }
         }
 
-        public void UnregisterParent()
-        {
-            parent = null;
-            /*int index = this.parent.FindIndex((object x) => x.guid == parent.guid);
-
-            if (index > -1)
-            {
-                parent.ChangeObserved -= Child_ChangeObserved;
-                this.parent.RemoveAt(index);
-            }*/
-        }
-
+        /// <summary>
+        /// Register a child <see cref="ObserverManager"/>. "ChangeObserved" events fired by children will bubble up and get re-fired by this manager.
+        /// <para></para>
+        /// If the child is already added or is null this will have no effect!
+        /// </summary>
+        /// <param name="child">The child to add and observe</param>
         public void RegisterChild(ObserverManager child)
         {
             if (child == null)
@@ -79,6 +84,11 @@ namespace Tasty.ViewModel.Observer
             }
         }
 
+        /// <summary>
+        /// Unregister a child <see cref="ObserverManager"/> if registered.
+        /// If the child is null this will have no effect!
+        /// </summary>
+        /// <param name="child">The child to remove</param>
         public void UnregisterChild(ObserverManager child)
         {
             if (child == null)
@@ -97,11 +107,13 @@ namespace Tasty.ViewModel.Observer
         }
 
         /// <summary>
-        /// Observes changes on the specified property. Used both to register new observers and update existing ones
+        /// Used both to register new observers and update existing ones.
+        /// <para></para>
+        /// Observes changes on the specified property.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="value">The current value of the property</param>
-        /// <param name="propertyName">The property to watch</param>
+        /// <param name="propertyName">Can be left empty when called from inside the target property. The display name of the property to watch.</param>
         public void ObserveProperty<T>(T value, [CallerMemberName] string propertyName = null)
         {
             if (propertyName == null)
@@ -121,13 +133,18 @@ namespace Tasty.ViewModel.Observer
             }
         }
 
+        /// <summary>
+        /// Returns a registered <see cref="Observer{T}"/> with the specified property name
+        /// </summary>
+        /// <param name="name">The display name of the observed property</param>
+        /// <returns></returns>
         public IObserver GetObserverByName(string name)
         {
             return ChangeObservers.FirstOrDefault(x => x.PropertyName == name);
         }
 
         /// <summary>
-        /// Set currentValue as originalValue on every observer
+        /// Resets all observers, which sets the "UnsavedChanges" flag to false. You would usually call this method after saving a file for example.
         /// </summary>
         public void ResetObservers()
         {
@@ -149,17 +166,11 @@ namespace Tasty.ViewModel.Observer
             }*/
         }
 
-        private void Observer_ChangeObserved(object sender, ChangeObservedEventArgs e)
-        {
-            OnChangeObserved(e);
-            InvokePropertyChanged("UnsavedChanges");
-        }
-
-        protected virtual void OnChangeObserved(ChangeObservedEventArgs e)
-        {
-            ChangeObserved?.Invoke(this, e);
-        }
-
+        /// <summary>
+        /// Compares two <see cref="ObserverManager"/> and returns if they match.
+        /// </summary>
+        /// <param name="changeManager">The manager to compare this to</param>
+        /// <returns>Returns true if both <see cref="ObserverManager"/> match, otherwise false</returns>
         public bool Compare(ObserverManager changeManager)
         {
             foreach (var observer in ChangeObservers)
@@ -178,6 +189,10 @@ namespace Tasty.ViewModel.Observer
             return false;
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             if (changeObservers == null)
@@ -198,6 +213,27 @@ namespace Tasty.ViewModel.Observer
                 }
             }
             return "{" + string.Format(" Observer count: {0}; Observers: {1} ", changeObservers.Count, observerString) + "}";
+        }
+
+        protected virtual void OnChangeObserved(ChangeObservedEventArgs e)
+        {
+            ChangeObserved?.Invoke(this, e);
+        }
+
+        private void Observer_ChangeObserved(object sender, ChangeObservedEventArgs e)
+        {
+            OnChangeObserved(e);
+            InvokePropertyChanged("UnsavedChanges");
+        }
+
+        private void RegisterParent(ObserverManager parent)
+        {
+            this.parent = parent;
+        }
+
+        private void UnregisterParent()
+        {
+            parent = null;
         }
     }
 }

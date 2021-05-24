@@ -69,30 +69,10 @@ namespace Tasty.ViewModel
             get
             {
                 return observerManager?.UnsavedChanges ?? false;
-
-                /*if (observerManager == null)
-                {
-                    return false;
-                }
-
-                foreach (var observer in observerManager.ChangeObservers)
-                {
-                    if (observer is Observer<IVeryObservableCollection>)
-                    {
-                        continue;
-                    }
-
-                    if (observer.UnsavedChanges)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;*/
             }
         }
 
-        /// <summary>
+        /*/// <summary>
         /// Returns false if <see cref="Observer.ObserverManager"/> is set! Returns true if content of collection has changed, otherwise false
         /// </summary>
         public virtual bool AnyUnsavedChanges
@@ -113,7 +93,7 @@ namespace Tasty.ViewModel
                 }
                 return false;
             }
-        }
+        }*/
 
         /// <summary>
         /// Initializes the collection with the specified name.
@@ -169,7 +149,7 @@ namespace Tasty.ViewModel
         }
 
         /// <summary>
-        /// Adds multiple objects to the end of the <see cref="Collection{T}"/>.
+        /// Adds multiple objects to the end of the <see cref="VeryObservableCollection{T}"/>.
         /// </summary>
         /// <param name="items">The objects to be added to the end of the <see cref="Collection{T}"/>.</param>
         public virtual void AddRange(IEnumerable<T> items)
@@ -186,9 +166,9 @@ namespace Tasty.ViewModel
         }
 
         /// <summary>
-        /// Adds multiple objects to the end of the <see cref="Collection{T}"/>.
+        /// Adds multiple objects to the end of the <see cref="VeryObservableCollection{T}"/>.
         /// </summary>
-        /// <param name="items">The objects to be added to the end of the <see cref="Collection{T}"/>.</param>
+        /// <param name="items">The objects to be added to the end of the <see cref="VeryObservableCollection{T}"/>.</param>
         public virtual void AddRange(List<T> items)
         {
             if (items == null)
@@ -206,6 +186,10 @@ namespace Tasty.ViewModel
             RefreshChecksum();
         }
 
+        /// <summary>
+        /// Add a new object to the <see cref="VeryObservableCollection{T}"/>.
+        /// </summary>
+        /// <param name="item">THe object to be added.</param>
         public virtual new void Add(T item)
         {
             if (GetChildFromItem(item) is ObserverManager child && child != null)
@@ -240,6 +224,9 @@ namespace Tasty.ViewModel
             }
         }
 
+        /// <summary>
+        /// Clears the current <see cref="VeryObservableCollection{T}"/>.
+        /// </summary>
         public new void Clear()
         {
             itemChecksums.Clear();
@@ -268,18 +255,30 @@ namespace Tasty.ViewModel
             RefreshChecksum();
         }
 
+        /// <summary>
+        /// Clears the <see cref="VeryObservableCollection{T}"/> and adds the given object.
+        /// </summary>
+        /// <param name="value">The object to add</param>
         public void Set(T value)
         {
             Clear();
             Add(value);
         }
 
+        /// <summary>
+        /// Clears the <see cref="VeryObservableCollection{T}"/> and adds the given list objects.
+        /// </summary>
+        /// <param name="value">The objects to add</param>
         public void Set(IEnumerable<T> values)
         {
             Clear();
             AddRange(values);
         }
 
+        /// <summary>
+        /// Removes the target object from the <see cref="VeryObservableCollection{T}"/>.
+        /// </summary>
+        /// <param name="item">The object to remove</param>
         public new void Remove(T item)
         {
             if (GetChildFromItem(item) is ObserverManager child && child != null)
@@ -300,6 +299,10 @@ namespace Tasty.ViewModel
             }
         }
 
+        /// <summary>
+        /// Removes an object from the <see cref="VeryObservableCollection{T}"/> at the specified index.
+        /// </summary>
+        /// <param name="index">The index of the object to remove</param>
         public new void RemoveAt(int index)
         {
             if (index < 0 || index >= Count)
@@ -338,6 +341,9 @@ namespace Tasty.ViewModel
             RefreshChecksum();
         }
 
+        /// <summary>
+        /// Forces this <see cref="VeryObservableCollection{T}"/> to fire OnPropertyChanged events and lets the <see cref="Observer.ObserverManager"/> observe changes.
+        /// </summary>
         public void Refresh()
         {
             if (message != null)
@@ -368,9 +374,13 @@ namespace Tasty.ViewModel
             RefreshChecksum();
         }
 
+        /// <summary>
+        /// Creates a copy of this <see cref="VeryObservableCollection{T}"/>.
+        /// </summary>
+        /// <returns>A copy of this collection. If an <see cref="Observer.ObserverManager"/> is currently present, a new one will be generated.</returns>
         public IVeryObservableCollection Copy()
         {
-            VeryObservableCollection<T> copy = new VeryObservableCollection<T>("");
+            VeryObservableCollection<T> copy = new VeryObservableCollection<T>(CollectionName, observerManager != null, message);
             copy.AddRange(this.ToList());
 
             return copy;
@@ -423,7 +433,7 @@ namespace Tasty.ViewModel
             }
         }
 
-        public void RefreshChecksum(bool resetObserver = false)
+        internal void RefreshChecksum(bool resetObserver = false)
         {
             /*string newChecksum = Hasher.HashPassword(string.Concat(itemChecksums),
                 string.Format("{0}-{1}", CollectionName, Count));*/
