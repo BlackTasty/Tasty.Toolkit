@@ -2,21 +2,20 @@
 <package >
   <metadata>
     <id>TastyApps.Core.ViewModel.JsonNet</id>
-    <version>$version$</version>
+    <version>1.0.3.4</version>
     <title>Tasty.ViewModel.JsonNet</title>
-    <authors>$author$</authors>
+    <authors>BlackTasty</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">GPL-2.0-only</license>
-    <description>$description$</description>
+    <description>Extension for Tasty.ViewModel. Includes some overridden classes for use with Newtonsoft.Json</description>
     <releaseNotes>Added documentation where it was missing</releaseNotes>
-    <copyright>$copyright$</copyright>
+    <copyright>Copyright © BlackTasty 2021</copyright>
     <tags>csharp databinding mvvm wpf json</tags>
-	<repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" 
-	commit="c4f987218b26b7099bb02a7987a9aa0cb2ce08d6" />
-	
+    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="de325f27ff7bb3124b326e155b0b0da314481045" />
+
     <dependencies>
       <group targetFramework=".NETFramework4.5.2">
-		<dependency id="TastyApps.Core.ViewModel" version="1.0.3"/>
+    <dependency id="TastyApps.Core.ViewModel" version="1.0.3.3"/>
         <dependency id="Newtonsoft.Json" version="9.0" />
       </group>
     </dependencies>
