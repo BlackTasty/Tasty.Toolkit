@@ -2,7 +2,10 @@
 
 namespace Tasty.Logging
 {
-    public class InputHistory
+    /// <summary>
+    /// Not implemented
+    /// </summary>
+    internal class InputHistory
     {
         private List<string> history;
         private int capacity;

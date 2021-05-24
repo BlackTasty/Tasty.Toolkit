@@ -18,7 +18,7 @@ namespace Tasty.Logging
 
         public static string TIMESTAMP_FORMAT_DATE = "dd.MM.yyyy";
         public static string TIMESTAMP_FORMAT_SEPARATOR = "-";
-        public static string TIMESTAMP_FORMAT_TIME = "hh:mm:ss.fff";
+        public static string TIMESTAMP_FORMAT_TIME = "HH:mm:ss.fff";
 
         public static bool SHOW_LOG_NAME = true;
     }

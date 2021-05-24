@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>TastyApps.Core.Logging</id>
+    <version>1.0.2.0</version>
+    <title>Tasty.Logging</title>
+    <authors>BlackTasty</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">GPL-2.0-only</license>
+    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="de325f27ff7bb3124b326e155b0b0da314481045" />
+    <description>Contains classes for logging, and features an interface to log text to an additional target (like a user control)</description>
+    <releaseNotes>First release on NuGet</releaseNotes>
+    <copyright>Copyright © BlackTasty 2019-2021</copyright>
+    <tags>csharp logging</tags>
+  </metadata>
+</package>

@@ -8,7 +8,7 @@ namespace Tasty.Logging
 {
     public static class ExtensionMethods
     {
-        public static string ToPrefix(this LogType logType)
+        internal static string ToPrefix(this LogType logType)
         {
             switch (logType)
             {

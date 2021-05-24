@@ -201,7 +201,7 @@ namespace Tasty.SQLiteManager
 
         private Database(string dbPath, List<TableDefinition> tables, Logger logger = null)
         {
-            this.logger = logger != null ? logger : Logger.Instance; 
+            this.logger = logger != null ? logger : Logger.Default; 
             this.dbPath = dbPath;
             connString = string.Format("Data Source={0};Version=3;", dbPath);
 

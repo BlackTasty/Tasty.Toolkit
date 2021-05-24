@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\Tasty.Logging.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -63,11 +64,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DateTimeManager.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Tasty.Logging.nuspec" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>cd "$(TargetDir)"
-del *.config
-del *.xml
-del *.pdb</PostBuildEvent>
+    <PostBuildEvent>cd $(ProjectDir)
+nuget pack -prop Configuration=Release</PostBuildEvent>
   </PropertyGroup>
 </Project>

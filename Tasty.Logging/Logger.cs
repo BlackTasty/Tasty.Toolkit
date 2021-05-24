@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Tasty.Logging
 {
+    /// <summary>
+    /// Class which enables logging to file and attached objects.
+    /// </summary>
     public class Logger : LoggerSettings
     {
         protected static Logger instance;
@@ -19,9 +22,15 @@ namespace Tasty.Logging
         protected Random rnd = new Random();
         protected bool isDebug;
 
+        /// <summary>
+        /// Fires whenever an exception has been logged with this <see cref="Logger"/>
+        /// </summary>
         public event EventHandler<ExceptionLoggedEventArgs> ExceptionLogged;
 
-        public static Logger Instance
+        /// <summary>
+        /// Returns the default logger or generates a new one
+        /// </summary>
+        public static Logger Default
         {
             get
             {
@@ -34,37 +43,80 @@ namespace Tasty.Logging
             }
         }
 
-        public static Logger Initialize(bool isDebug)
+        /// <summary>
+        /// Initialize a new default logger
+        /// </summary>
+        /// <param name="isDebug">Set to true if you wish to output <see cref="LogType.DEBUG"/> and <see cref="LogType.VERBOSE"/> messages.</param>
+        /// <returns>The default logger</returns>
+        public static Logger Initialize(bool isDebug = false)
         {
             instance = new Logger(isDebug);
             return instance;
         }
 
-        public static Logger Initialize(bool isDebug, string fileName = "log.log", 
+        /// <summary>
+        /// Initialize a new default logger
+        /// </summary>
+        /// <param name="fileName">The desired name of the log file</param>
+        /// <param name="isDebug">Set to true if you wish to output <see cref="LogType.DEBUG"/> and <see cref="LogType.VERBOSE"/> messages.</param>
+        /// <param name="generateId">Set to true to generate a session id for this <see cref="Logger"/></param>
+        /// <param name="regenerateFile">Set to true if you wish that the log file with the given name should be cleared each time the <see cref="Logger"/> is initialized</param>
+        /// <returns>The default logger</returns>
+        public static Logger Initialize(string fileName = "log.log", bool isDebug = false,
             bool generateId = false, bool regenerateFile = false)
         {
             instance = new Logger(fileName, generateId, regenerateFile);
-            instance.isDebug = true;
+            instance.isDebug = isDebug;
             return instance;
         }
 
-        public static IConsole AttachedConsole { get; set; }
+        /// <summary>
+        /// Sets or gets the attached console. Used for outputting logged lines to an additional object
+        /// </summary>
+        public IConsole AttachedConsole { get; set; }
 
+        /// <summary>
+        /// If set to true, logging will be disabled altogether
+        /// </summary>
         public bool DisableLogging { get; set; }
 
+        /// <summary>
+        /// If set to false, log lines won't be outputted to the "AttachedConsole" object
+        /// </summary>
         public bool LogToAttachedConsole { get; set; } = true;
 
+        /// <summary>
+        /// Should prefixes like [INF], [DBG], etc be attached to console strings?
+        /// </summary>
+        public bool AddIdentifierToConsole { get; set; } = false;
+
+        /// <summary>
+        /// The full path to this log file
+        /// </summary>
         public string FilePath => filePath;
 
+        /// <summary>
+        /// The current session id for this <see cref="Logger"/>. -1 = Unset
+        /// </summary>
         public int SessionID => sessionId;
 
-        public bool ShowSessionId => false;
+        //public bool ShowSessionId => false;
 
+        /// <summary>
+        /// Initialize a new logger
+        /// </summary>
+        /// <param name="isDebug">Set to true if you wish to output <see cref="LogType.DEBUG"/> and <see cref="LogType.VERBOSE"/> messages.</param>
         public Logger(bool isDebug) : this("log.log", false, false)
         {
             this.isDebug = isDebug;
         }
 
+        /// <summary>
+        /// Initialize a new logger
+        /// </summary>
+        /// <param name="fileName">The desired name of the log file</param>
+        /// <param name="generateId">Set to true to generate a session id for this <see cref="Logger"/></param>
+        /// <param name="regenerateFile">Set to true if you wish that the log file with the given name should be cleared each time the <see cref="Logger"/> is initialized</param>
         public Logger(string fileName, bool generateId, bool regenerateFile)
         {
             this.fileName = fileName;
@@ -81,7 +133,17 @@ namespace Tasty.Logging
             LogFileStart = "";
         }
 
+        [Obsolete]
         public static string LogFileStart { get; set; }
+
+        /// <summary>
+        /// Writes a message into the log with <see cref="LogType.INFO"/>
+        /// </summary>
+        /// <param name="msg">The message to print</param>
+        public virtual void WriteLog(string msg)
+        {
+            WriteLog(msg, LogType.INFO);
+        }
 
         /// <summary>
         /// Writes a formatted message into the log with <see cref="LogType.INFO"/> tag.
@@ -102,15 +164,6 @@ namespace Tasty.Logging
         public virtual void WriteLog(string msg, Exception ex, params object[] param)
         {
             WriteLog(msg, LogType.WARNING, ex, param);
-        }
-
-        /// <summary>
-        /// Writes a message into the log with <see cref="LogType.INFO"/>
-        /// </summary>
-        /// <param name="msg">The message to print</param>
-        public virtual void WriteLog(string msg)
-        {
-            WriteLog(msg, LogType.INFO);
         }
 
         /// <summary>
@@ -203,7 +256,7 @@ namespace Tasty.Logging
                     //    Console.Write(foregroundColor);
                     //}
 
-                    if (ShowSessionId)
+                    if (sessionId > -1)
                     {
                         msg = string.Format("({0}) {1}: {2}", sessionId, DateTimeManager.GetTimestamp(), msg);
                     }
@@ -229,15 +282,15 @@ namespace Tasty.Logging
                     
                     if (isDebug)
                     {
-                        Console.WriteLine(logBuilder.ToString());
+                        Console.WriteLine((AddIdentifierToConsole ? logFileBuilder : logBuilder).ToString());
                     }
 
                     if (AttachedConsole != null && LogToAttachedConsole)
                     {
                         if (fileName != null && SHOW_LOG_NAME)
-                            AttachedConsole.WriteString(string.Format("({0}) {1}\n", fileName, logBuilder), type);
+                            AttachedConsole.WriteString(string.Format("({0}) {1}\n", fileName, AddIdentifierToConsole ? logFileBuilder : logBuilder), type);
                         else
-                            AttachedConsole.WriteString(string.Format("{0}\n", logBuilder), type);
+                            AttachedConsole.WriteString(string.Format("{0}\n", AddIdentifierToConsole ? logFileBuilder : logBuilder), type);
                     }
                     break;
                 }
@@ -276,16 +329,15 @@ namespace Tasty.Logging
             }
         }
 
-        public static string GetExceptionLine(Exception ex)
+        protected static string GetExceptionLine(Exception ex)
         {
-            if (ex.StackTrace != null)
+            if (!string.IsNullOrWhiteSpace(ex.StackTrace))
             {
-                string stackTrace = ex.StackTrace;
-                stackTrace = ex.StackTrace.Remove(0, ex.StackTrace.LastIndexOf(' ') + 1);
+                string stackTrace = ex.StackTrace.Remove(0, ex.StackTrace.LastIndexOf(' ') + 1);
                 return stackTrace.Replace(".", "");
             }
             else
-                return "-1";
+                return "NO STACKTRACE";
         }
 
         private string GetExceptionText(bool isInner)

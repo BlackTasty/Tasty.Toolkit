@@ -18,17 +18,17 @@ namespace Tasty.Logging
 
         protected void WriteLog(string msg)
         {
-            Logger.Instance.WriteLog(prefix, msg);
+            Logger.Default.WriteLog(prefix, msg);
         }
 
         protected void WriteLog(string msg, params object[] param)
         {
-            Logger.Instance.WriteLog(prefix, msg, param);
+            Logger.Default.WriteLog(prefix, msg, param);
         }
 
         protected void WriteLog(string msg, LogType logType, params object[] param)
         {
-            Logger.Instance.WriteLog(prefix, msg, logType, param);
+            Logger.Default.WriteLog(prefix, msg, logType, param);
         }
     }
 }
