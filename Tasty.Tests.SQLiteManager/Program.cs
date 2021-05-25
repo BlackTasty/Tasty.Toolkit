@@ -29,7 +29,7 @@ namespace Tasty.Tests.SQLiteManager
         static void Main(string[] args)
         {
             Database.Initialize(dbPath, tables, Logger.Initialize(false));
-            Logging.Logger.Instance.DisableLogging = true;
+            Logger.Default.DisableLogging = true;
 
             System.Console.Clear();
             TestRunner.RunTest(Test_CheckDatabase, "Checking if database has been setup properly"); //, "Database contains all tables and columns"

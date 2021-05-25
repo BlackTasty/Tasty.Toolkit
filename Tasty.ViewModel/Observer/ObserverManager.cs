@@ -55,9 +55,12 @@ namespace Tasty.ViewModel.Observer
                 observer.ChangeObserved -= Observer_ChangeObserved;
             }
 
-            foreach (var child in children)
+            if (children?.Count > 0)
             {
-                UnregisterChild(child);
+                foreach (var child in children.ToList())
+                {
+                    UnregisterChild(child);
+                }
             }
         }
 
