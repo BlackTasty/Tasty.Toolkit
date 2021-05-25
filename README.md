@@ -3,7 +3,7 @@
 This project contains libraries for different purposes. Below are short descriptions to each library. (Check out the Wiki for more information to each library)
 
 ## Tasty.Logging
-NuGet: `Install-Package TastyApps.Core.Logging -Version 1.0.2`
+### NuGet: `Install-Package TastyApps.Core.Logging -Version 1.0.3`
 
 Contains classes for logging to a file. 
 Hooking up a control to the "IConsole" interface allows to catch the logged strings and output them for example into a textbox.
@@ -19,6 +19,8 @@ Extension for Tasty.Logging which allows the Windows cmd to display text in ever
 Extension for Tasty.Logging. Can be used with [Sentry.io](https://sentry.io/welcome/) to send error reports to developer. 
 
 ## Tasty.SQLiteManager
+### NuGet: `Install-Package TastyApps.Core.SQLiteManager -Version 1.0.2`
+
 Custom SQLite API which handles communication between database and application. Contains functions to allow ALTER TABLE as SQLite doesn't support it.
 
 Current features:
@@ -28,6 +30,8 @@ Current features:
 - [**SELECT**](): via Select() method in TableDescriptor, returns a ResultSet object. Can also accept a Condition object to filter results
 
 ## Tasty.ViewModel
+### NuGet: `Install-Package TastyApps.Core.ViewModel -Version 1.0.3.4`
+
 Provides classes for WPF data binding (MVVM). Additionally you can observe objects and collections of type **VeryObservableCollection** to detect unsaved changes. (For example when providing a form to edit data)
 
 Current features:
@@ -38,6 +42,8 @@ Current features:
   
 
 ## Tasty.ViewModel.JsonNet
+### NuGet: `Install-Package TastyApps.Core.ViewModel.JsonNet -Version 1.0.3.4`
+  
 Overrides some of the classes from Tasty.ViewModel to add the **JSONIgnore** flag to properties. Requires Newtonsoft.Json dependency!
 
 ### Unit tests
