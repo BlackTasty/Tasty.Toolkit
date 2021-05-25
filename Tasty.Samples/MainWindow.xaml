@@ -11,5 +11,8 @@
         <TabItem Header="Tasty.Logging">
             <controls:LoggingExample/>
         </TabItem>
+        <TabItem Header="Tasty.ViewModel">
+            <controls:ViewModelExample/>
+        </TabItem>
     </TabControl>
 </Window>

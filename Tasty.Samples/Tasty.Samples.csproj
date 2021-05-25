@@ -56,7 +56,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="MediatorExampleEnum.cs" />
+    <Compile Include="ViewModel\Commands\OpenUrlCommand.cs" />
+    <Compile Include="ViewModel\ExampleViewModel.cs" />
+    <Compile Include="ViewModel\MediatorExampleViewModel.cs" />
     <Page Include="Controls\LoggingExample.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\ViewModelExample.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -70,6 +78,9 @@
     </Compile>
     <Compile Include="Controls\LoggingExample.xaml.cs">
       <DependentUpon>LoggingExample.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ViewModelExample.xaml.cs">
+      <DependentUpon>ViewModelExample.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
