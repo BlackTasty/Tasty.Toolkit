@@ -2,20 +2,20 @@
 <package >
   <metadata>
     <id>TastyApps.Core.SQLiteManager</id>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <title>Tasty.SQLiteManager</title>
     <authors>BlackTasty</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">GPL-2.0-only</license>
-    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="de325f27ff7bb3124b326e155b0b0da314481045" />
+    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="ccf1f61b3e8b5d0915b58ed585687fd6199a5775" />
     <description>Manage your SQLite databases</description>
-    <releaseNotes>Added documentation to public classes, methods, etc.</releaseNotes>
+    <releaseNotes>Updated parameter name for default logger</releaseNotes>
     <copyright>Copyright © BlackTasty 2021</copyright>
     <tags>csharp sqlite database manager db sql</tags>
 
     <dependencies>
       <group targetFramework=".NETFramework4.5.2">
-        <dependency id="TastyApps.Core.Logging" version="1.0.3"/>
+        <dependency id="TastyApps.Core.Logging" version="1.0.4"/>
         <dependency id="System.Data.SQLite" version="1.0.113.1" />
       </group>
     </dependencies>
