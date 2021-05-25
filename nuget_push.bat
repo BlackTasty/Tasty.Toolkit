@@ -2,6 +2,7 @@ set /P key="Please input the nuget API key: "
 set /P versionVm="Set Tasty.ViewModel version (leave empty to skip): "
 set /P versionJson="Set Tasty.ViewModel.JsonNet version (leave empty to skip): "
 set /P versionLog="Set Tasty.Logging version (leave empty to skip): "
+set /P versionSql="Set Tasty.SQLiteManager version (leave empty to skip): "
 
 cd Tasty.ViewModel
 IF NOT "%versionVm%"=="" (
@@ -16,4 +17,9 @@ IF NOT "%versionJson%"=="" (
 cd ../Tasty.Logging
 IF NOT "%versionLog%"=="" (
 	nuget push TastyApps.Core.Logging.%versionLog%.nupkg %key% -Source https://api.nuget.org/v3/index.json
+)
+
+cd ../Tasty.SQLiteManager
+IF NOT "%versionSql%"=="" (
+	nuget push TastyApps.Core.SQLiteManager.%versionSql%.nupkg %key% -Source https://api.nuget.org/v3/index.json
 )

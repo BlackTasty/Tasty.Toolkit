@@ -7,13 +7,11 @@
     <authors>BlackTasty</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">GPL-2.0-only</license>
-    <projectUrl>http://project_url_here_or_delete_this_line/</projectUrl>
-    <iconUrl>http://icon_url_here_or_delete_this_line/</iconUrl>
+    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="de325f27ff7bb3124b326e155b0b0da314481045" />
     <description>Manage your SQLite databases</description>
     <releaseNotes>Added documentation to public classes, methods, etc.</releaseNotes>
     <copyright>Copyright © BlackTasty 2021</copyright>
     <tags>csharp sqlite database manager db sql</tags>
-    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="de325f27ff7bb3124b326e155b0b0da314481045" />
 
     <dependencies>
       <group targetFramework=".NETFramework4.5.2">
