@@ -5,7 +5,7 @@
     <version>1.0.3</version>
     <title>Tasty.SQLiteManager</title>
     <authors>BlackTasty</authors>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">GPL-2.0-only</license>
     <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="ccf1f61b3e8b5d0915b58ed585687fd6199a5775" />
     <description>Manage your SQLite databases</description>

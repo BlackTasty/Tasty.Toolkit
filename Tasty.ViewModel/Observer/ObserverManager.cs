@@ -40,6 +40,13 @@ namespace Tasty.ViewModel.Observer
         internal string Guid => GuidOverride != null ? GuidOverride : guid;
 
         /// <summary>
+        /// If set to false, all functionality is disabled. 
+        /// <para></para>
+        /// This includes the method <see cref="ObserveProperty{T}(T, string)"/>, which disables hooking up new <see cref="Observer{T}"/>.
+        /// </summary>
+        public bool IsEnabled { get; set; }
+
+        /// <summary>
         /// Initializes a new <see cref="ObserverManager"/>.
         /// </summary>
         public ObserverManager()
@@ -67,12 +74,12 @@ namespace Tasty.ViewModel.Observer
         /// <summary>
         /// Register a child <see cref="ObserverManager"/>. "ChangeObserved" events fired by children will bubble up and get re-fired by this manager.
         /// <para></para>
-        /// If the child is already added or is null this will have no effect!
+        /// <see cref="IsEnabled"/> is set to false, the child is already added or is null this will have no effect!
         /// </summary>
         /// <param name="child">The child to add and observe</param>
         public void RegisterChild(ObserverManager child)
         {
-            if (child == null)
+            if (child == null || !IsEnabled)
             {
                 return;
             }
@@ -87,7 +94,8 @@ namespace Tasty.ViewModel.Observer
 
         /// <summary>
         /// Unregister a child <see cref="ObserverManager"/> if registered.
-        /// If the child is null this will have no effect!
+        /// <para></para>
+        /// If the child is null or isn't registered this will have no effect!
         /// </summary>
         /// <param name="child">The child to remove</param>
         public void UnregisterChild(ObserverManager child)
@@ -108,16 +116,16 @@ namespace Tasty.ViewModel.Observer
         }
 
         /// <summary>
-        /// Used both to register new observers and update existing ones.
+        /// Used both to register new observers and update existing ones. Observes changes on the specified property.
         /// <para></para>
-        /// Observes changes on the specified property.
+        /// If <see cref="IsEnabled"/> is set to false, this will have no effect!
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="value">The current value of the property</param>
         /// <param name="propertyName">Can be left empty when called from inside the target property. The display name of the property to watch.</param>
         public void ObserveProperty<T>(T value, [CallerMemberName] string propertyName = null)
         {
-            if (propertyName == null)
+            if (propertyName == null || !IsEnabled)
             {
                 return;
             }
