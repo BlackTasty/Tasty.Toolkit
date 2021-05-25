@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Tasty.SQLiteManager.Table.Column;
 
 namespace Tasty.SQLiteManager.Table
@@ -45,7 +41,7 @@ namespace Tasty.SQLiteManager.Table
                 throw new KeyNotFoundException("The target column with the name \"" + foreignKeyName +
                     "\" doesn't exist in the foreign table \"" + foreignTable.Name + "\"");
             }
-            
+
             return string.Format("FOREIGN KEY(\"{0}\") REFERENCES \"{1}\"(\"{2}\") {3}",
                 targetKeyName, foreignTable.Name, foreignKeyName, ParseConstraintType());
         }

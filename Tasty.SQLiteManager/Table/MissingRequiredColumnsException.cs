@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Tasty.SQLiteManager.Table.Column;
 
 namespace Tasty.SQLiteManager.Table
@@ -19,7 +16,7 @@ namespace Tasty.SQLiteManager.Table
 
         public MissingRequiredColumnsException(string message) : base(message)
         {
-            
+
         }
 
         public MissingRequiredColumnsException(string message, List<IColumn> missingColumns) : this(message)
@@ -27,7 +24,7 @@ namespace Tasty.SQLiteManager.Table
             this.missingColumns = missingColumns;
         }
 
-        public MissingRequiredColumnsException(string message, Exception inner) : base (message, inner)
+        public MissingRequiredColumnsException(string message, Exception inner) : base(message, inner)
         {
 
         }

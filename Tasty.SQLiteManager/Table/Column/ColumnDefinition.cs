@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Tasty.SQLiteManager.Table.Column
 {
@@ -55,7 +50,7 @@ namespace Tasty.SQLiteManager.Table.Column
         public ColumnDefinition(string name)
         {
             Type inputType = typeof(T);
-            
+
             if (inputType == typeof(int))
             {
                 columnType = ColumnType.INTEGER;
@@ -100,7 +95,7 @@ namespace Tasty.SQLiteManager.Table.Column
         /// - NOT_NULL: null not allowed as value
         /// - UNIQUE: Value can only appear once in table
         /// - PRIMARY_KEY: Only on columns with type <see cref="int"/>! Define this column as primary key, auto-increments with each insert into table</param>
-        public ColumnDefinition(string name, ColumnMode columnMode) : 
+        public ColumnDefinition(string name, ColumnMode columnMode) :
             this(name)
         {
             SetColumnMode(columnMode);
@@ -111,7 +106,7 @@ namespace Tasty.SQLiteManager.Table.Column
         /// </summary>
         /// <param name="name">The name of the column</param>
         /// <param name="defaultValue">Define a default value for this column</param>
-        public ColumnDefinition(string name, T defaultValue) : 
+        public ColumnDefinition(string name, T defaultValue) :
             this(name)
         {
             this.defaultValue = defaultValue;
@@ -126,7 +121,7 @@ namespace Tasty.SQLiteManager.Table.Column
         /// - UNIQUE: Value can only appear once in table
         /// - PRIMARY_KEY: Only on columns with type <see cref="int"/>! Define this column as primary key, auto-increments with each insert into table</param>
         /// <param name="defaultValue">Define a default value for this column</param>
-        public ColumnDefinition(string name, ColumnMode columnMode, T defaultValue) : 
+        public ColumnDefinition(string name, ColumnMode columnMode, T defaultValue) :
             this(name, defaultValue)
         {
             SetColumnMode(columnMode);

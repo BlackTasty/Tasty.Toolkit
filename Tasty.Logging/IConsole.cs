@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Tasty.Logging
+﻿namespace Tasty.Logging
 {
     /// <summary>
     /// Interface for outputting logged lines

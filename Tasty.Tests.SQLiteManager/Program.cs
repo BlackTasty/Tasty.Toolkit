@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Authentication.ExtendedProtection;
 using System.Text;
 using System.Threading.Tasks;
+using Tasty.Logging;
 using Tasty.SQLiteManager;
 using Tasty.SQLiteManager.Table;
 using Tasty.SQLiteManager.Table.Column;
@@ -27,7 +28,7 @@ namespace Tasty.Tests.SQLiteManager
 
         static void Main(string[] args)
         {
-            Database.Initialize(dbPath, tables);
+            Database.Initialize(dbPath, tables, Logger.Initialize(false));
             Logging.Logger.Instance.DisableLogging = true;
 
             System.Console.Clear();

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Tasty.SQLiteManager.Table.Column
+﻿namespace Tasty.SQLiteManager.Table.Column
 {
     /// <summary>
     /// Interface for table columns

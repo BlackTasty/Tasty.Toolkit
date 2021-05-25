@@ -1,29 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package >
   <metadata>
-    <id>TastyApps.Core.ViewModel.JsonNet</id>
-    <version>1.0.3.4</version>
-    <title>Tasty.ViewModel.JsonNet</title>
+    <id>TastyApps.Core.SQLiteManager</id>
+    <version>1.0.2</version>
+    <title>Tasty.SQLiteManager</title>
     <authors>BlackTasty</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">GPL-2.0-only</license>
-    <description>Extension for Tasty.ViewModel. Includes some overridden classes for use with Newtonsoft.Json</description>
-    <releaseNotes>Added documentation where it was missing</releaseNotes>
+    <projectUrl>http://project_url_here_or_delete_this_line/</projectUrl>
+    <iconUrl>http://icon_url_here_or_delete_this_line/</iconUrl>
+    <description>Manage your SQLite databases</description>
+    <releaseNotes>Added documentation to public classes, methods, etc.</releaseNotes>
     <copyright>Copyright © BlackTasty 2021</copyright>
-    <tags>csharp databinding mvvm wpf json</tags>
+    <tags>csharp sqlite database manager db sql</tags>
     <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="de325f27ff7bb3124b326e155b0b0da314481045" />
 
     <dependencies>
       <group targetFramework=".NETFramework4.5.2">
-        <dependency id="TastyApps.Core.ViewModel" version="1.0.3.3"/>
-        <dependency id="Newtonsoft.Json" version="9.0" />
+        <dependency id="TastyApps.Core.Logging" version="1.0.3"/>
+        <dependency id="System.Data.SQLite" version="1.0.113.1" />
       </group>
     </dependencies>
 
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="Microsoft.CSharp"/>
-      <frameworkAssembly assemblyName="PresentationCore"/>
       <frameworkAssembly assemblyName="System"/>
+      <frameworkAssembly assemblyName="System.Data"/>
     </frameworkAssemblies>
   </metadata>
 </package>

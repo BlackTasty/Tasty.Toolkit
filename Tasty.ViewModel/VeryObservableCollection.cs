@@ -5,7 +5,6 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Tasty.ViewModel.Communication;
 using Tasty.ViewModel.Observer;
 
@@ -101,7 +100,7 @@ namespace Tasty.ViewModel
         /// <param name="collectionName">The name of the collection (must match the property name!)</param>
         /// <param name="generateObservers">Default is false. When set to true, changes to this collection are monitored</param>
         /// <param name="message">Default is null. If set to an enum, viewmodels which subscribed to this message will receive change notifications</param>
-        public VeryObservableCollection(string collectionName, 
+        public VeryObservableCollection(string collectionName,
             bool generateObservers = false, Enum message = null)
         {
             if (typeof(T).GetProperties().FirstOrDefault(x => x.PropertyType == typeof(ObserverManager)) != null)
@@ -145,7 +144,7 @@ namespace Tasty.ViewModel
 
         public void UnregisterParent(ObserverManager parent)
         {
-            
+
         }
 
         /// <summary>
@@ -196,7 +195,7 @@ namespace Tasty.ViewModel
             {
                 itemChecksums.Add(child.Guid);
                 observerManager?.RegisterChild(child);
-            } 
+            }
             else
             {
                 itemChecksums.Add(item.ToString() + Count);
@@ -399,7 +398,7 @@ namespace Tasty.ViewModel
         protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             PropertyChanged?.Invoke(sender, e);
-            
+
             RefreshChecksum();
         }
 

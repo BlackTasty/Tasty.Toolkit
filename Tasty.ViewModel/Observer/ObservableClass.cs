@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Tasty.ViewModel.Observer
+﻿namespace Tasty.ViewModel.Observer
 {
     /// <summary>
     /// Default implementation for <see cref="IObservableClass"/>.

@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Tasty.Logging
 {
@@ -279,7 +275,7 @@ namespace Tasty.Logging
                             File.AppendAllText(filePath + ".verbose", logFileBuilder.ToString() + "\r");
                         }
                     }
-                    
+
                     if (isDebug)
                     {
                         Console.WriteLine((AddIdentifierToConsole ? logFileBuilder : logBuilder).ToString());

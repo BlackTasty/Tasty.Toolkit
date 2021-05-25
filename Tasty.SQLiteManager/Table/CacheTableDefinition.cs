@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Tasty.SQLiteManager.Table.Column;
 
 namespace Tasty.SQLiteManager.Table
@@ -17,7 +14,7 @@ namespace Tasty.SQLiteManager.Table
     {
         private CacheMethod cacheMethod;
         private IColumn expireDateColumn;
-        
+
         /// <summary>
         /// The target <see cref="ColumnDefinition{T}"/> to define expiring values when <see cref="CacheMethod.DELETE_EXPIRED"/> is set.
         /// </summary>
@@ -27,7 +24,7 @@ namespace Tasty.SQLiteManager.Table
         /// Define a new temporary table. Default cache method is <see cref="CacheMethod.DELETE_ON_LOAD"/>
         /// </summary>
         /// <param name="name">The name of the temporary table</param>
-        public CacheTableDefinition(string name) : base(name) 
+        public CacheTableDefinition(string name) : base(name)
         {
             cacheMethod = CacheMethod.DELETE_ON_LOAD;
         }
@@ -47,7 +44,7 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         /// <param name="name">The name of the temporary table</param>
         /// <param name="columns">A list of <see cref="ColumnDefinition{T}"/> objects for this table.</param>
-        public CacheTableDefinition(string name, List<IColumn> columns) : base(name, columns) 
+        public CacheTableDefinition(string name, List<IColumn> columns) : base(name, columns)
         {
             cacheMethod = CacheMethod.DELETE_ON_LOAD;
         }
@@ -69,7 +66,7 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="name">The name of the temporary table</param>
         /// <param name="foreignKeys">A list of foreign key definitions.</param>
         /// <param name="columns">A list of <see cref="ColumnDefinition{T}"/> objects for this table.</param>
-        public CacheTableDefinition(string name, List<IColumn> columns, List<ForeignKeyDefinition> foreignKeys) : base(name, columns, foreignKeys) 
+        public CacheTableDefinition(string name, List<IColumn> columns, List<ForeignKeyDefinition> foreignKeys) : base(name, columns, foreignKeys)
         {
             cacheMethod = CacheMethod.DELETE_ON_LOAD;
         }
@@ -81,7 +78,7 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="columns">A list of <see cref="ColumnDefinition{T}"/> objects for this table.</param>
         /// <param name="foreignKeys">A list of foreign key definitions.</param>
         /// <param name="cacheMethod">Configure how the temporary table should behave.</param>
-        public CacheTableDefinition(string name, List<IColumn> columns, List<ForeignKeyDefinition> foreignKeys, CacheMethod cacheMethod) : 
+        public CacheTableDefinition(string name, List<IColumn> columns, List<ForeignKeyDefinition> foreignKeys, CacheMethod cacheMethod) :
             base(name, columns, foreignKeys)
         {
             this.cacheMethod = cacheMethod;
