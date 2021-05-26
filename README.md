@@ -9,7 +9,7 @@ This project contains libraries for different purposes. Below are short descript
 Contains classes for logging to a file. 
 Hooking up a control to the "IConsole" interface allows to catch the logged strings and output them for example into a textbox.
 
-See the [Wiki](https://github.com/BlackTasty/Tasty.Toolkit/wiki/Tasty.Logging) for more details.
+### See the [Wiki](https://github.com/BlackTasty/Tasty.Toolkit/wiki/Tasty.Logging) for more details.
 
 ## Tasty.SQLiteManager
 #### NuGet: `Install-Package TastyApps.Core.SQLiteManager -Version 1.0.3`
@@ -23,6 +23,8 @@ Current features:
 - [**INSERT/UPDATE/DELETE**](): via their respective methods in TableDescriptor class
 - [**SELECT**](): via Select() method in TableDescriptor, returns a ResultSet object. Can also accept a Condition object to filter results
 
+### See the [Wiki](https://github.com/BlackTasty/Tasty.Toolkit/wiki/Tasty.SQLiteManager) for more details.
+
 ## Tasty.ViewModel
 #### NuGet: `Install-Package TastyApps.Core.ViewModel -Version 1.0.5`
 #### GitHub packages: `dotnet add PROJECT package TastyApps.Core.ViewModel --version 1.0.5`
@@ -34,7 +36,8 @@ Current features:
 - [**VeryObservableCollection**](): Extension for ObservableCollection<T> objects with optional Observer support
 - [**VeryObservableStackCollection**](): Extension of VeryObservableCollection<T>. Additional field "limit" allows limiting of items.
 - [**Observer**]() & [**ObserverManager**](): Classes for context-based change detection. Works on primitive types, custom classes and VeryObservableCollection<T>.
-  
+
+### See the [Wiki](https://github.com/BlackTasty/Tasty.Toolkit/wiki/Tasty.ViewModel) for more details.
 
 ## Tasty.ViewModel.JsonNet
 #### NuGet: `Install-Package TastyApps.Core.ViewModel.JsonNet -Version 1.0.4`
@@ -42,23 +45,30 @@ Current features:
   
 Overrides some of the classes from Tasty.ViewModel to add the **JSONIgnore** flag to properties. Requires Newtonsoft.Json dependency!
 
-### Unit tests
+### See the [Wiki](https://github.com/BlackTasty/Tasty.Toolkit/wiki/ViewModel---Collections-&-Newtonsoft.Json) for more details.
+  
+## Tasty.Samples
+Contains documented examples for the libraries above.
+  
+***
 
-## Tasty.Tests.Base
+## Unit tests
+
+### Tasty.Tests.Base
 Contains simple base classes and methods for testing
 
-## Tasty.Tests.SQLiteManager
+### Tasty.Tests.SQLiteManager
 Contains tests for Tasty.SQLiteManager
 
-## Tasty.Tests.ViewModel
+### Tasty.Tests.ViewModel
 Contains tests for Tasty.ViewModel
   
-### Other
+## Other
 
-## Tasty.Logging.Colorful
+### Tasty.Logging.Colorful
 *Not implemented yet!*
 
 Extension for Tasty.Logging which allows the Windows cmd to display text in every possible color. (Uses Colorful.Console)
 
-## Tasty.Logging.Sentry (deprecated)
+### Tasty.Logging.Sentry (deprecated)
 Extension for Tasty.Logging. Can be used with [Sentry.io](https://sentry.io/welcome/) to send error reports to developer. 
