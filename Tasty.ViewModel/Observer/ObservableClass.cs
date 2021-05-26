@@ -5,8 +5,8 @@
     /// </summary>
     public class ObservableClass : IObservableClass
     {
-        protected ObserverManager observerManager = new ObserverManager();
-        protected string guid;
+        private ObserverManager observerManager = new ObserverManager();
+        private string guid;
 
         /// <summary>
         /// <inheritdoc/>

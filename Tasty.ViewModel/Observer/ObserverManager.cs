@@ -6,7 +6,8 @@ using System.Runtime.CompilerServices;
 namespace Tasty.ViewModel.Observer
 {
     /// <summary>
-    /// Defines a new <see cref="ObserverManager"/>, which holds multiple <see cref="Observer{T}"/> objects.
+    /// Defines a new <see cref="ObserverManager"/>, which holds multiple <see cref="Observer{T}"/> objects. 
+    /// Implements <see cref="ViewModelBase"/> and fires PropertyChanged events for the "UnsavedChanges" property
     /// <para></para>
     /// This class manages registration of Observers, firing ChangeObserved events and more.
     /// </summary>
@@ -44,7 +45,7 @@ namespace Tasty.ViewModel.Observer
         /// <para></para>
         /// This includes the method <see cref="ObserveProperty{T}(T, string)"/>, which disables hooking up new <see cref="Observer{T}"/>.
         /// </summary>
-        public bool IsEnabled { get; set; }
+        public bool IsEnabled { get; set; } = true;
 
         /// <summary>
         /// Initializes a new <see cref="ObserverManager"/>.

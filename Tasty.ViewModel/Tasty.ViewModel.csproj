@@ -49,6 +49,7 @@
     <Compile Include="Observer\IObservableClass.cs" />
     <Compile Include="Observer\IObserver.cs" />
     <Compile Include="Observer\ObservableClass.cs" />
+    <Compile Include="Observer\ObservableViewModel.cs" />
     <Compile Include="Observer\Observer.cs" />
     <Compile Include="Observer\ObserverManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

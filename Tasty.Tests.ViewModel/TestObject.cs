@@ -18,7 +18,7 @@ namespace Tasty.Tests.ViewModel
             get => name;
             set
             {
-                observerManager.ObserveProperty(value);
+                ObserverManager.ObserveProperty(value);
                 name = value;
             }
         }
@@ -28,7 +28,7 @@ namespace Tasty.Tests.ViewModel
             get => nestedObjects;
             set
             {
-                observerManager.ObserveProperty(value);
+                ObserverManager.ObserveProperty(value);
                 nestedObjects = value;
             }
         }

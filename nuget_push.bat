@@ -1,25 +1,77 @@
-set /P key="Please input the nuget API key: "
-set /P versionVm="Set Tasty.ViewModel version (leave empty to skip): "
-set /P versionJson="Set Tasty.ViewModel.JsonNet version (leave empty to skip): "
-set /P versionLog="Set Tasty.Logging version (leave empty to skip): "
-set /P versionSql="Set Tasty.SQLiteManager version (leave empty to skip): "
+@echo off
+
+set spacer="========="
+
+echo %spacer%"Configure keys"%spacer%
+echo.
+set /P nuggetKey="NuGet API key (leave empty to skip): "
+echo.
+set /P gitKey="GitHub PAT (leave empty to skip): "
+echo.
+echo.
+echo %spacer%"Configure versions"%spacer%
+echo.
+set /P versionVm="Tasty.ViewModel version (leave empty to skip): "
+echo.
+set /P versionJson="Tasty.ViewModel.JsonNet version (leave empty to skip): "
+echo.
+set /P versionLog="Tasty.Logging version (leave empty to skip): "
+echo.
+set /P versionSql="Tasty.SQLiteManager version (leave empty to skip): "
+echo.
 
 cd Tasty.ViewModel
 IF NOT "%versionVm%"=="" (
-	nuget push TastyApps.Core.ViewModel.%versionVm%.nupkg %key% -Source https://api.nuget.org/v3/index.json
+	echo %spacer%"Uploading Tasty.ViewModel "%versionVm%" "%spacer%
+	IF NOT "%nuggetKey%"=="" (
+		echo "Pushing to NuGet repository..."
+		nuget push TastyApps.Core.ViewModel.%versionVm%.nupkg %nuggetKey% -Source https://api.nuget.org/v3/index.json
+	)
+	
+	IF NOT "%gitKey%"=="" (
+		echo "Pushing to GitHub repository..."
+		dotnet nuget push "TastyApps.Core.ViewModel.%versionVm%.nupkg"  --api-key %gitKey% --source "github"
+	)
 )
 
 cd ../Tasty.ViewModel.JsonNet
 IF NOT "%versionJson%"=="" (
-	nuget push TastyApps.Core.ViewModel.JsonNet.%versionJson%.nupkg %key% -Source https://api.nuget.org/v3/index.json
+	echo %spacer%"Uploading Tasty.ViewModel.JsonNet "%versionJson%" "%spacer%
+	IF NOT "%nuggetKey%"=="" (
+		echo "Pushing to NuGet repository..."
+		nuget push TastyApps.Core.ViewModel.JsonNet.%versionJson%.nupkg %nuggetKey% -Source https://api.nuget.org/v3/index.json
+	)
+	
+	IF NOT "%gitKey%"=="" (
+		echo "Pushing to GitHub repository..."
+		dotnet nuget push "TastyApps.Core.ViewModel.JsonNet.%versionJson%.nupkg"  --api-key %gitKey% --source "github"
+	)
 )
 
 cd ../Tasty.Logging
 IF NOT "%versionLog%"=="" (
-	nuget push TastyApps.Core.Logging.%versionLog%.nupkg %key% -Source https://api.nuget.org/v3/index.json
+	echo %spacer%"Uploading Tasty.Logging "%versionLog%" "%spacer%
+	IF NOT "%nuggetKey%"=="" (
+		echo "Pushing to NuGet repository..."
+		nuget push TastyApps.Core.Logging.%versionLog%.nupkg %nuggetKey% -Source https://api.nuget.org/v3/index.json
+	)
+	
+	IF NOT "%gitKey%"=="" (
+		echo "Pushing to GitHub repository..."
+		dotnet nuget push "TastyApps.Core.Logging.%versionLog%.nupkg"  --api-key %gitKey% --source "github"
+	)
 )
 
 cd ../Tasty.SQLiteManager
 IF NOT "%versionSql%"=="" (
-	nuget push TastyApps.Core.SQLiteManager.%versionSql%.nupkg %key% -Source https://api.nuget.org/v3/index.json
+	echo %spacer%"Uploading Tasty.SQLiteManager "%versionSql%" "%spacer%
+	IF NOT "%nuggetKey%"=="" (
+		echo "Pushing to NuGet repository..."
+		nuget push TastyApps.Core.SQLiteManager.%versionSql%.nupkg %nuggetKey% -Source https://api.nuget.org/v3/index.json
+	)
+	
+	IF NOT "%gitKey%"=="" (
+		echo "Pushing to GitHub repository..."
+		dotnet nuget push "TastyApps.Core.SQLiteManager.%versionSql%.nupkg"  --api-key %gitKey% --source "github"
+	)
 )

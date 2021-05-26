@@ -2,16 +2,16 @@
 <package >
   <metadata>
     <id>TastyApps.Core.ViewModel</id>
-    <version>1.0.5</version>
+    <version>1.0.5.1</version>
     <title>Tasty.ViewModel</title>
     <authors>BlackTasty</authors>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">GPL-2.0-only</license>
     <description>Contains base classes and methods for databinding in C# WPF.</description>
-    <releaseNotes>ObserverManager can now be enabled or disabled via the "IsEnabled" property.</releaseNotes>
+    <releaseNotes>Hotfix for ObserverManager, IsEnabled was by default set to false</releaseNotes>
     <copyright>Copyright © BlackTasty 2021</copyright>
     <tags>csharp databinding mvvm wpf</tags>
-    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="426c9f83e3343439db1442e5b48a038fea74da1b" />
+    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="52ede16b28b680fcc9c0ecb1dff5a40bdff437cf" />
 
     <dependencies>
       <group targetFramework=".NETFramework4.5.2">

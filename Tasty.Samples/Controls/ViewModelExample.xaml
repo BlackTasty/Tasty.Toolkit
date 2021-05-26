@@ -12,10 +12,29 @@
     <TextBlock DockPanel.Dock="Top" Text="Command example" FontSize="16"/>
     <DockPanel DockPanel.Dock="Top" Margin="4">
         <TextBlock Text="URL: "/>
-        <Button Command="{Binding OpenUrlCommand}" CommandParameter="{Binding Url, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" Content="Open URL"/>
+        <Button Command="{Binding OpenUrlCommand}" CommandParameter="{Binding Url, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" Content="Open URL" Padding="8,2"/>
         <TextBox Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}"/>
     </DockPanel>
-    <TextBlock DockPanel.Dock="Top" Text="Mediator example" FontSize="16" Margin="0,8,0,0"/>
+    <StackPanel DockPanel.Dock="Bottom">
+        <TextBlock Text="Observer example (Unsaved changes detection)"/>
+        <DockPanel Margin="8" Name="example_observers">
+            <DockPanel.DataContext>
+                <vm:ObserverExampleViewModel/>
+            </DockPanel.DataContext>
+            <Button Padding="8,2" Content="Reset observers" VerticalAlignment="Center" DockPanel.Dock="Right"
+                    Click="ResetObservers_Click"/>
+            <StackPanel DockPanel.Dock="Right" Margin="32,0">
+                <TextBlock Text="Unsaved changes"/>
+                <!-- We need to make our binding to UnsavedChanges one-way, because it is a read-only property. This is why we set Mode=OneWay in our binding-->
+                <CheckBox IsChecked="{Binding UnsavedChanges, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="False"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Observed input"/>
+                <TextBox Text="{Binding MediatorReceiverText, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+        </DockPanel>
+    </StackPanel>
+    <TextBlock DockPanel.Dock="Top" Text="Binding/Mediator example" FontSize="16" Margin="0,8,0,0"/>
     <UniformGrid Columns="2">
         <DockPanel LastChildFill="False" Margin="4">
             <TextBlock DockPanel.Dock="Top" Text="Source viewmodel (ExampleViewModel)" FontSize="14"/>
@@ -23,6 +42,18 @@
                 <TextBlock Text="Source input:" Margin="0,0,4,0"/>
                 <TextBox Text="{Binding MediatorSenderText, UpdateSourceTrigger=PropertyChanged}"/>
             </DockPanel>
+            <UniformGrid Columns="2" DockPanel.Dock="Top" Margin="8">
+                <StackPanel>
+                    <TextBlock Text="Input (bound to ExampleViewModel)" TextWrapping="Wrap"/>
+                    <!-- This is a simple binding, where UpdateSourceTrigger tells the underlying framework to update our property in our viewmodel on every change. -->
+                    <!-- The default UpdateSourceTrigger for text boxes is LostFocus, which means our viewmodel property is only updated once this control looses focus -->
+                    <TextBox Text="{Binding Input, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+                <StackPanel Margin="8,0,0,0">
+                    <TextBlock Text="Binding to input via ExampleViewModel" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Input}"/>
+                </StackPanel>
+            </UniformGrid>
         </DockPanel>
         <DockPanel Margin="4">
             <DockPanel.DataContext>

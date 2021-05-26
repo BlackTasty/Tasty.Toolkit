@@ -15,6 +15,7 @@ namespace Tasty.Samples.ViewModel
         private string mMediatorSenderText;
         // This is where we initialize our command. You can also move the initialization into the constructor
         private OpenUrlCommand mOpenUrlCommand = new OpenUrlCommand();
+        private string mInput;
 
         public string Url
         {
@@ -22,6 +23,16 @@ namespace Tasty.Samples.ViewModel
             set
             {
                 mUrl = value;
+                InvokePropertyChanged();
+            }
+        }
+
+        public string Input
+        {
+            get => mInput;
+            set
+            {
+                mInput = value;
                 InvokePropertyChanged();
             }
         }

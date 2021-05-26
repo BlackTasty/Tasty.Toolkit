@@ -259,3 +259,7 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/Tasty.Logging/nuget.config
+/Tasty.SQLiteManager/nuget.config
+/Tasty.ViewModel/nuget.config
+/Tasty.ViewModel.JsonNet/nuget.config

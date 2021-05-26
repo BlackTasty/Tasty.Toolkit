@@ -60,6 +60,7 @@
     <Compile Include="ViewModel\Commands\OpenUrlCommand.cs" />
     <Compile Include="ViewModel\ExampleViewModel.cs" />
     <Compile Include="ViewModel\MediatorExampleViewModel.cs" />
+    <Compile Include="ViewModel\ObserverExampleViewModel.cs" />
     <Page Include="Controls\LoggingExample.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
