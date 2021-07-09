@@ -1,6 +1,6 @@
 ﻿namespace Tasty.SQLiteManager.Table
 {
-    enum CacheMethod
+    public enum CacheMethod
     {
         /// <summary>
         /// Re-creates the entire table on initialization. Useful for temporary tables

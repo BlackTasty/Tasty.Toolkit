@@ -234,44 +234,51 @@ namespace Tasty.SQLiteManager
                         {
                             ColumnMode columnMode = ColumnMode.DEFAULT;
 
-                            if (property.GetCustomAttributes(typeof(ColumnConfig), true).FirstOrDefault() is 
-                                    ColumnConfig columnConfigAttribute)
+                            if (property.GetCustomAttributes(typeof(Column), true).FirstOrDefault() is 
+                                    Column columnAttribute)
                             {
-                                columnMode = columnConfigAttribute.ColumnMode;
+                                columnMode = columnAttribute.ColumnMode;
+                            }
+
+                            dynamic defaultValue = null;
+                            if (property.GetCustomAttributes(typeof(DefaultValue), true).FirstOrDefault() is 
+                                    DefaultValue defaultValueAttribute)
+                            {
+                                defaultValue = defaultValueAttribute.Value;
                             }
 
                             Type propertyType = property.PropertyType; 
                             if (propertyType == typeof(int))
                             {
-                                columns.Add(new ColumnDefinition<int>(property.Name, columnMode));
+                                columns.Add(new ColumnDefinition<int>(property.Name, columnMode, defaultValue));
                             }
                             else if (propertyType == typeof(double))
                             {
-                                columns.Add(new ColumnDefinition<double>(property.Name, columnMode));
+                                columns.Add(new ColumnDefinition<double>(property.Name, columnMode, defaultValue));
                             }
                             else if (propertyType == typeof(float))
                             {
-                                columns.Add(new ColumnDefinition<float>(property.Name, columnMode));
+                                columns.Add(new ColumnDefinition<float>(property.Name, columnMode, defaultValue));
                             }
                             else if (propertyType == typeof(string))
                             {
-                                columns.Add(new ColumnDefinition<string>(property.Name, columnMode));
+                                columns.Add(new ColumnDefinition<string>(property.Name, columnMode, defaultValue));
                             }
                             else if (propertyType == typeof(DateTime))
                             {
-                                columns.Add(new ColumnDefinition<DateTime>(property.Name, columnMode));
+                                columns.Add(new ColumnDefinition<DateTime>(property.Name, columnMode, defaultValue));
                             }
                             else if (propertyType == typeof(ulong))
                             {
-                                columns.Add(new ColumnDefinition<ulong>(property.Name, columnMode));
+                                columns.Add(new ColumnDefinition<ulong>(property.Name, columnMode, defaultValue));
                             }
                             else if (propertyType == typeof(bool))
                             {
-                                columns.Add(new ColumnDefinition<bool>(property.Name, columnMode));
+                                columns.Add(new ColumnDefinition<bool>(property.Name, columnMode, defaultValue));
                             }
                             else
                             {
-                                columns.Add(new ColumnDefinition<object>(property.Name, columnMode));
+                                columns.Add(new ColumnDefinition<object>(property.Name, columnMode, defaultValue));
                             }
                         }
 

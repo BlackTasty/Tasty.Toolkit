@@ -55,7 +55,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\Column.cs" />
-    <Compile Include="Attributes\ColumnConfig.cs" />
     <Compile Include="Attributes\DefaultValue.cs" />
     <Compile Include="Attributes\TableCaching.cs" />
     <Compile Include="Attributes\TableName.cs" />

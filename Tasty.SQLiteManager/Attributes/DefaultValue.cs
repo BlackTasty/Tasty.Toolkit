@@ -10,5 +10,10 @@ namespace Tasty.SQLiteManager.Attributes
     public class DefaultValue : Attribute
     {
         public dynamic Value { get; set; }
+
+        public DefaultValue(dynamic value)
+        {
+            Value = value;
+        }
     }
 }

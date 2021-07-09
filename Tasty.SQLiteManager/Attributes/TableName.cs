@@ -10,5 +10,10 @@ namespace Tasty.SQLiteManager.Attributes
     public class TableName : Attribute
     {
         public string Name { get; set; }
+
+        public TableName(string name)
+        {
+            Name = name;
+        }
     }
 }

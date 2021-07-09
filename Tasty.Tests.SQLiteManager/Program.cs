@@ -28,7 +28,8 @@ namespace Tasty.Tests.SQLiteManager
 
         static void Main(string[] args)
         {
-            Database.Initialize(dbPath, tables, Logger.Initialize(false));
+            //Database.Initialize(dbPath, tables, Logger.Initialize(false));
+            Database.Initialize(dbPath, Logger.Initialize(false));
             Logger.Default.DisableLogging = true;
 
             System.Console.Clear();

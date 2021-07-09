@@ -11,5 +11,10 @@ namespace Tasty.SQLiteManager.Attributes
     public class TableCaching : Attribute
     {
         public CacheMethod CacheMethod { get; set; }
+
+        public TableCaching(CacheMethod cacheMethod)
+        {
+            CacheMethod = cacheMethod;
+        }
     }
 }
