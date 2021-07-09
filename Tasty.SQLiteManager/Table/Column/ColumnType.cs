@@ -28,6 +28,10 @@
         /// <summary>
         /// Tells the API that it should expect a custom column type which gets parsed to a string
         /// </summary>
-        SPECIAL
+        SPECIAL,
+        /// <summary>
+        /// Let SQLiteManager handle the column type. Primarily used with the new table/column definition system
+        /// </summary>
+        AUTO
     }
 }

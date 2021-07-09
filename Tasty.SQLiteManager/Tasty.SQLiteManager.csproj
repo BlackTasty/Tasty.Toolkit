@@ -54,6 +54,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\Column.cs" />
+    <Compile Include="Attributes\ColumnConfig.cs" />
+    <Compile Include="Attributes\DefaultValue.cs" />
+    <Compile Include="Attributes\TableCaching.cs" />
+    <Compile Include="Attributes\TableName.cs" />
     <Compile Include="DatabaseNotInitializedException.cs" />
     <Compile Include="Table\CacheMethod.cs" />
     <Compile Include="Table\CacheTableDefinition.cs" />

@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Tasty.Logging;
+using Tasty.SQLiteManager.Attributes;
 using Tasty.SQLiteManager.Table;
 using Tasty.SQLiteManager.Table.Column;
 
@@ -184,6 +186,7 @@ namespace Tasty.SQLiteManager
         /// <param name="tables">A list of <see cref="TableDefinition"/> which represent the database structure</param>
         /// <param name="logger">(optional) A custom <see cref="Logger"/> to redirect output to another file</param>
         /// <param name="forceInitialize">(optional) Forces the re-initialization of the <see cref="Database"/> singleton object</param>
+        [Obsolete("This method of initializing your database is obsolete and will be removed in future versions. You no longer have to pass a list of tables, as defining tables and columns is now done via attributes.")]
         public static void Initialize(string dbPath, List<TableDefinition> tables, Logger logger = null, bool forceInitialize = false)
         {
             if (instance == null || forceInitialize)
@@ -196,7 +199,96 @@ namespace Tasty.SQLiteManager
                 instance.ClearCacheTables();
             }
         }
+        /// <summary>
+        /// Initializes the database.
+        /// </summary>
+        /// <param name="dbPath">The path to your SQLite database</param>
+        /// <param name="logger">(optional) A custom <see cref="Logger"/> to redirect output to another file</param>
+        /// <param name="forceInitialize">(optional) Forces the re-initialization of the <see cref="Database"/> singleton object</param>
 
+        public static void Initialize(string dbPath, Logger logger = null, bool forceInitialize = false)
+        {
+            if (instance == null || forceInitialize)
+            {
+                instance = new Database(dbPath, DiscoverTableClasses());
+                instance.ClearCacheTables();
+            }
+        }
+
+        /// <summary>
+        /// Uses reflection to generate <see cref="TableDefinition"/>s.
+        /// </summary>
+        private static List<TableDefinition> DiscoverTableClasses()
+        {
+            List<TableDefinition> tables = new List<TableDefinition>();
+
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (Type type in assembly.GetTypes())
+                {
+                    if (type.GetCustomAttributes(typeof(TableName), true).FirstOrDefault() is TableName tableNameAttribute)
+                    {
+                        List<IColumn> columns = new List<IColumn>();
+                        foreach (PropertyInfo property in 
+                            type.GetProperties().Where(x => Attribute.IsDefined(x, typeof(Column))))
+                        {
+                            ColumnMode columnMode = ColumnMode.DEFAULT;
+
+                            if (property.GetCustomAttributes(typeof(ColumnConfig), true).FirstOrDefault() is 
+                                    ColumnConfig columnConfigAttribute)
+                            {
+                                columnMode = columnConfigAttribute.ColumnMode;
+                            }
+
+                            Type propertyType = property.PropertyType; 
+                            if (propertyType == typeof(int))
+                            {
+                                columns.Add(new ColumnDefinition<int>(property.Name, columnMode));
+                            }
+                            else if (propertyType == typeof(double))
+                            {
+                                columns.Add(new ColumnDefinition<double>(property.Name, columnMode));
+                            }
+                            else if (propertyType == typeof(float))
+                            {
+                                columns.Add(new ColumnDefinition<float>(property.Name, columnMode));
+                            }
+                            else if (propertyType == typeof(string))
+                            {
+                                columns.Add(new ColumnDefinition<string>(property.Name, columnMode));
+                            }
+                            else if (propertyType == typeof(DateTime))
+                            {
+                                columns.Add(new ColumnDefinition<DateTime>(property.Name, columnMode));
+                            }
+                            else if (propertyType == typeof(ulong))
+                            {
+                                columns.Add(new ColumnDefinition<ulong>(property.Name, columnMode));
+                            }
+                            else if (propertyType == typeof(bool))
+                            {
+                                columns.Add(new ColumnDefinition<bool>(property.Name, columnMode));
+                            }
+                            else
+                            {
+                                columns.Add(new ColumnDefinition<object>(property.Name, columnMode));
+                            }
+                        }
+
+                        tables.Add(new TableDefinition(tableNameAttribute.Name, columns));
+                    }
+                }
+            }
+
+            return tables;
+        }
+
+        /// <summary>
+        /// This is the old constructor used with SQLiteManager ver. 1. Requires a list of tables for setup
+        /// </summary>
+        /// <param name="dbPath"></param>
+        /// <param name="tables"></param>
+        /// <param name="logger"></param>
         private Database(string dbPath, List<TableDefinition> tables, Logger logger = null)
         {
             this.logger = logger;
