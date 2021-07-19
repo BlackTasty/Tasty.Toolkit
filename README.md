@@ -26,8 +26,8 @@ Current features:
 ### See the [Wiki](https://github.com/BlackTasty/Tasty.Toolkit/wiki/Tasty.SQLiteManager) for more details.
 
 ## Tasty.ViewModel
-#### NuGet: `Install-Package TastyApps.Core.ViewModel -Version 1.0.5`
-#### GitHub packages: `dotnet add PROJECT package TastyApps.Core.ViewModel --version 1.0.5`
+#### NuGet: `Install-Package TastyApps.Core.ViewModel -Version 1.0.5.1`
+#### GitHub packages: `dotnet add PROJECT package TastyApps.Core.ViewModel --version 1.0.5.1`
 
 Provides classes for WPF data binding (MVVM). Additionally you can observe objects and collections of type **VeryObservableCollection** to detect unsaved changes. (For example when providing a form to edit data)
 
