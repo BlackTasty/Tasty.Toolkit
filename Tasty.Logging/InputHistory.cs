@@ -3,9 +3,9 @@
 namespace Tasty.Logging
 {
     /// <summary>
-    /// Not implemented
+    /// Helper class to create a CMD-like command history
     /// </summary>
-    internal class InputHistory
+    public class InputHistory
     {
         private List<string> history;
         private int capacity;

@@ -4,16 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C5348E24-193E-4763-AA24-1E9E30CC4ED2}</ProjectGuid>
+    <ProjectGuid>{88B38D48-9494-497E-901E-6290765E3B7E}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Tasty.Samples</RootNamespace>
-    <AssemblyName>Tasty.Samples</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <RootNamespace>Tasty.Samples.MaterialDesign.FilePicker</RootNamespace>
+    <AssemblyName>Tasty.Samples.MaterialDesign.FilePicker</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -36,6 +37,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MaterialDesignColors, Version=2.0.0.2422, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
+      <HintPath>..\packages\MaterialDesignColors.2.0.0\lib\net452\MaterialDesignColors.dll</HintPath>
+    </Reference>
+    <Reference Include="MaterialDesignThemes.Wpf, Version=4.0.0.2422, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
+      <HintPath>..\packages\MaterialDesignThemes.4.0.0\lib\net452\MaterialDesignThemes.Wpf.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -56,19 +63,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="MediatorExampleEnum.cs" />
-    <Compile Include="ViewModel\Commands\OpenUrlCommand.cs" />
-    <Compile Include="ViewModel\ExampleViewModel.cs" />
-    <Compile Include="ViewModel\MediatorExampleViewModel.cs" />
-    <Compile Include="ViewModel\ObserverExampleViewModel.cs" />
-    <Page Include="Controls\LoggingExample.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\ViewModelExample.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -76,12 +70,6 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Controls\LoggingExample.xaml.cs">
-      <DependentUpon>LoggingExample.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\ViewModelExample.xaml.cs">
-      <DependentUpon>ViewModelExample.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -106,6 +94,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -115,26 +104,17 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Tasty.Logging\Tasty.Logging.csproj">
-      <Project>{24ca2afe-776e-49df-bdc7-3179ed3e38ff}</Project>
-      <Name>Tasty.Logging</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Tasty.MaterialDesign.FilePicker\Tasty.MaterialDesign.FilePicker.csproj">
       <Project>{43b40813-a571-45c8-8979-70cab3d2405d}</Project>
       <Name>Tasty.MaterialDesign.FilePicker</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Tasty.SQLiteManager\Tasty.SQLiteManager.csproj">
-      <Project>{a2001b55-d38a-47b7-b33d-0c5b2b710a36}</Project>
-      <Name>Tasty.SQLiteManager</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Tasty.ViewModel.JsonNet\Tasty.ViewModel.JsonNet.csproj">
-      <Project>{f5986220-001c-451b-98f0-e0de1672d159}</Project>
-      <Name>Tasty.ViewModel.JsonNet</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Tasty.ViewModel\Tasty.ViewModel.csproj">
-      <Project>{399bedd8-352d-4f16-85c6-c20a70fbd1ae}</Project>
-      <Name>Tasty.ViewModel</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets'))" />
+  </Target>
 </Project>

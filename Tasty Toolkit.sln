@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
+# Blend for Visual Studio Version 16
 VisualStudioVersion = 16.0.29920.165
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Logging", "Tasty.Logging\Tasty.Logging.csproj", "{24CA2AFE-776E-49DF-BDC7-3179ED3E38FF}"
@@ -20,6 +20,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Tests.Base", "Tasty.Tests.Base\Tasty.Tests.Base.csproj", "{D1667B21-AE47-4EBD-AEB2-9546B29013A5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Samples", "Tasty.Samples\Tasty.Samples.csproj", "{C5348E24-193E-4763-AA24-1E9E30CC4ED2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.MaterialDesign.FilePicker", "Tasty.MaterialDesign.FilePicker\Tasty.MaterialDesign.FilePicker.csproj", "{43B40813-A571-45C8-8979-70CAB3D2405D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasty.Samples.MaterialDesign.FilePicker", "Tasty.Samples.MaterialDesign.FilePicker\Tasty.Samples.MaterialDesign.FilePicker.csproj", "{88B38D48-9494-497E-901E-6290765E3B7E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +85,18 @@ Global
 		{C5348E24-193E-4763-AA24-1E9E30CC4ED2}.Production|Any CPU.Build.0 = Release|Any CPU
 		{C5348E24-193E-4763-AA24-1E9E30CC4ED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5348E24-193E-4763-AA24-1E9E30CC4ED2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43B40813-A571-45C8-8979-70CAB3D2405D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43B40813-A571-45C8-8979-70CAB3D2405D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43B40813-A571-45C8-8979-70CAB3D2405D}.Production|Any CPU.ActiveCfg = Release|Any CPU
+		{43B40813-A571-45C8-8979-70CAB3D2405D}.Production|Any CPU.Build.0 = Release|Any CPU
+		{43B40813-A571-45C8-8979-70CAB3D2405D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43B40813-A571-45C8-8979-70CAB3D2405D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88B38D48-9494-497E-901E-6290765E3B7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88B38D48-9494-497E-901E-6290765E3B7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88B38D48-9494-497E-901E-6290765E3B7E}.Production|Any CPU.ActiveCfg = Release|Any CPU
+		{88B38D48-9494-497E-901E-6290765E3B7E}.Production|Any CPU.Build.0 = Release|Any CPU
+		{88B38D48-9494-497E-901E-6290765E3B7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88B38D48-9494-497E-901E-6290765E3B7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

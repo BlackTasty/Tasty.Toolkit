@@ -55,7 +55,9 @@ namespace Tasty.ViewModel.Observer
             guid = System.Guid.NewGuid().ToString();
         }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         ~ObserverManager()
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             // Unhook all event handlers for observers and child ObserverManager classes
             foreach (var observer in changeObservers)
@@ -225,7 +227,9 @@ namespace Tasty.ViewModel.Observer
             return "{" + string.Format(" Observer count: {0}; Observers: {1} ", changeObservers.Count, observerString) + "}";
         }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         protected virtual void OnChangeObserved(ChangeObservedEventArgs e)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             ChangeObserved?.Invoke(this, e);
         }

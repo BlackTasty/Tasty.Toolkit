@@ -1,0 +1,28 @@
+﻿<Window x:Class="Tasty.Samples.MaterialDesign.FilePicker.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Tasty.Samples.MaterialDesign.FilePicker"
+        xmlns:material="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:filepicker="clr-namespace:Tasty.MaterialDesign.FilePicker;assembly=Tasty.MaterialDesign.FilePicker"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal" 
+        TextOptions.TextRenderingMode="Auto"        
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <material:Card Margin="8">
+        <TabControl BorderThickness="0,1,0,0" Background="Transparent">
+            <TabItem Header="In-window file picker">
+                <filepicker:FilePicker Title="Test file picker in view"
+                               Filter="All|*.*"
+                               SuppressCloseCommand="True"
+                               DialogClosed="FilePicker_DialogClosed"/>
+            </TabItem>
+        </TabControl>
+    </material:Card>
+</Window>

@@ -2,20 +2,20 @@
 <package >
   <metadata>
     <id>TastyApps.Core.ViewModel.JsonNet</id>
-    <version>1.0.4</version>
+    <version>1.0.5.1</version>
     <title>Tasty.ViewModel.JsonNet</title>
     <authors>BlackTasty</authors>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">GPL-2.0-only</license>
     <description>Extension for Tasty.ViewModel. Includes some overridden classes for use with Newtonsoft.Json</description>
-    <releaseNotes>Fixed an error in ObserverManager finalizer</releaseNotes>
+    <releaseNotes>Updated minimum dependency for Tasty.ViewModel</releaseNotes>
     <copyright>Copyright © BlackTasty 2021</copyright>
     <tags>csharp databinding mvvm wpf json</tags>
     <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="426c9f83e3343439db1442e5b48a038fea74da1b" />
 
     <dependencies>
       <group targetFramework=".NETFramework4.5.2">
-        <dependency id="TastyApps.Core.ViewModel" version="1.0.4"/>
+        <dependency id="TastyApps.Core.ViewModel" version="1.0.5.1"/>
         <dependency id="Newtonsoft.Json" version="9.0" />
       </group>
     </dependencies>

@@ -1,0 +1,30 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:Tasty.MaterialDesign.FilePicker"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib"
+                    xmlns:o="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options">
+
+    <!-- Basics -->
+    <system:String o:Freeze="True" x:Key="close">Close</system:String>
+    <system:String o:Freeze="True" x:Key="name">Name</system:String>
+
+    <!-- Buttons -->
+    <system:String o:Freeze="True" x:Key="abort">_ABORT</system:String>
+    <system:String o:Freeze="True" x:Key="confirm">_CONFIRM</system:String>
+    <system:String o:Freeze="True" x:Key="ok">_OK</system:String>
+
+    <!-- Validation -->
+    <system:String o:Freeze="True" x:Key="validationError_directory">Invalid directory!</system:String>
+    <system:String o:Freeze="True" x:Key="validationError_file">This file doesn't exist!</system:String>
+
+    <!-- FilePicker -->
+    <system:String o:Freeze="True" x:Key="filter_allFiles">All files</system:String>
+    <system:String o:Freeze="True" x:Key="header_extension">Extension</system:String>
+    <system:String o:Freeze="True" x:Key="picker_displayDetails">Details</system:String>
+    <system:String o:Freeze="True" x:Key="picker_displaySymbols">Symbols</system:String>
+    <system:String o:Freeze="True" x:Key="picker_displaySelectorHint">Display as</system:String>
+    <system:String o:Freeze="True" x:Key="hint_selectedFile">Selected file</system:String>
+    <system:String o:Freeze="True" x:Key="hint_selectedFolder">Selected directory</system:String>
+    <system:String o:Freeze="True" x:Key="title_accessDenied">Access denied by system!</system:String>
+    <system:String o:Freeze="True" x:Key="message_accessDenied">The system has denied access to this folder. Restart the program with admin rights and try again.</system:String>
+</ResourceDictionary>
