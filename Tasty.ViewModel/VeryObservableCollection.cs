@@ -6,6 +6,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using Tasty.ViewModel.Communication;
+using Tasty.ViewModel.Core.Enums;
+using Tasty.ViewModel.Core.Events;
 using Tasty.ViewModel.Observer;
 
 namespace Tasty.ViewModel
@@ -18,6 +20,7 @@ namespace Tasty.ViewModel
     public class VeryObservableCollection<T> : ObservableCollection<T>, INotifyPropertyChanged, IVeryObservableCollection
     {
         public event EventHandler<EventArgs> ObserveChanges;
+        public event EventHandler<CollectionUpdatedEventArgs<T>> CollectionUpdated;
 
         protected bool autoSort;
         protected List<string> triggerAlso = new List<string>();
@@ -202,6 +205,8 @@ namespace Tasty.ViewModel
             }
 
             base.Add(item);
+
+            OnCollectionUpdated(new CollectionUpdatedEventArgs<T>(this, item, CollectionChangeType.Added));
             if (autoSort)
             {
                 List<T> lookupList = Items.OrderBy(x => x.ToString(), StringComparer.CurrentCultureIgnoreCase)
@@ -290,6 +295,8 @@ namespace Tasty.ViewModel
                 itemChecksums.Remove(item.ToString() + (Count - 1));
             }
             base.Remove(item);
+
+            OnCollectionUpdated(new CollectionUpdatedEventArgs<T>(this, item, CollectionChangeType.Removed));
 
             if (observeChanges)
             {
@@ -385,6 +392,13 @@ namespace Tasty.ViewModel
             return copy;
         }
 
+        public void Sort(Func<T, string> keySelector)
+        {
+            Clear();
+            AddRange(this.OrderBy(keySelector));
+            Refresh();
+        }
+
         /*public void Sort(SortFactory sortFactory)
         {
             observeChanges = false;
@@ -470,6 +484,11 @@ namespace Tasty.ViewModel
             }
 
             return hash;
+        }
+
+        protected virtual void OnCollectionUpdated(CollectionUpdatedEventArgs<T> e)
+        {
+            CollectionUpdated?.Invoke(this, e);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Tasty.SQLiteManager.Table
     /// </summary>
     public class ForeignKeyDefinition : DefinitionBase
     {
-        private TableDefinition foreignTable;
+        private ITable foreignTable;
         private IColumn foreignKey;
         private IColumn targetKey;
 
@@ -19,7 +19,7 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="foreignTable">The target table where the foreign key is located</param>
         /// <param name="targetKey">The <see cref="ColumnDefinition{T}"/> of the foreign key</param>
         /// <param name="foreignKey">The <see cref="ColumnDefinition{T}"/> of the local key</param>
-        public ForeignKeyDefinition(string name, TableDefinition foreignTable, IColumn targetKey, IColumn foreignKey)
+        public ForeignKeyDefinition(string name, ITable foreignTable, IColumn targetKey, IColumn foreignKey)
         {
             this.foreignKey = foreignKey;
             this.targetKey = targetKey;

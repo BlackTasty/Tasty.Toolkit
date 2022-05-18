@@ -39,7 +39,7 @@ namespace Tasty.MaterialDesign.FilePicker.ViewModel
             private set
             {
                 mDefaultDestinations = value;
-                InvokePropertiesChanged();
+                InvokePropertyChanged();
             }
         }
 
@@ -137,8 +137,8 @@ namespace Tasty.MaterialDesign.FilePicker.ViewModel
             {
                 mCurrentPath = value;
                 InvokePropertyChanged();
-                InvokePropertiesChanged("SelectedDestination");
-                InvokePropertiesChanged("IsSelectEnabled");
+                InvokePropertyChanged("SelectedDestination");
+                InvokePropertyChanged("IsSelectEnabled");
             }
         }
 

@@ -44,7 +44,7 @@ namespace Tasty.ViewModel.Observer
 
         private void ObserverManager_ChangeObserved(object sender, ChangeObservedEventArgs e)
         {
-            InvokePropertiesChanged("UnsavedChanges");
+            InvokePropertyChanged("UnsavedChanges");
         }
 
         /// <summary>

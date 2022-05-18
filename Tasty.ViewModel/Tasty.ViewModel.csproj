@@ -44,6 +44,8 @@
     <Compile Include="Commands\CommandBase.cs" />
     <Compile Include="Communication\Mediator.cs" />
     <Compile Include="Communication\MultiDictionary.cs" />
+    <Compile Include="Core\Enums\CollectionChangeType.cs" />
+    <Compile Include="Core\Events\CollectionUpdatedEventArgs.cs" />
     <Compile Include="IVeryObservableCollection.cs" />
     <Compile Include="Observer\ChangeObservedEventArgs.cs" />
     <Compile Include="Observer\IObservableClass.cs" />

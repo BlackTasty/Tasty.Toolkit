@@ -55,6 +55,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DatabaseNotInitializedException.cs" />
+    <Compile Include="Table\Attributes\SqLiteDefaultValue.cs" />
+    <Compile Include="Table\Attributes\SqliteUnique.cs" />
+    <Compile Include="Table\Attributes\SqliteNotNull.cs" />
+    <Compile Include="Table\Attributes\SqlitePrimaryKey.cs" />
     <Compile Include="Table\CacheMethod.cs" />
     <Compile Include="Table\CacheTableDefinition.cs" />
     <Compile Include="Table\Column\Base64Encoding.cs" />
@@ -70,11 +74,14 @@
     <Compile Include="Table\DefinitionBase.cs" />
     <Compile Include="Table\ForeignKeyDefinition.cs" />
     <Compile Include="Table\Column\IColumn.cs" />
+    <Compile Include="Table\ICacheTable.cs" />
     <Compile Include="Table\ITableActions.cs" />
+    <Compile Include="Table\ITable.cs" />
     <Compile Include="Table\MissingRequiredColumnsException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Table\ResultSet.cs" />
     <Compile Include="Table\RowData.cs" />
+    <Compile Include="Table\Attributes\SqliteIgnore.cs" />
     <Compile Include="Table\TableDefinition.cs" />
   </ItemGroup>
   <ItemGroup>

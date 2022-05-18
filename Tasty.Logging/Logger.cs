@@ -325,7 +325,7 @@ namespace Tasty.Logging
             }
         }
 
-        protected static string GetExceptionLine(Exception ex)
+        public static string GetExceptionLine(Exception ex)
         {
             if (!string.IsNullOrWhiteSpace(ex.StackTrace))
             {

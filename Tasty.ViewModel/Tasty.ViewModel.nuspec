@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>TastyApps.Core.ViewModel</id>
-    <version>1.0.5.1</version>
+    <version>1.0.6.0</version>
     <title>Tasty.ViewModel</title>
     <authors>BlackTasty</authors>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>

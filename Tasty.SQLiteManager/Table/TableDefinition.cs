@@ -1,6 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Text;
+using Tasty.SQLiteManager.Table.Attributes;
 using Tasty.SQLiteManager.Table.Column;
 using Tasty.SQLiteManager.Table.Conditions;
 
@@ -9,8 +13,10 @@ namespace Tasty.SQLiteManager.Table
     /// <summary>
     /// Used to define a table with columns for the database
     /// </summary>
-    public class TableDefinition : DefinitionBase, IList<IColumn>
+    public class TableDefinition<T> : DefinitionBase, ITable
     {
+        private Type tableType;
+
         /// <summary>
         /// </summary>
         protected List<IColumn> columns = new List<IColumn>();
@@ -19,20 +25,25 @@ namespace Tasty.SQLiteManager.Table
         protected List<ForeignKeyDefinition> foreignKeys = new List<ForeignKeyDefinition>();
 
         /// <summary>
-        /// A list of all columns in this table
+        /// <inheritdoc/>
         /// </summary>
-        public List<IColumn> ColumnDefinitions { get => columns; }
+        public List<IColumn> ColumnDefinitions => columns;
 
         /// <summary>
-        /// A list of foreign keys defined for this table.
+        /// <inheritdoc/>
         /// </summary>
-        public List<ForeignKeyDefinition> ForeignKeys { get => foreignKeys; }
+        public List<ForeignKeyDefinition> ForeignKeys => foreignKeys;
 
         /// <summary>
-        /// Search for a column by name
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="columnName">The name of the column</param>
-        /// <returns></returns>
+        public Type TableType => tableType;
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <param name="columnName"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
         public IColumn this[string columnName]
         {
             get => columns.FirstOrDefault(x => x.Name == columnName);
@@ -42,9 +53,9 @@ namespace Tasty.SQLiteManager.Table
         /// Define a new table with the specified columns.
         /// </summary>
         /// <param name="name">The name of the table</param>
-        public TableDefinition(string name)
+        public TableDefinition(string name) : this(name, GetColumnsFromClass(typeof(T)))
         {
-            base.name = name;
+            tableType = typeof(T);
         }
 
         /// <summary>
@@ -52,9 +63,10 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         /// <param name="name">The name of the table</param>
         /// <param name="columns">A list of <see cref="ColumnDefinition{T}"/> objects for this table.</param>
-        public TableDefinition(string name, List<IColumn> columns) : this(name)
+        public TableDefinition(string name, List<IColumn> columns)
         {
             this.columns = columns;
+            base.name = name;
         }
 
         /// <summary>
@@ -173,40 +185,40 @@ namespace Tasty.SQLiteManager.Table
         #endregion
 
         /// <summary>
-        /// Returns if the specified column exists in this table.
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="target">The column to search for</param>
-        /// <returns>Returns true if the column exists</returns>
+        /// <param name="target"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
         public bool ColumnExists(IColumn target)
         {
             return columns.Exists(x => x.Equals(target));
         }
 
         /// <summary>
-        /// Returns if a column with the specified exists in this table.
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="colName">The column name to search for</param>
-        /// <returns>Returns true if the column exists</returns>
+        /// <param name="colName"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
         public bool ColumnExists(string colName)
         {
             return columns.Exists(x => x.Name.Equals(colName));
         }
 
         /// <summary>
-        /// Returns if this table exists in the database.
+        /// <inheritdoc/>
         /// </summary>
-        /// <returns>Returns true if the table has been found</returns>
+        /// <returns><inheritdoc/></returns>
         public bool TableExists()
         {
             return Query("SELECT name FROM sqlite_master WHERE type='table' AND name='" + Name + "';", true).Count > 0;
         }
 
         /// <summary>
-        /// Run a custom query on this table. Note that there have to be string formatter present in the command
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="command">The command to execute. {0} = table name</param>
-        /// <param name="awaitData">If true the query will execute your command as a SELECT query, else you can create any custom query</param>
-        /// <returns>Returns a <see cref="ResultSet"/> if awaitData is true, otherwise null</returns>
+        /// <param name="command"><inheritdoc/></param>
+        /// <param name="awaitData"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
         public ResultSet Query(string command, bool awaitData)
         {
             if (awaitData)
@@ -221,9 +233,9 @@ namespace Tasty.SQLiteManager.Table
         }
 
         /// <summary>
-        /// Returns the result of a SELECT query for this table
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="conditions">The WHERE statement of the query. Leave empty to return all data</param>
+        /// <param name="conditions"><inheritdoc/></param>
         public ResultSet Select(params Condition[] conditions)
         {
             string conditionParameter = ParseConditions(conditions);
@@ -241,23 +253,23 @@ namespace Tasty.SQLiteManager.Table
         }
 
         /// <summary>
-        /// Returns the result of a SELECT query for this table
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="columns">The columns to return</param>
-        /// <param name="conditions">The WHERE statement of the query</param>
-        /// <returns></returns>
+        /// <param name="columns"><inheritdoc/></param>
+        /// <param name="conditions"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
         public ResultSet Select(List<IColumn> columns, params Condition[] conditions)
         {
             return Select(columns, false, conditions);
         }
 
         /// <summary>
-        /// Returns the result of a SELECT query for this table
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="columns">The columns to return. Can be toggled to act as a blacklist with the second parameter</param>
-        /// <param name="excludeColumns">If true the columns parameter acts as a blacklist. The result will contain all columns except the blacklisted ones</param>
-        /// <param name="conditions">The WHERE statement of the query</param>
-        /// <returns></returns>
+        /// <param name="columns"><inheritdoc/></param>
+        /// <param name="excludeColumns"><inheritdoc/></param>
+        /// <param name="conditions"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
         public ResultSet Select(List<IColumn> columns, bool excludeColumns, params Condition[] conditions)
         {
             string conditionParameter = ParseConditions(conditions);
@@ -315,33 +327,33 @@ namespace Tasty.SQLiteManager.Table
         }
 
         /// <summary>
-        /// Inserts a new dataset into the table
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="data">The data to insert into the table</param>
-        /// <returns>Returns false if the query failed, otherwise true</returns>
-        /// <exception cref="MissingRequiredColumnsException"></exception>
+        /// <param name="data"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
+        /// <exception cref="MissingRequiredColumnsException"><inheritdoc/></exception>
         public bool Insert(Dictionary<IColumn, dynamic> data)
         {
             return Database.Instance.ExecuteSQL(GenerateInsertSQL(data, false));
         }
 
         /// <summary>
-        /// Inserts a new dataset into the table or replaces an existing entry
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="data">The data to insert/replace into the table</param>
-        /// <returns>Returns false if the query failed, otherwise true</returns>
-        /// <exception cref="MissingRequiredColumnsException"></exception>
+        /// <param name="data"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
+        /// <exception cref="MissingRequiredColumnsException"><inheritdoc/></exception>
         public bool Replace(Dictionary<IColumn, dynamic> data)
         {
             return Database.Instance.ExecuteSQL(GenerateInsertSQL(data, true));
         }
 
         /// <summary>
-        /// Inserts a new dataset into the table and returns the ID of the new dataset
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="data">The data to insert into the table</param>
-        /// <returns>Returns -1 if the query failed and -2 if there are no results. Otherwise the ID of the inserted data is returned</returns>
-        /// <exception cref="MissingRequiredColumnsException"></exception>
+        /// <param name="data"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
+        /// <exception cref="MissingRequiredColumnsException"><inheritdoc/></exception>
         public int Insert_GetIndex(Dictionary<IColumn, dynamic> data)
         {
             if (Database.Instance.ExecuteSQL(GenerateInsertSQL(data, false)))
@@ -377,10 +389,10 @@ namespace Tasty.SQLiteManager.Table
         }
 
         /// <summary>
-        /// Generates a SQL query for inserting multiple data into the table.
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="data">A <see cref="Dictionary{TKey, TValue}"/> of <see cref="ColumnDefinition{T}"/> objects and values. These get transformed into a SQL query</param>
-        /// <returns>Returns the formatted INSERT statement</returns>
+        /// <param name="data"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
         public string GenerateBulkInsert(Dictionary<IColumn, dynamic>[] data)
         {
             string sql = "BEGIN TRANSACTION;\n";
@@ -394,10 +406,10 @@ namespace Tasty.SQLiteManager.Table
         }
 
         /// <summary>
-        /// Generates a SQL query for updating multiple data into the table.
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="data">A <see cref="Dictionary{TKey, TValue}"/> of <see cref="ColumnDefinition{T}"/> objects and values. These get transformed into a SQL query</param>
-        /// <returns>Returns the formatted UPDATE statement</returns>
+        /// <param name="data"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
         public string GenerateBulkUpdate(Dictionary<IColumn, dynamic>[] data)
         {
             string sql = "BEGIN TRANSACTION;\n";
@@ -520,11 +532,11 @@ namespace Tasty.SQLiteManager.Table
         }
 
         /// <summary>
-        /// Update a dataset inside this table
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="data">The columns which shall be updated</param>
-        /// <param name="conditions">The WHERE statement of the query</param>
-        /// <returns>Returns false if the query failed, otherwise true</returns>
+        /// <param name="data"><inheritdoc/></param>
+        /// <param name="conditions"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
         public bool Update(Dictionary<IColumn, dynamic> data, params Condition[] conditions)
         {
             string setParameter = "";
@@ -555,19 +567,19 @@ namespace Tasty.SQLiteManager.Table
         }
 
         /// <summary>
-        /// Remove all entries in this table
+        /// <inheritdoc/>
         /// </summary>
-        /// <returns>Returns false if the query failed, otherwise true</returns>
+        /// <returns><inheritdoc/></returns>
         public bool Delete()
         {
             return Delete(null);
         }
 
         /// <summary>
-        /// Remove a dataset from this table
+        /// <inheritdoc/>
         /// </summary>
-        /// <param name="conditions">The WHERE statement of the query</param>
-        /// <returns>Returns false if the query failed, otherwise true</returns>
+        /// <param name="conditions"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
         public bool Delete(params Condition[] conditions)
         {
             string conditionParameter = conditions != null ? ParseConditions(conditions) : "";
@@ -632,6 +644,143 @@ namespace Tasty.SQLiteManager.Table
             }
 
             return sql_inner;
+        }
+
+        private static List<IColumn> GetColumnsFromClass(Type target)
+        {
+            List<IColumn> columns = new List<IColumn>();
+
+            foreach (PropertyInfo property in target.GetProperties())
+            {
+                if (!Attribute.IsDefined(property, typeof(SqliteIgnore)))
+                {
+                    ColumnMode columnMode;
+
+                    if (Attribute.IsDefined(property, typeof(SqlitePrimaryKey)))
+                    {
+                        columnMode = ColumnMode.PRIMARY_KEY;
+                    }
+                    else if (Attribute.IsDefined(property, typeof(SqliteNotNull)))
+                    {
+                        columnMode = ColumnMode.NOT_NULL;
+                    }
+                    else if (Attribute.IsDefined(property, typeof(SqliteUnique)))
+                    {
+                        columnMode = ColumnMode.UNIQUE;
+                    }
+                    else
+                    {
+                        columnMode = ColumnMode.DEFAULT;
+                    }
+
+                    dynamic defaultValue;
+                    if (Attribute.IsDefined(property, typeof(SqLiteDefaultValue)))
+                    {
+                        SqLiteDefaultValue defaultValueAttribute = (SqLiteDefaultValue)Attribute.GetCustomAttribute(property, typeof(SqLiteDefaultValue));
+                        defaultValue = defaultValueAttribute.DefaultValue;
+                    }
+                    else
+                    {
+                        defaultValue = null;
+                    }
+
+                    string columnName = columnMode != ColumnMode.PRIMARY_KEY ? GetColumnName(property.Name) : property.Name.ToUpper();
+                    switch (property.PropertyType.Name)
+                    {
+                        case "String":
+                            if (defaultValue != null)
+                            {
+                                columns.Add(new ColumnDefinition<string>(columnName, columnMode, defaultValue));
+                            }
+                            else
+                            {
+                                columns.Add(new ColumnDefinition<string>(columnName, columnMode));
+                            }
+                            break;
+                        case "Int32":
+                            if (defaultValue != null)
+                            {
+                                columns.Add(new ColumnDefinition<int>(columnName, columnMode, defaultValue));
+                            }
+                            else
+                            {
+                                columns.Add(new ColumnDefinition<int>(columnName, columnMode));
+                            }
+                            break;
+                        case "Double":
+                            if (defaultValue != null)
+                            {
+                                columns.Add(new ColumnDefinition<double>(columnName, columnMode, defaultValue));
+                            }
+                            else
+                            {
+                                columns.Add(new ColumnDefinition<double>(columnName, columnMode));
+                            }
+                            break;
+                        case "Single":
+                            if (defaultValue != null)
+                            {
+                                columns.Add(new ColumnDefinition<float>(columnName, columnMode, defaultValue));
+                            }
+                            else
+                            {
+                                columns.Add(new ColumnDefinition<float>(columnName, columnMode));
+                            }
+                            break;
+                        case "Int64":
+                            if (defaultValue != null)
+                            {
+                                columns.Add(new ColumnDefinition<long>(columnName, columnMode, defaultValue));
+                            }
+                            else
+                            {
+                                columns.Add(new ColumnDefinition<long>(columnName, columnMode));
+                            }
+                            break;
+                        case "DateTime":
+                            if (defaultValue != null)
+                            {
+                                columns.Add(new ColumnDefinition<DateTime>(columnName, columnMode, defaultValue));
+                            }
+                            else
+                            {
+                                columns.Add(new ColumnDefinition<DateTime>(columnName, columnMode));
+                            }
+                            break;
+                        default:
+                            if (defaultValue != null)
+                            {
+                                columns.Add(new ColumnDefinition<object>(columnName, columnMode, defaultValue));
+                            }
+                            else
+                            {
+                                columns.Add(new ColumnDefinition<object>(columnName, columnMode));
+                            }
+                            break;
+                    }
+                }
+            }
+
+            return columns;
+        }
+
+        private static string GetColumnName(string propertyName)
+        {
+            StringBuilder sb = new StringBuilder(char.ToLower(propertyName[0]).ToString());
+
+            for (int i = 1; i < propertyName.Length; i++)
+            {
+                if (char.IsUpper(propertyName[i]))
+                {
+                    sb.Append("_" + char.ToLower(propertyName[i]));
+                }
+                else
+                {
+                    sb.Append(propertyName[i]);
+                }
+            }
+
+            return sb.ToString();
         }
     }
 }

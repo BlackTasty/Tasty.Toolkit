@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Tasty.Tests.Base;
 using Tasty.ViewModel;
+using Tasty.ViewModel.Core.Events;
 
 namespace Tasty.Tests.ViewModel
 {
@@ -13,6 +15,9 @@ namespace Tasty.Tests.ViewModel
         private static VeryObservableCollection<string> simpleCollection = new VeryObservableCollection<string>("SimpleCollection", true);
         private static VeryObservableCollection<TestObject> complexCollection = new VeryObservableCollection<TestObject>("ComplexCollection", true);
 
+        private static bool collectionChangeTest_IsRemove;
+        private static CollectionUpdatedEventArgs<TestObject> eventCached;
+
         static void Main(string[] args)
         {
             System.Console.Clear();
@@ -20,6 +25,7 @@ namespace Tasty.Tests.ViewModel
             TestRunner.RunTest(Test_AddItem_Simple, "Checking observer functionality (simple collection)");
             TestRunner.RunTest(Test_CheckObserverBindings_Complex, "Checking observer bindings (complex collection)");
             TestRunner.RunTest(Test_AddItem_Complex, "Checking observer functionality (complex collection)");
+            TestRunner.RunTest(Test_CollectionUpdatedEvent, "Checking collection updated event handler");
 
             //Console.Write("Correct data returned:\t\t", Test_Select());
             if (TestRunner.FailedTests == 0)
@@ -45,7 +51,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!observerManagerExists)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -54,7 +59,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!observersSet)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -68,7 +72,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!observerManagerExists)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -77,7 +80,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!observersSet)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -93,7 +95,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!itemAdded)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -102,7 +103,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!unsavedFlagSet)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -113,7 +113,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!unsavedFlagSet)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -129,7 +128,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!itemAdded)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -138,7 +136,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!unsavedFlagSet)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -148,7 +145,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!unsavedFlagSet)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -160,7 +156,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!nestedItemAdded)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -169,7 +164,6 @@ namespace Tasty.Tests.ViewModel
 
             if (!unsavedFlagSet)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
@@ -179,11 +173,95 @@ namespace Tasty.Tests.ViewModel
 
             if (!unsavedFlagSet)
             {
-                System.Console.WriteLine("Test aborted!");
                 return false;
             }
 
             return true;
+        }
+
+        static bool Test_CollectionUpdatedEvent()
+        {
+            complexCollection.Clear();
+
+            complexCollection.CollectionUpdated += ComplexCollection_CollectionUpdated;
+
+            complexCollection.Add(new TestObject("Foobar", new List<TestObject>()));
+
+            int ticks = 0;
+            bool eventFired = true;
+            while (!collectionChangeTest_IsRemove)
+            {
+                if (ticks >= 50)
+                {
+                    eventFired = false;
+                    break;
+                }
+
+                Thread.Sleep(100);
+                ticks++;
+            }
+
+            Base.Console.WriteLine_Status("Collection updated event fired", eventFired);
+            if (!eventFired)
+            {
+                return false;
+            }
+
+            bool addEventFired = eventCached.ChangeType == Tasty.ViewModel.Core.Enums.CollectionChangeType.Added;
+
+            Base.Console.WriteLine_Status("Event type is Add", addEventFired);
+            if (!addEventFired)
+            {
+                return false;
+            }
+
+            complexCollection.RemoveAt(0);
+
+            eventFired = true;
+            ticks = 0;
+            while (collectionChangeTest_IsRemove)
+            {
+                if (ticks >= 50)
+                {
+                    eventFired = false;
+                    break;
+                }
+
+                Thread.Sleep(100);
+                ticks++;
+            }
+
+            Base.Console.WriteLine_Status("Collection updated event fired", eventFired);
+            if (!eventFired)
+            {
+                return false;
+            }
+
+            bool removeEventFired = eventCached.ChangeType == Tasty.ViewModel.Core.Enums.CollectionChangeType.Removed;
+
+            Base.Console.WriteLine_Status("Event type is Removed", addEventFired);
+            if (!removeEventFired)
+            {
+                return false;
+            }
+
+            complexCollection.CollectionUpdated -= ComplexCollection_CollectionUpdated;
+
+            return true;
+        }
+
+        private static void ComplexCollection_CollectionUpdated(object sender, CollectionUpdatedEventArgs<TestObject> e)
+        {
+            eventCached = e;
+
+            if (collectionChangeTest_IsRemove)
+            {
+                collectionChangeTest_IsRemove = false;
+            }
+            else
+            {
+                collectionChangeTest_IsRemove = true;
+            }
         }
     }
 }

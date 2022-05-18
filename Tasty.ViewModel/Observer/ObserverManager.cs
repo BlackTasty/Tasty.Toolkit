@@ -156,6 +156,17 @@ namespace Tasty.ViewModel.Observer
         }
 
         /// <summary>
+        /// Returns the original value of an <see cref="Observer{T}"/> with the specified property name
+        /// </summary>
+        /// <param name="name">The display name of the observed property</param>
+        /// <param name="defaultValue">The default value should no observer exist yet for the property</param>
+        /// <returns></returns>
+        public dynamic GetOriginalValueByName(string name, dynamic defaultValue)
+        {
+            return GetObserverByName(name)?.GetOriginalValue() ?? defaultValue;
+        }
+
+        /// <summary>
         /// Resets all observers, which sets the "UnsavedChanges" flag to false. You would usually call this method after saving a file for example.
         /// </summary>
         public void ResetObservers()

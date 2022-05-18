@@ -118,7 +118,7 @@ namespace Tasty.MaterialDesign.FilePicker.Core
             mDi = di;
 
             mIsLocked = isLocked;
-            InvokePropertiesChanged("IsLocked");
+            InvokePropertyChanged("IsLocked");
             if (isLocked)
             {
                 mFilesLoaded = true;
@@ -182,7 +182,7 @@ namespace Tasty.MaterialDesign.FilePicker.Core
                 Console.WriteLine(ex.Message);
 #endif
                 mIsLocked = true;
-                InvokePropertiesChanged("IsLocked");
+                InvokePropertyChanged("IsLocked");
                 folderAccessSuccess = false;
             }
 

@@ -14,14 +14,14 @@ namespace Tasty.SQLiteManager
     /// <summary>
     /// The heart of the SQLiteManager. Manages the database
     /// </summary>
-    public class Database : IList<TableDefinition>
+    public class Database : IList<ITable>
     {
         [DllImport("kernel32.dll")]
         static extern IntPtr GetConsoleWindow();
 
         /// <summary>
         /// </summary>
-        protected List<TableDefinition> tables = new List<TableDefinition>();
+        protected List<ITable> tables = new List<ITable>();
 
         #region IList implementation
         /// <summary>
@@ -37,7 +37,7 @@ namespace Tasty.SQLiteManager
         /// </summary>
         /// <param name="index">The zero-based index of the table to get or set.</param>
         /// <returns></returns>
-        public TableDefinition this[int index]
+        public ITable this[int index]
         {
             get => tables[index];
             set => tables[index] = value;
@@ -48,7 +48,7 @@ namespace Tasty.SQLiteManager
         /// </summary>
         /// <param name="tableName">The table with the specified name.</param>
         /// <returns></returns>
-        public TableDefinition this[string tableName]
+        public ITable this[string tableName]
         {
             get => tables.Find(x => x.Name == tableName);
             set => tables[tables.IndexOf(tables.Find(x => x.Name == tableName))] = value;
@@ -58,7 +58,7 @@ namespace Tasty.SQLiteManager
         /// Adds a table
         /// </summary>
         /// <param name="item">The table to add</param>
-        public void Add(TableDefinition item)
+        public void Add(ITable item)
         {
             tables.Add(item);
         }
@@ -76,17 +76,17 @@ namespace Tasty.SQLiteManager
         /// </summary>
         /// <param name="item">The table definition to search</param>
         /// <returns></returns>
-        public bool Contains(TableDefinition item)
+        public bool Contains(ITable item)
         {
             return tables.Contains(item);
         }
 
         /// <summary>
-        /// Copies all <see cref="TableDefinition"/> objects into a new array.
+        /// Copies all <see cref="ITable"/> objects into a new array.
         /// </summary>
         /// <param name="array">Copy of all table definitions</param>
         /// <param name="arrayIndex">Starting index from where the copying should begin</param>
-        public void CopyTo(TableDefinition[] array, int arrayIndex)
+        public void CopyTo(ITable[] array, int arrayIndex)
         {
             tables.CopyTo(array, arrayIndex);
         }
@@ -94,15 +94,15 @@ namespace Tasty.SQLiteManager
         /// <summary>
         /// Removes a table.
         /// </summary>
-        /// <param name="item">The <see cref="TableDefinition"/> to remove</param>
+        /// <param name="item">The <see cref="ITable"/> to remove</param>
         /// <returns></returns>
-        public bool Remove(TableDefinition item)
+        public bool Remove(ITable item)
         {
             return tables.Remove(item);
         }
 
         /// <inheritdoc/>
-        public IEnumerator<TableDefinition> GetEnumerator()
+        public IEnumerator<ITable> GetEnumerator()
         {
             return tables.GetEnumerator();
         }
@@ -115,9 +115,9 @@ namespace Tasty.SQLiteManager
         /// <summary>
         /// Returns the index of the specified table.
         /// </summary>
-        /// <param name="item">The <see cref="TableDefinition"/> of which you want the index</param>
+        /// <param name="item">The <see cref="ITable"/> of which you want the index</param>
         /// <returns>The index of the specified table</returns>
-        public int IndexOf(TableDefinition item)
+        public int IndexOf(ITable item)
         {
             return tables.IndexOf(item);
         }
@@ -126,8 +126,8 @@ namespace Tasty.SQLiteManager
         /// Inserts a new table
         /// </summary>
         /// <param name="index">The index where you want to insert the table</param>
-        /// <param name="item">The <see cref="TableDefinition"/> to insert</param>
-        public void Insert(int index, TableDefinition item)
+        /// <param name="item">The <see cref="ITable"/> to insert</param>
+        public void Insert(int index, ITable item)
         {
             tables.Insert(index, item);
         }
@@ -181,23 +181,23 @@ namespace Tasty.SQLiteManager
         /// Initializes the database.
         /// </summary>
         /// <param name="dbPath">The path to your SQLite database</param>
-        /// <param name="tables">A list of <see cref="TableDefinition"/> which represent the database structure</param>
+        /// <param name="tables">A list of <see cref="ITable"/> which represent the database structure</param>
         /// <param name="logger">(optional) A custom <see cref="Logger"/> to redirect output to another file</param>
         /// <param name="forceInitialize">(optional) Forces the re-initialization of the <see cref="Database"/> singleton object</param>
-        public static void Initialize(string dbPath, List<TableDefinition> tables, Logger logger = null, bool forceInitialize = false)
+        public static void Initialize(string dbPath, List<ITable> tables, Logger logger = null, bool forceInitialize = false)
         {
             if (instance == null || forceInitialize)
             {
                 if (tables == null)
                 {
-                    tables = new List<TableDefinition>();
+                    tables = new List<ITable>();
                 }
                 instance = new Database(dbPath, tables, logger);
                 instance.ClearCacheTables();
             }
         }
 
-        private Database(string dbPath, List<TableDefinition> tables, Logger logger = null)
+        private Database(string dbPath, List<ITable> tables, Logger logger = null)
         {
             this.logger = logger;
             this.dbPath = dbPath;
@@ -218,7 +218,7 @@ namespace Tasty.SQLiteManager
             string dataSql = "";
             //TODO: Iterate through all tables, get all rows of each table and "convert" those entries into INSERT statements
             //this.logger?.WriteLog("Starting database export...", Color.Magenta);
-            foreach (TableDefinition table in this)
+            foreach (ITable table in this)
             {
                 #region Create DROP TABLE
                 tableSql += string.Format("-- Recreate table '{0}'\n" +
@@ -297,7 +297,7 @@ namespace Tasty.SQLiteManager
             SQLiteConnection.CreateFile(dbPath);
 
             #region Initializing database
-            foreach (TableDefinition table in this)
+            foreach (ITable table in this)
             {
                 ExecuteSQL(table.ToString());
             }
@@ -309,7 +309,7 @@ namespace Tasty.SQLiteManager
         private void CheckTables()
         {
             this.logger?.WriteLog("Scanning database for changes...");
-            foreach (TableDefinition table in this)
+            foreach (ITable table in this)
             {
                 string tableExistsSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table.Name + "';";
                 bool tableExists = SelectData(tableExistsSql, table).Count > 0;
@@ -453,9 +453,9 @@ namespace Tasty.SQLiteManager
         /// </summary>
         public void ClearCacheTables()
         {
-            foreach (TableDefinition table in this)
+            foreach (ITable table in this)
             {
-                if (table is CacheTableDefinition cacheTable)
+                if (table is ICacheTable cacheTable)
                 {
                     string[] data = cacheTable.ClearCache();
                     ExecuteSQL(data[0]);
@@ -559,7 +559,7 @@ namespace Tasty.SQLiteManager
         /// <param name="data">The data to insert into the table</param>
         /// <param name="method">(optional) Either "insert" or "update".</param>
         /// <returns></returns>
-        public bool ExecuteSQL(TableDefinition table, Dictionary<IColumn, dynamic> data, string method = "insert")
+        public bool ExecuteSQL(ITable table, Dictionary<IColumn, dynamic> data, string method = "insert")
         {
             string sql = "";
 
@@ -618,7 +618,7 @@ namespace Tasty.SQLiteManager
         /// <param name="sql">The SQL query to execute</param>
         /// <param name="table">The table on which the query shall be executed</param>
         /// <returns></returns>
-        public ResultSet SelectData(string sql, TableDefinition table)
+        public ResultSet SelectData(string sql, ITable table)
         {
             string colName = "";
             try

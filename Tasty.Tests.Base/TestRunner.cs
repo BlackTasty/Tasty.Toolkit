@@ -39,7 +39,11 @@ namespace Tasty.Tests.Base
             System.Console.ForegroundColor = ConsoleColor.Gray;
 
             bool testSuccess = testMethod();
-            System.Console.ForegroundColor = ConsoleColor.White;
+            if (!testSuccess)
+            {
+                System.Console.WriteLine("Test aborted!");
+            }
+            System.Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine_Status(string.Format("{0} completed", testName), testSuccess);
             System.Console.ForegroundColor = ConsoleColor.Gray;
             System.Console.WriteLine();

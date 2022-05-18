@@ -10,15 +10,16 @@ using Tasty.SQLiteManager.Table;
 using Tasty.SQLiteManager.Table.Column;
 using Tasty.SQLiteManager.Table.Conditions;
 using Tasty.Tests.Base;
+using Tasty.Tests.SQLiteManager.Test;
 
 namespace Tasty.Tests.SQLiteManager
 {
     class Program
     {
         private static string dbPath = AppDomain.CurrentDomain.BaseDirectory + "\\test.db";
-        private static List<TableDefinition> tables = new List<TableDefinition>()
+        private static List<ITable> tables = new List<ITable>()
         {
-            new TableDefinition("foobar", new List<IColumn>()
+            new TableDefinition<dynamic>("foobar", new List<IColumn>()
             {
                 new ColumnDefinition<int>("ID", ColumnMode.PRIMARY_KEY),
                 new ColumnDefinition<string>("name", ColumnMode.NOT_NULL),
@@ -35,6 +36,7 @@ namespace Tasty.Tests.SQLiteManager
             TestRunner.RunTest(Test_CheckDatabase, "Checking if database has been setup properly"); //, "Database contains all tables and columns"
             TestRunner.RunTest(Test_Insert_GetIndex, "Testing Insert_GetIndex method"); //, "Insert_GetIndex completed"
             TestRunner.RunTest(Test_Select, "Testing Select method");
+            TestRunner.RunTest(Test_DefineByClass, "Testing table generation with class method");
 
             //Console.Write("Correct data returned:\t\t", Test_Select());
             if (TestRunner.FailedTests == 0)
@@ -130,9 +132,10 @@ namespace Tasty.Tests.SQLiteManager
             return true;
         }
 
-        static bool Test_Foo()
+        static bool Test_DefineByClass()
         {
-            return false;
+            var table = new TableDefinition<DemoDbClass>("TestByClass");
+            return true;
         }
     }
 }

@@ -10,7 +10,7 @@ namespace Tasty.SQLiteManager.Table
     /// Use this for tables which save temporary data like expiration tokens and call "ClearCache()" whenever you want to clean this table.
     /// PS: ClearCache() is always called on startup of the database!
     /// </summary>
-    class CacheTableDefinition : TableDefinition
+    class CacheTableDefinition<T> : TableDefinition<T>, ICacheTable
     {
         private CacheMethod cacheMethod;
         private IColumn expireDateColumn;
