@@ -1,0 +1,46 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity.Design.PluralizationServices;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace Tasty.SQLiteManager
+{
+    class Util
+    {
+        private static PluralizationService pluralService = PluralizationService.CreateService(CultureInfo.GetCultureInfo("en-us"));
+
+        internal static string GetColumnName(string propertyName)
+        {
+            StringBuilder sb = new StringBuilder(char.ToLower(propertyName[0]).ToString());
+
+            for (int i = 1; i < propertyName.Length; i++)
+            {
+                if (char.IsUpper(propertyName[i]))
+                {
+                    sb.Append("_" + char.ToLower(propertyName[i]));
+                }
+                else
+                {
+                    sb.Append(propertyName[i]);
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        internal static string GetTableName(string className)
+        {
+            string tableNameSingular = GetColumnName(className);
+            return pluralService.Pluralize(tableNameSingular);
+        }
+
+        internal static string GetSingular(string pluralWord)
+        {
+            return pluralService.Singularize(pluralWord);
+        }
+    }
+}

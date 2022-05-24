@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Tasty.SQLiteManager.Table.Attributes;
 
 namespace Tasty.SQLiteManager.Table
 {
     /// <summary>
     /// Contains results from SELECT statements
     /// </summary>
-    public class ResultSet : List<RowData>
+    public class ResultSet : List<RowData>, IResultSet
     {
         /// <summary>
         /// Returns if this <see cref="ResultSet"/> contains any results
@@ -37,6 +40,21 @@ namespace Tasty.SQLiteManager.Table
         public bool ColumnExists(string columnName)
         {
             return IsEmpty ? false : this[0].Columns?.ContainsKey(columnName) ?? false;
+        }
+
+        private List<PropertyInfo> GetClassProperties(Type target)
+        {
+            List<PropertyInfo> properties = new List<PropertyInfo>();
+
+            foreach (PropertyInfo property in target.GetProperties())
+            {
+                if (!Attribute.IsDefined(property, typeof(SqliteIgnore)))
+                {
+                    properties.Add(property);
+                }
+            }
+
+            return properties;
         }
     }
 }

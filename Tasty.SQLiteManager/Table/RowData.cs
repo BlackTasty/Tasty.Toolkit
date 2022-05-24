@@ -5,11 +5,11 @@ using System.Linq;
 namespace Tasty.SQLiteManager.Table
 {
     /// <summary>
-    /// Contains a single row of a <see cref="ResultSet"/>
+    /// Contains a single row of a <see cref="ResultSet{T}"/>
     /// </summary>
     public class RowData
     {
-        Dictionary<string, dynamic> columns = new Dictionary<string, dynamic>();
+        private Dictionary<string, dynamic> columns = new Dictionary<string, dynamic>();
 
         /// <summary>
         /// The data for each column. Key is the column name, value is the value of the column
@@ -100,6 +100,33 @@ namespace Tasty.SQLiteManager.Table
             else
             {
                 return GetDefaultValue(columnType);
+            }
+        }
+
+        /// <summary>
+        /// Returns the value for the specified column
+        /// </summary>
+        /// <param name="columnName">The name of the column</param>
+        /// <typeparam name="T">The return type of the column value</typeparam>
+        /// <returns></returns>
+        public T GetColumn<T>(string columnName)
+        {
+            if (ColumnExists(columnName))
+            {
+                dynamic value = Columns[columnName];
+
+                if (value == null)
+                {
+                    return default(T);
+                }
+                else
+                {
+                    return Columns[columnName];
+                }
+            }
+            else
+            {
+                return default(T);
             }
         }
 

@@ -1,13 +1,22 @@
 ﻿using System;
+using System.Reflection;
+using Tasty.SQLiteManager.Table.Attributes;
 
 namespace Tasty.SQLiteManager.Table.Column
 {
     /// <summary>
-    /// Used to define columns in a <see cref="TableDefinition"/>
+    /// Used to define columns in a <see cref="TableDefinition{T}"/>
     /// </summary>
     /// <typeparam name="T">Column type</typeparam>
     public class ColumnDefinition<T> : DefinitionBase, IColumn
     {
+        private PropertyInfo propertyInfo;
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public PropertyInfo PropertyInfo => propertyInfo;
+
         #region Property definitions
         private T defaultValue = default(T);
         private ColumnType columnType;
@@ -47,6 +56,7 @@ namespace Tasty.SQLiteManager.Table.Column
         /// Define a new column with the specified name
         /// </summary>
         /// <param name="name">The name of the column</param>
+        [SqliteConstructor]
         public ColumnDefinition(string name)
         {
             Type inputType = typeof(T);
@@ -68,6 +78,12 @@ namespace Tasty.SQLiteManager.Table.Column
                 columnType = ColumnType.TEXT;
                 stringFormatter = "dd-MM-yyyy HH:mm:ss";
                 trueColumnType = "datetime";
+            }
+            else if (inputType == typeof(TimeSpan))
+            {
+                columnType = ColumnType.TEXT;
+                stringFormatter = "HH:mm:ss";
+                trueColumnType = "timespan";
             }
             else if (inputType == typeof(ulong))
             {
@@ -127,6 +143,18 @@ namespace Tasty.SQLiteManager.Table.Column
             SetColumnMode(columnMode);
         }
 
+        internal ColumnDefinition(string name, ColumnMode columnMode, T defaultValue, PropertyInfo propertyInfo) :
+            this(name, columnMode, defaultValue)
+        {
+            this.propertyInfo = propertyInfo;
+        }
+
+        internal ColumnDefinition(string name, ColumnMode columnMode, PropertyInfo propertyInfo) :
+            this(name, columnMode)
+        {
+            this.propertyInfo = propertyInfo;
+        }
+
         /// <inheritdoc/>
         public string ParseColumnValue(dynamic value)
         {
@@ -175,6 +203,12 @@ namespace Tasty.SQLiteManager.Table.Column
                         return date.ToString(stringFormatter);
                     }
                     return default(DateTime).ToString(stringFormatter);
+                case "timespan":
+                    if (value is TimeSpan time)
+                    {
+                        return time.ToString(stringFormatter);
+                    }
+                    return default(TimeSpan).ToString(stringFormatter);
                 case "ulong":
                     return default(ulong).ToString();
                 default:

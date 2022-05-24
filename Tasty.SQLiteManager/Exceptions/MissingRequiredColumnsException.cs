@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Tasty.SQLiteManager.Table.Column;
 
-namespace Tasty.SQLiteManager.Table
+namespace Tasty.SQLiteManager.Exceptions
 {
     class MissingRequiredColumnsException : Exception
     {

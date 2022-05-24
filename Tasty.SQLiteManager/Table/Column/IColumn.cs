@@ -1,10 +1,17 @@
-﻿namespace Tasty.SQLiteManager.Table.Column
+﻿using System.Reflection;
+
+namespace Tasty.SQLiteManager.Table.Column
 {
     /// <summary>
     /// Interface for table columns
     /// </summary>
     public interface IColumn
     {
+        /// <summary>
+        /// Property data, used to match database rows to their class property equivalent
+        /// </summary>
+        PropertyInfo PropertyInfo { get; }
+
         /// <summary>
         /// The name of the column
         /// </summary>

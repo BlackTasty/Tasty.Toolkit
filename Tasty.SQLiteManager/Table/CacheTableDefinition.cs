@@ -39,6 +39,7 @@ namespace Tasty.SQLiteManager.Table
             this.cacheMethod = cacheMethod;
         }
 
+        [Obsolete("This constructor is deprecated and will be removed soon. Check out the documentation for setting up tables for more details.", false)]
         /// <summary>
         /// Define a new temporary table with the specified columns. Default cache method is <see cref="CacheMethod.DELETE_ON_LOAD"/>
         /// </summary>
