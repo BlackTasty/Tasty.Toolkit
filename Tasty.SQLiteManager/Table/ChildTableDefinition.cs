@@ -11,11 +11,14 @@ using Tasty.SQLiteManager.Table.ForeignKey;
 
 namespace Tasty.SQLiteManager.Table
 {
-    class ChildTableDefinition : TableBaseDefinition
+    /// <summary>
+    /// Defines a child table, containing foreign keys and an ID column. Auto-generated when using the <see cref="SqliteForeignKey"/> attribute on list properties.
+    /// </summary>
+    public class ChildTableDefinition : TableBaseDefinition
     {
         private List<ForeignKeyData> foreignKeys;
 
-        public ChildTableDefinition(ChildTableData tableData) : base(tableData.TableName)
+        internal ChildTableDefinition(ChildTableData tableData) : base(tableData.TableName)
         {
             foreignKeys = tableData.ForeignKeys;
 

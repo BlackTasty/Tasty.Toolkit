@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Tasty.SQLiteManager.Table.ForeignKey
 {
-    class ChildTableData
+    internal class ChildTableData
     {
         private string tableName;
         private List<ForeignKeyData> foreignKeys;

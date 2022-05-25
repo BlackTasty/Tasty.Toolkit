@@ -11,11 +11,12 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
     public class ForeignKeyData
     {
         private string parentTableName;
-
         private string childTableName;
         private string foreignKeyName;
         private string parentKeyName;
         private Type keyType;
+
+        internal string ParentTableName => parentTableName;
 
         internal string ChildTableName => childTableName;
 

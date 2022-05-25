@@ -278,13 +278,18 @@ namespace Tasty.SQLiteManager
                 }
             }
 
-            foreach (ChildTableData childTable in childTables)
+            this.tables = tables;
+
+            foreach (ChildTableData childTableData in childTables)
             {
-                this.childTables.Add(new ChildTableDefinition(childTable));
+                ChildTableDefinition childTable = new ChildTableDefinition(childTableData);
+                this.childTables.Add(childTable);
+                foreach (ForeignKeyData foreignKeyData in childTableData.ForeignKeys)
+                {
+                    this.FirstOrDefault(x => x.Name == foreignKeyData.ParentTableName)?.ChildTables.Add(childTable);
+                }
             }
             #endregion
-
-            this.tables = tables;
 
             CheckDatabase();
         }

@@ -140,32 +140,48 @@ namespace Tasty.SQLiteManager.Table
         private Dictionary<IColumn, dynamic> GetRowData()
         {
             Dictionary<IColumn, dynamic> data = new Dictionary<IColumn, dynamic>();
+            Type t = typeof(T);
 
-            foreach (PropertyInfo property in typeof(T).GetProperties())
+            foreach (PropertyInfo property in t.GetProperties())
             {
+                bool hasForeignKeys = Attribute.IsDefined(property, typeof(SqliteForeignKey));
+                bool isList = property.PropertyType.IsGenericType;
+                if (isList && !hasForeignKeys) // If property is a list and doesn't have SqliteForeignKey attribute, skip
+                {
+                    continue;
+                }
+
                 if (!Attribute.IsDefined(property, typeof(SqliteIgnore)))
                 {
-                    ColumnMode columnMode;
+                    if (!hasForeignKeys)
+                    {
+                        ColumnMode columnMode;
 
-                    if (Attribute.IsDefined(property, typeof(SqlitePrimaryKey)))
-                    {
-                        columnMode = ColumnMode.PRIMARY_KEY;
-                    }
-                    else if (Attribute.IsDefined(property, typeof(SqliteNotNull)))
-                    {
-                        columnMode = ColumnMode.NOT_NULL;
-                    }
-                    else if (Attribute.IsDefined(property, typeof(SqliteUnique)))
-                    {
-                        columnMode = ColumnMode.UNIQUE;
+                        if (Attribute.IsDefined(property, typeof(SqlitePrimaryKey)))
+                        {
+                            columnMode = ColumnMode.PRIMARY_KEY;
+                        }
+                        else if (Attribute.IsDefined(property, typeof(SqliteNotNull)))
+                        {
+                            columnMode = ColumnMode.NOT_NULL;
+                        }
+                        else if (Attribute.IsDefined(property, typeof(SqliteUnique)))
+                        {
+                            columnMode = ColumnMode.UNIQUE;
+                        }
+                        else
+                        {
+                            columnMode = ColumnMode.DEFAULT;
+                        }
+
+                        string columnName = columnMode != ColumnMode.PRIMARY_KEY ? Util.GetColumnName(property.Name) : property.Name.ToUpper();
+                        data.Add(table[columnName], property.GetValue(this));
                     }
                     else
                     {
-                        columnMode = ColumnMode.DEFAULT;
+                        SqliteForeignKey sqliteForeignKeyAttribute = (SqliteForeignKey)property.GetCustomAttribute(typeof(SqliteForeignKey));
+                        List<Condition> conditions = new List<Condition>();
                     }
-
-                    string columnName = columnMode != ColumnMode.PRIMARY_KEY ? Util.GetColumnName(property.Name) : property.Name.ToUpper();
-                    data.Add(table[columnName], property.GetValue(this));
                 }
             }
 

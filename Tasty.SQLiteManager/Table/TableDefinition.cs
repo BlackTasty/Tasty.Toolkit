@@ -19,6 +19,7 @@ namespace Tasty.SQLiteManager.Table
     {
         private Type tableType;
         private List<ForeignKeyData> foreignKeyData = new List<ForeignKeyData>();
+        private List<ChildTableDefinition> childTables = new List<ChildTableDefinition>();
 
         /// <summary>
         /// </summary>
@@ -32,6 +33,16 @@ namespace Tasty.SQLiteManager.Table
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
+        public List<ChildTableDefinition> ChildTables
+        {
+            get => childTables;
+            internal set => childTables = value;
+        }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        [Obsolete("This method of retrieving foreign keys is deprecated and will be removed soon! Check out the documentation for more information: [LINK]")]
         public List<ForeignKeyDefinition> ForeignKeys => foreignKeys;
 
         /// <summary>

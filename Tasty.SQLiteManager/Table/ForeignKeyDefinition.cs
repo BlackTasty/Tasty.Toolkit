@@ -5,7 +5,7 @@ using Tasty.SQLiteManager.Table.Column;
 namespace Tasty.SQLiteManager.Table
 {
     /// <summary>
-    /// Define a FOREIGN KEY for a <see cref="TableDefinition"/>
+    /// Define a FOREIGN KEY for a <see cref="TableDefinition{T}"/>
     /// </summary>
     [Obsolete("This type of foreign key declaration is deprecated! See the documentation for more details: [LINK]")]
     public class ForeignKeyDefinition : DefinitionBase
