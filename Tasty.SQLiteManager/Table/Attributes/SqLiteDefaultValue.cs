@@ -9,7 +9,7 @@ namespace Tasty.SQLiteManager.Table.Attributes
     [AttributeUsage(AttributeTargets.Property)]
     public class SqLiteDefaultValue : Attribute
     {
-        private object defaultValue;
+        private readonly object defaultValue;
 
         public object DefaultValue => defaultValue;
 

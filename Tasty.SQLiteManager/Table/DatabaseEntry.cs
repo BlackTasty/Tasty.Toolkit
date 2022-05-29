@@ -16,7 +16,7 @@ namespace Tasty.SQLiteManager.Table
     {
         protected TableDefinition<T> table;
 
-        private bool useDB;
+        private readonly bool useDB;
         private bool fromDatabase;
         private int id;
 
@@ -61,7 +61,7 @@ namespace Tasty.SQLiteManager.Table
             ResultSet result = table.Select(conditions);
             if (result.IsEmpty)
             {
-                return default(T);
+                return default;
             }
 
             return ConstructGeneric(table, result.FirstOrDefault(), true);
@@ -100,7 +100,7 @@ namespace Tasty.SQLiteManager.Table
             }
             else
             {
-                return default(T);
+                return default;
             }
         }
 
@@ -405,7 +405,9 @@ namespace Tasty.SQLiteManager.Table
                                     };
                                 }
 
+#pragma warning disable CS0618 // Typ oder Element ist veraltet
                                 string sql = childTable.GenerateBulkInsert(queryData);
+#pragma warning restore CS0618 // Typ oder Element ist veraltet
                                 childSuccess = Database.Instance.ExecuteSQL(sql);
                             }
                             #endregion

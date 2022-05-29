@@ -10,9 +10,9 @@ namespace Tasty.SQLiteManager.Table
     [Obsolete("This type of foreign key declaration is deprecated! See the documentation for more details: [LINK]")]
     public class ForeignKeyDefinition : DefinitionBase
     {
-        private ITable foreignTable;
-        private IColumn foreignKey;
-        private IColumn targetKey;
+        private readonly ITable foreignTable;
+        private readonly IColumn foreignKey;
+        private readonly IColumn targetKey;
 
         /// <summary>
         /// Define a new foreign key.

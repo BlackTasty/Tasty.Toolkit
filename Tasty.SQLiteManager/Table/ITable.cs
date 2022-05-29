@@ -35,11 +35,5 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         [Obsolete("This method of retrieving foreign keys is deprecated and will be removed soon! Check out the documentation for more information: [LINK]")]
         List<ForeignKeyDefinition> ForeignKeys { get; }
-
-        /// <summary>
-        /// Returns the primary key column for this table.
-        /// </summary>
-        /// <returns>Returns the column which has the "PRIMARY KEY" flag set</returns>
-        IColumn GetPrimaryKeyColumn();
     }
 }

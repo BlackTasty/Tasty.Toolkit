@@ -86,7 +86,6 @@
     <Compile Include="Table\ForeignKey\ForeignKeyData.cs" />
     <Compile Include="Table\ForeignKeyDefinition.cs" />
     <Compile Include="Table\Column\IColumn.cs" />
-    <Compile Include="Table\ForeignKey\ForeignKeyDefinition.cs" />
     <Compile Include="Table\ICacheTable.cs" />
     <Compile Include="Table\IDatabaseEntry.cs" />
     <Compile Include="Table\IResultSet.cs" />

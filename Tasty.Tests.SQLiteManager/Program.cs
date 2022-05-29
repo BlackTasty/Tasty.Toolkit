@@ -16,9 +16,9 @@ namespace Tasty.Tests.SQLiteManager
 {
     class Program
     {
-        private static string dbPath = AppDomain.CurrentDomain.BaseDirectory + "\\test.db";
+        private static readonly string dbPath = AppDomain.CurrentDomain.BaseDirectory + "\\test.db";
 
-        static void Main(string[] args)
+        static void Main()
         {
             Database.Initialize(dbPath, Logger.Initialize(false));
             Database.Instance.DropDatabase();

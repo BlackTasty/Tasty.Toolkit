@@ -8,12 +8,12 @@ namespace Tasty.SQLiteManager.Table.Conditions
     /// </summary>
     public class Condition
     {
-        private ITable targetTable;
-        private IColumn targetColumn;
+        private readonly ITable targetTable;
+        private readonly IColumn targetColumn;
 
         private KeyValuePair<IColumn, dynamic> left;
         private KeyValuePair<IColumn, dynamic> right;
-        ConditionType conditionType;
+        readonly ConditionType conditionType;
 
         /// <summary>
         /// Define a multi-condition for SQL queries

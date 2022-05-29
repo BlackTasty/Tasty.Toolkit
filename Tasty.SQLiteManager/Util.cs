@@ -13,7 +13,7 @@ namespace Tasty.SQLiteManager
 {
     class Util
     {
-        private static PluralizationService pluralService = PluralizationService.CreateService(CultureInfo.GetCultureInfo("en-us"));
+        private static readonly PluralizationService pluralService = PluralizationService.CreateService(CultureInfo.GetCultureInfo("en-us"));
 
         internal static string GetColumnName(string propertyName)
         {

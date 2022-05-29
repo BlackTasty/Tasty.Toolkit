@@ -10,8 +10,8 @@ namespace Tasty.SQLiteManager.Table.Column
     /// <typeparam name="T">Column type</typeparam>
     public class ColumnDefinition<T> : DefinitionBase, IColumn
     {
-        private Type dataType;
-        private PropertyInfo propertyInfo;
+        private readonly Type dataType;
+        private readonly PropertyInfo propertyInfo;
         private string parentTableName;
 
         /// <summary>
@@ -34,15 +34,15 @@ namespace Tasty.SQLiteManager.Table.Column
         }
 
         #region Property definitions
-        private T defaultValue = default(T);
-        private ColumnType columnType;
+        private readonly T defaultValue = default;
+        private readonly ColumnType columnType;
         private bool notNull = false;
         private bool primaryKey = false;
         private bool autoIncrement = false;
         private bool unique = false;
 
-        private string stringFormatter = null; //Just in case a special type like DateTime is used as column type
-        private string trueColumnType = null; //Just in case a special type like DateTime is used as column type. Only use this field for column types which are not defined by SQLite!
+        private readonly string stringFormatter = null; //Just in case a special type like DateTime is used as column type
+        private readonly string trueColumnType = null; //Just in case a special type like DateTime is used as column type. Only use this field for column types which are not defined by SQLite!
 
         /// <inheritdoc/>
         public dynamic DefaultValue => defaultValue;

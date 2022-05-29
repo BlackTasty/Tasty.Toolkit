@@ -17,12 +17,13 @@ namespace Tasty.SQLiteManager.Table
     /// </summary>
     public class TableDefinition<T> : TableBaseDefinition, ITable
     {
-        private Type tableType;
-        private List<ForeignKeyData> foreignKeyData = new List<ForeignKeyData>();
+        private readonly Type tableType;
+        private readonly List<ForeignKeyData> foreignKeyData = new List<ForeignKeyData>();
         private List<ChildTableDefinition> childTables = new List<ChildTableDefinition>();
 
         /// <summary>
         /// </summary>
+        [Obsolete]
         protected List<ForeignKeyDefinition> foreignKeys = new List<ForeignKeyDefinition>();
 
         /// <summary>
@@ -68,7 +69,7 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         /// <param name="name">The name of the table</param>
         /// <param name="columns">A list of <see cref="ColumnDefinition{T}"/> objects for this table.</param>
-        [Obsolete("This constructor is deprecated and will be removed soon. Check out the documentation for setting up tables for more details.", false)]
+        [Obsolete("This constructor is deprecated and will be removed soon. Check out the documentation for setting up tables for more details: [LINK]", false)]
         public TableDefinition(string name, List<IColumn> columns) : base(name)
         {
             this.columns = columns;
@@ -80,7 +81,7 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="name">The name of the table</param>
         /// <param name="columns">A list of <see cref="ColumnDefinition{T}"/> objects for this table.</param>
         /// <param name="foreignKeys">A list of foreign key definitions.</param>
-        [Obsolete("This constructor is deprecated and will be removed soon. Check out the documentation for setting up tables for more details.", false)]
+        [Obsolete("This constructor is deprecated and will be removed soon. Check out the documentation for setting up tables for more details: [LINK]", false)]
         public TableDefinition(string name, List<IColumn> columns, List<ForeignKeyDefinition> foreignKeys) : this(name, columns)
         {
             this.foreignKeys = foreignKeys;
@@ -91,18 +92,10 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         /// <param name="name">The name of the table</param>
         /// <param name="foreignKeys">A list of foreign key definitions.</param>
+        [Obsolete("This constructor is deprecated and will be removed soon. Check out the documentation for setting up tables for more details: [LINK]", false)]
         public TableDefinition(string name, List<ForeignKeyDefinition> foreignKeys) : this(name)
         {
             this.foreignKeys = foreignKeys;
-        }
-
-        /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        /// <returns><inheritdoc/></returns>
-        public IColumn GetPrimaryKeyColumn()
-        {
-            return this.FirstOrDefault(x => x.PrimaryKey);
         }
 
         /// <summary>
@@ -127,11 +120,6 @@ namespace Tasty.SQLiteManager.Table
                 {
                     sql_inner += ",\n\t" + column.ToString();
                 }
-            }
-
-            foreach (ForeignKeyDefinition foreignKey in foreignKeys)
-            {
-                sql_inner += ",\n\t" + foreignKey.ToString();
             }
 
             return sql_inner;

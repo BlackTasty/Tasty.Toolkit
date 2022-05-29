@@ -39,22 +39,7 @@ namespace Tasty.SQLiteManager.Table
         /// <returns></returns>
         public bool ColumnExists(string columnName)
         {
-            return IsEmpty ? false : this[0].Columns?.ContainsKey(columnName) ?? false;
-        }
-
-        private List<PropertyInfo> GetClassProperties(Type target)
-        {
-            List<PropertyInfo> properties = new List<PropertyInfo>();
-
-            foreach (PropertyInfo property in target.GetProperties())
-            {
-                if (!Attribute.IsDefined(property, typeof(SqliteIgnore)))
-                {
-                    properties.Add(property);
-                }
-            }
-
-            return properties;
+            return !IsEmpty && (this[0].Columns?.ContainsKey(columnName) ?? false);
         }
     }
 }

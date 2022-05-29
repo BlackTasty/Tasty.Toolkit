@@ -10,7 +10,7 @@ namespace Tasty.SQLiteManager.Table.Attributes
     [AttributeUsage(AttributeTargets.Property)]
     public class SqliteForeignKey : Attribute
     {
-        private ForeignKeyData data;
+        private readonly ForeignKeyData data;
 
         public ForeignKeyData Data => data;
 

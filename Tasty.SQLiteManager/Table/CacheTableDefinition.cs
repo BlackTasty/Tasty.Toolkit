@@ -12,7 +12,7 @@ namespace Tasty.SQLiteManager.Table
     /// </summary>
     class CacheTableDefinition<T> : TableDefinition<T>, ICacheTable
     {
-        private CacheMethod cacheMethod;
+        private readonly CacheMethod cacheMethod;
         private IColumn expireDateColumn;
 
         /// <summary>
@@ -56,6 +56,7 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="name">The name of the temporary table</param>
         /// <param name="columns">A list of <see cref="ColumnDefinition{T}"/> objects for this table.</param>
         /// <param name="cacheMethod">Configure how the temporary table should behave.</param>
+        [Obsolete("This constructor is deprecated and will be removed soon. Check out the documentation for setting up tables for more details: [LINK]", false)]
         public CacheTableDefinition(string name, List<IColumn> columns, CacheMethod cacheMethod) : base(name, columns)
         {
             this.cacheMethod = cacheMethod;
@@ -67,6 +68,7 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="name">The name of the temporary table</param>
         /// <param name="foreignKeys">A list of foreign key definitions.</param>
         /// <param name="columns">A list of <see cref="ColumnDefinition{T}"/> objects for this table.</param>
+        [Obsolete("This constructor is deprecated and will be removed soon. Check out the documentation for setting up tables for more details: [LINK]", false)]
         public CacheTableDefinition(string name, List<IColumn> columns, List<ForeignKeyDefinition> foreignKeys) : base(name, columns, foreignKeys)
         {
             cacheMethod = CacheMethod.DELETE_ON_LOAD;
@@ -79,6 +81,7 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="columns">A list of <see cref="ColumnDefinition{T}"/> objects for this table.</param>
         /// <param name="foreignKeys">A list of foreign key definitions.</param>
         /// <param name="cacheMethod">Configure how the temporary table should behave.</param>
+        [Obsolete("This constructor is deprecated and will be removed soon. Check out the documentation for setting up tables for more details: [LINK]", false)]
         public CacheTableDefinition(string name, List<IColumn> columns, List<ForeignKeyDefinition> foreignKeys, CacheMethod cacheMethod) :
             base(name, columns, foreignKeys)
         {

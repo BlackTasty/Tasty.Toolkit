@@ -8,8 +8,8 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
 {
     internal class ChildTableData
     {
-        private string tableName;
-        private List<ForeignKeyData> foreignKeys;
+        private readonly string tableName;
+        private readonly List<ForeignKeyData> foreignKeys;
 
         public string TableName => tableName;
 

@@ -366,7 +366,9 @@ namespace Tasty.SQLiteManager.Table
         /// <returns><inheritdoc/></returns>
         public bool BulkInsert(Dictionary<IColumn, dynamic>[] data)
         {
+#pragma warning disable CS0618 // Typ oder Element ist veraltet
             return Database.Instance.ExecuteSQL(GenerateBulkInsert(data));
+#pragma warning restore CS0618 // Typ oder Element ist veraltet
         }
 
         /// <summary>
@@ -375,6 +377,7 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="data"><inheritdoc/></param>
         /// <returns><inheritdoc/></returns>
         [Obsolete("This method is replaced with BulkInsert(data), use this method instead. This method will be removed soon!")]
+        // TODO: Set access modifier to internal
         public string GenerateBulkInsert(Dictionary<IColumn, dynamic>[] data)
         {
             string sql = "BEGIN TRANSACTION;\n";
@@ -394,7 +397,9 @@ namespace Tasty.SQLiteManager.Table
         /// <returns><inheritdoc/></returns>
         public bool BulkUpdate(Dictionary<IColumn, dynamic>[] data)
         {
+#pragma warning disable CS0618 // Typ oder Element ist veraltet
             return Database.Instance.ExecuteSQL(GenerateBulkUpdate(data));
+#pragma warning restore CS0618 // Typ oder Element ist veraltet
         }
 
         /// <summary>
@@ -403,6 +408,7 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="data"><inheritdoc/></param>
         /// <returns><inheritdoc/></returns>
         [Obsolete("This method is replaced with BulkInsert(data), use this method instead. This method will be removed soon!")]
+        // TODO: Set access modifier to internal
         public string GenerateBulkUpdate(Dictionary<IColumn, dynamic>[] data)
         {
             string sql = "BEGIN TRANSACTION;\n";
@@ -502,7 +508,7 @@ namespace Tasty.SQLiteManager.Table
             }
         }
 
-        internal IColumn GetPrimaryKeyColumn()
+        public IColumn GetPrimaryKeyColumn()
         {
             return this.FirstOrDefault(x => x.PrimaryKey);
         }

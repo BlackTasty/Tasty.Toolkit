@@ -24,9 +24,9 @@ namespace Tasty.SQLiteManager
         [DllImport("kernel32.dll")]
         static extern IntPtr GetConsoleWindow();
 
-        private List<ITable> tables = new List<ITable>();
+        private readonly List<ITable> tables = new List<ITable>();
 
-        private List<ChildTableDefinition> childTables = new List<ChildTableDefinition>();
+        private readonly List<ChildTableDefinition> childTables = new List<ChildTableDefinition>();
 
         #region IList implementation
         /// <summary>
@@ -159,10 +159,10 @@ namespace Tasty.SQLiteManager
 
         private static Database instance;
         private static int loops;
-        private Logger logger;
+        private readonly Logger logger;
 
-        private string dbPath;
-        private string connString;
+        private readonly string dbPath;
+        private readonly string connString;
 
         /// <summary>
         /// Allows access to the <see cref="Database"/> instance if initialized, else an exception is thrown.
@@ -485,130 +485,6 @@ namespace Tasty.SQLiteManager
 
             CheckTables(tables.OfType<ITableBase>());
             CheckTables(childTables, "child table");
-
-            return;
-            foreach (ITable table in this)
-            {
-                string tableExistsSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table.Name + "';";
-                bool tableExists = SelectData(tableExistsSql, table).Count > 0;
-                if (tableExists)
-                {
-                    #region Check all columns of the current table for changes
-                    List<string> columns = GetTableColumns(table.Name);
-                    foreach (IColumn column in table)
-                    {
-                        if (!columns.Contains(column.Name))
-                        {
-                            if (!column.Unique)
-                            {
-                                this.logger?.WriteLog("Missing column in table \"{0}\" detected! (Column: {1}; SQL: {2})",
-                                    LogType.WARNING, table.Name, column.Name, column.ToString());
-
-                                ExecuteSQL(string.Format("ALTER TABLE {0} ADD COLUMN {1}",
-                                    table.Name, column.ToString()));
-                                this.logger?.WriteLog("Missing column added!");
-                            }
-                            else
-                            {
-                                this.logger?.WriteLog("Unable to add a unique column to \"{0}\" with ALTER TABLE! (Column: {1}; SQL: {2})",
-                                    LogType.ERROR, table.Name, column.Name, column.ToString());
-                            }
-                        }
-                    }
-
-                    List<string> removableColumns = new List<string>();
-                    foreach (string column in columns)
-                    {
-                        if (!table.Any(x => x.Name == column))
-                        {
-                            removableColumns.Add(column);
-                        }
-                    }
-
-                    if (removableColumns.Count > 0)
-                    {
-                        this.logger?.WriteLog("Leftover columns in table \"{0}\" detected! (Columns: {1})",
-                            LogType.WARNING, table.Name, string.Join(", ", removableColumns.ToArray()));
-
-                        bool columnsRemoved = false;
-                        bool consoleWindowAttached = GetConsoleWindow() != IntPtr.Zero;
-                        ConsoleKey pressedKey = ConsoleKey.Y;
-
-                        if (consoleWindowAttached)
-                        {
-                            Console.WriteLine("Would you like to remove these columns? (y/N)");
-                            pressedKey = Console.ReadKey().Key;
-                        }
-
-                        if (pressedKey == ConsoleKey.Y)
-                        {
-                            if (consoleWindowAttached)
-                            {
-                                Console.WriteLine("\n\t\tWARNING: Any data stored in these columns will be lost forever!\n");
-                                Console.WriteLine("Would you like to proceed? (y/N)");
-                                pressedKey = Console.ReadKey().Key;
-                            }
-                            if (pressedKey == ConsoleKey.Y)
-                            {
-                                Console.WriteLine();
-                                #region Copy data
-                                this.logger?.WriteLog("(1/3) Copying data...");
-
-                                var result = SelectData("SELECT * FROM " + table.Name, table);
-                                Dictionary<IColumn, dynamic>[] dataBackup = new Dictionary<IColumn, dynamic>[result.Count];
-                                for (int i = 0; i < result.Count; i++)
-                                {
-                                    if (consoleWindowAttached)
-                                    {
-                                        Console.CursorLeft = 0;
-                                        Console.Write("                                                                     ");
-                                        Console.CursorLeft = 0;
-                                        Console.Write("Process: {0}/{1}", i + 1, result.Count);
-                                    }
-                                    RowData row = result[i];
-                                    Dictionary<IColumn, dynamic> dataCopy = new Dictionary<IColumn, dynamic>();
-                                    foreach (KeyValuePair<string, dynamic> data in row.Columns)
-                                    {
-                                        dataCopy.Add(table[data.Key], data.Value);
-                                    }
-                                    dataBackup[i] = dataCopy;
-                                }
-                                #endregion
-
-                                #region Rebuild original table
-                                Console.WriteLine();
-                                this.logger?.WriteLog("(2/3) Rebuilding table...");
-                                ExecuteSQL("DROP TABLE " + table.Name + ";");
-                                ExecuteSQL(table.ToString());
-                                #endregion
-
-                                #region Restoring data
-                                this.logger?.WriteLog("(3/3) Restoring data...");
-                                ExecuteSQL(table.GenerateBulkInsert(dataBackup));
-                                #endregion
-
-                                columnsRemoved = true;
-                            }
-                        }
-
-                        if (columnsRemoved)
-                        {
-                            this.logger?.WriteLog("Columns removed!");
-                        }
-                        else
-                        {
-                            this.logger?.WriteLog("Columns kept!");
-                        }
-                    }
-                    #endregion
-                }
-                else
-                {
-                    #region Create the table if it doesn't exist
-                    ExecuteSQL(table.ToString());
-                    #endregion
-                }
-            }
         }
 
         private void CheckTables(IEnumerable<ITableBase> tables, string tableType = "table")
@@ -753,11 +629,6 @@ namespace Tasty.SQLiteManager
             }
         }
 
-        private void RemoveColumns(List<string> columns)
-        {
-
-        }
-
         /// <summary>
         /// Returns a list of all column names of the specified table
         /// </summary>
@@ -777,7 +648,6 @@ namespace Tasty.SQLiteManager
                     {
                         while (reader.Read())
                         {
-                            var test = reader.GetFieldType(1);
                             columnNames.Add(reader.GetString(1));
                         }
                     }

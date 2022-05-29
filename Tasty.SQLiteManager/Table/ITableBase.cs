@@ -171,5 +171,11 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         /// <returns>Next available ID or -3</returns>
         int GetNextId();
+
+        /// <summary>
+        /// Returns the primary key column for this table.
+        /// </summary>
+        /// <returns>Returns the column which has the "PRIMARY KEY" flag set</returns>
+        IColumn GetPrimaryKeyColumn();
     }
 }

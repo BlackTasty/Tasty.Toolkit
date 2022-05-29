@@ -117,7 +117,7 @@ namespace Tasty.SQLiteManager.Table
 
                 if (value == null)
                 {
-                    return default(T);
+                    return default;
                 }
                 else
                 {
@@ -126,7 +126,7 @@ namespace Tasty.SQLiteManager.Table
             }
             else
             {
-                return default(T);
+                return default;
             }
         }
 

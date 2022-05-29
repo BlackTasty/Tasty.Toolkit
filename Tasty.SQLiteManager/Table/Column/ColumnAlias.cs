@@ -5,10 +5,10 @@
     /// </summary>
     public class ColumnAlias
     {
-        private string name;
-        private string aliasName;
-        private int columnIndex;
-        private int aliasColumnIndex;
+        private readonly string name;
+        private readonly string aliasName;
+        private readonly int columnIndex;
+        private readonly int aliasColumnIndex;
 
         /// <summary>
         /// The current name of the column

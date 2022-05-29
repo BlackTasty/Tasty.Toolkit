@@ -16,7 +16,7 @@ namespace Tasty.SQLiteManager.Table
     /// </summary>
     public class ChildTableDefinition : TableBaseDefinition
     {
-        private List<ForeignKeyData> foreignKeys;
+        private readonly List<ForeignKeyData> foreignKeys;
 
         internal ChildTableDefinition(ChildTableData tableData) : base(tableData.TableName)
         {

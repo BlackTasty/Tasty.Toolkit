@@ -9,7 +9,7 @@ namespace Tasty.SQLiteManager.Table.Attributes
     [AttributeUsage(AttributeTargets.Method)]
     internal class SqliteDataSetter : Attribute
     {
-        private bool setChildData;
+        private readonly bool setChildData;
 
         internal bool SetChildData => setChildData;
 
