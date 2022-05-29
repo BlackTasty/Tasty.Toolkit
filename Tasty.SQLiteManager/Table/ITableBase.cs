@@ -34,6 +34,20 @@ namespace Tasty.SQLiteManager.Table
         bool TableExists();
 
         /// <summary>
+        /// Returns if the specified column exists in this table.
+        /// </summary>
+        /// <param name="target">The column to search for</param>
+        /// <returns>Returns true if the column exists</returns>
+        bool ColumnExists(IColumn target);
+
+        /// <summary>
+        /// Returns if a column with the specified exists in this table.
+        /// </summary>
+        /// <param name="colName">The column name to search for</param>
+        /// <returns>Returns true if the column exists</returns>
+        bool ColumnExists(string colName);
+
+        /// <summary>
         /// Run a custom query on this table. Note that there have to be string formatter present in the command
         /// </summary>
         /// <param name="command">The command to execute. {0} = table name</param>
@@ -46,6 +60,12 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         /// <param name="conditions">The WHERE statement of the query. Leave empty to return all data</param>
         ResultSet Select(params Condition[] conditions);
+
+        /// <summary>
+        /// Returns the result of a SELECT query for this table
+        /// </summary>
+        /// <param name="conditions">The WHERE statement of the query. Leave empty to return all data</param>
+        ResultSet Select(IEnumerable<Condition> conditions);
 
         /// <summary>
         /// Returns the result of a SELECT query for this table
@@ -110,6 +130,20 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="data">A <see cref="Dictionary{TKey, TValue}"/> of <see cref="ColumnDefinition{T}"/> objects and values. These get transformed into a SQL query</param>
         /// <returns>Returns the formatted UPDATE statement</returns>
         string GenerateBulkUpdate(Dictionary<IColumn, dynamic>[] data);
+
+        /// <summary>
+        /// Insert multiple data into the table.
+        /// </summary>
+        /// <param name="data">A <see cref="Dictionary{TKey, TValue}"/> of <see cref="ColumnDefinition{T}"/> objects and values. These get transformed into a SQL query</param>
+        /// <returns>Returns true on success.</returns>
+        bool BulkInsert(Dictionary<IColumn, dynamic>[] data);
+
+        /// <summary>
+        /// Update multiple data into the table.
+        /// </summary>
+        /// <param name="data">A <see cref="Dictionary{TKey, TValue}"/> of <see cref="ColumnDefinition{T}"/> objects and values. These get transformed into a SQL query</param>
+        /// <returns>Returns true on success.</returns>
+        bool BulkUpdate(Dictionary<IColumn, dynamic>[] data);
 
         /// <summary>
         /// Update a dataset inside this table

@@ -57,7 +57,7 @@ namespace Tasty.SQLiteManager.Table
         [SqliteConstructor]
         public TableDefinition(string name) : base(name)
         {
-            columns = GetColumnsFromClass(typeof(T));
+            columns = GetColumnsFromClass(typeof(T), name);
 
             tableType = typeof(T);
             foreignKeyData = GetForeignKeysFromClass(typeof(T));
@@ -94,26 +94,6 @@ namespace Tasty.SQLiteManager.Table
         public TableDefinition(string name, List<ForeignKeyDefinition> foreignKeys) : this(name)
         {
             this.foreignKeys = foreignKeys;
-        }
-
-        /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        /// <param name="target"><inheritdoc/></param>
-        /// <returns><inheritdoc/></returns>
-        public bool ColumnExists(IColumn target)
-        {
-            return columns.Exists(x => x.Equals(target));
-        }
-
-        /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        /// <param name="colName"><inheritdoc/></param>
-        /// <returns><inheritdoc/></returns>
-        public bool ColumnExists(string colName)
-        {
-            return columns.Exists(x => x.Name.Equals(colName));
         }
 
         /// <summary>
@@ -157,13 +137,13 @@ namespace Tasty.SQLiteManager.Table
             return sql_inner;
         }
 
-        private static List<IColumn> GetColumnsFromClass(Type target)
+        private static List<IColumn> GetColumnsFromClass(Type target, string tableName)
         {
             List<IColumn> columns = new List<IColumn>();
 
-            foreach (PropertyInfo property in target.GetProperties())
+            foreach (PropertyInfo property in target.GetProperties().OrderByDescending(x => Attribute.IsDefined(x, typeof(SqlitePrimaryKey))))
             {
-                if (!Attribute.IsDefined(property, typeof(SqliteIgnore)))
+                if (!Attribute.IsDefined(property, typeof(SqliteIgnore)) && !Attribute.IsDefined(property, typeof(SqliteForeignKey)))
                 {
                     ColumnMode columnMode;
 
@@ -201,71 +181,71 @@ namespace Tasty.SQLiteManager.Table
                         case "String":
                             if (defaultValue != null)
                             {
-                                columns.Add(new ColumnDefinition<string>(columnName, columnMode, defaultValue, property));
+                                columns.Add(new ColumnDefinition<string>(columnName, tableName, columnMode, defaultValue, property));
                             }
                             else
                             {
-                                columns.Add(new ColumnDefinition<string>(columnName, columnMode, property));
+                                columns.Add(new ColumnDefinition<string>(columnName, tableName, columnMode, property));
                             }
                             break;
                         case "Int32":
                             if (defaultValue != null)
                             {
-                                columns.Add(new ColumnDefinition<int>(columnName, columnMode, defaultValue, property));
+                                columns.Add(new ColumnDefinition<int>(columnName, tableName, columnMode, defaultValue, property));
                             }
                             else
                             {
-                                columns.Add(new ColumnDefinition<int>(columnName, columnMode, property));
+                                columns.Add(new ColumnDefinition<int>(columnName, tableName, columnMode, property));
                             }
                             break;
                         case "Double":
                             if (defaultValue != null)
                             {
-                                columns.Add(new ColumnDefinition<double>(columnName, columnMode, defaultValue, property));
+                                columns.Add(new ColumnDefinition<double>(columnName, tableName, columnMode, defaultValue, property));
                             }
                             else
                             {
-                                columns.Add(new ColumnDefinition<double>(columnName, columnMode, property));
+                                columns.Add(new ColumnDefinition<double>(columnName, tableName, columnMode, property));
                             }
                             break;
                         case "Single":
                             if (defaultValue != null)
                             {
-                                columns.Add(new ColumnDefinition<float>(columnName, columnMode, defaultValue, property));
+                                columns.Add(new ColumnDefinition<float>(columnName, tableName, columnMode, defaultValue, property));
                             }
                             else
                             {
-                                columns.Add(new ColumnDefinition<float>(columnName, columnMode, property));
+                                columns.Add(new ColumnDefinition<float>(columnName, tableName, columnMode, property));
                             }
                             break;
                         case "Int64":
                             if (defaultValue != null)
                             {
-                                columns.Add(new ColumnDefinition<long>(columnName, columnMode, defaultValue, property));
+                                columns.Add(new ColumnDefinition<long>(columnName, tableName, columnMode, defaultValue, property));
                             }
                             else
                             {
-                                columns.Add(new ColumnDefinition<long>(columnName, columnMode, property));
+                                columns.Add(new ColumnDefinition<long>(columnName, tableName, columnMode, property));
                             }
                             break;
                         case "DateTime":
                             if (defaultValue != null)
                             {
-                                columns.Add(new ColumnDefinition<DateTime>(columnName, columnMode, defaultValue, property));
+                                columns.Add(new ColumnDefinition<DateTime>(columnName, tableName, columnMode, defaultValue, property));
                             }
                             else
                             {
-                                columns.Add(new ColumnDefinition<DateTime>(columnName, columnMode, property));
+                                columns.Add(new ColumnDefinition<DateTime>(columnName, tableName, columnMode, property));
                             }
                             break;
                         default:
                             if (defaultValue != null)
                             {
-                                columns.Add(new ColumnDefinition<object>(columnName, columnMode, defaultValue, property));
+                                columns.Add(new ColumnDefinition<object>(columnName, tableName, columnMode, defaultValue, property));
                             }
                             else
                             {
-                                columns.Add(new ColumnDefinition<object>(columnName, columnMode, property));
+                                columns.Add(new ColumnDefinition<object>(columnName, tableName, columnMode, property));
                             }
                             break;
                     }

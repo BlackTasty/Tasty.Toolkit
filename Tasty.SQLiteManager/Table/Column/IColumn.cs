@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 
 namespace Tasty.SQLiteManager.Table.Column
 {
@@ -8,17 +9,27 @@ namespace Tasty.SQLiteManager.Table.Column
     public interface IColumn
     {
         /// <summary>
-        /// Property data, used to match database rows to their class property equivalent
+        /// Returns the data type of this column.
+        /// </summary>
+        Type DataType { get; }
+
+        /// <summary>
+        /// Property data, used to match database rows to their class property equivalent.
         /// </summary>
         PropertyInfo PropertyInfo { get; }
 
         /// <summary>
-        /// The name of the column
+        /// Returns the name of the table this column belongs to.
+        /// </summary>
+        string ParentTableName { get; }
+
+        /// <summary>
+        /// The name of the column.
         /// </summary>
         string Name { get; }
 
         /// <summary>
-        /// Returns the default value of the column
+        /// Returns the default value of the column.
         /// </summary>
         dynamic DefaultValue { get; }
 

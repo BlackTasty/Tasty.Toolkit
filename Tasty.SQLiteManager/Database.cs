@@ -192,6 +192,8 @@ namespace Tasty.SQLiteManager
         /// </summary>
         public bool FileExists { get => File.Exists(dbPath); }
 
+        public List<ChildTableDefinition> ChildTables => childTables;
+
         /// <summary>
         /// Initializes the database.
         /// </summary>
@@ -237,7 +239,7 @@ namespace Tasty.SQLiteManager
 
             // Check foreign key properties and create mapping tables
             #region Create mapping tables if needed
-            List <ChildTableData> childTables = new List<ChildTableData>();
+            List<ChildTableData> childTables = new List<ChildTableData>();
             foreach (ITable table in tables)
             {
                 if (table.ForeignKeyData.Count == 0)
@@ -297,6 +299,21 @@ namespace Tasty.SQLiteManager
         private Database(string dbPath, Logger logger = null) : this(dbPath, GetTablesFromAssemblies(), logger)
         {
 
+        }
+
+        /// <summary>
+        /// Returns the <see cref="TableDefinition{T}"/> for the given type T.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public TableDefinition<T> GetTable<T>()
+        {
+            return (TableDefinition<T>)this[typeof(T)];
+        }
+
+        public ChildTableDefinition GetChildTable(string tableName)
+        {
+            return childTables.FirstOrDefault(x => x.Name == tableName);
         }
 
         /// <summary>
@@ -447,6 +464,11 @@ namespace Tasty.SQLiteManager
             foreach (ITable table in this)
             {
                 ExecuteSQL(table.ToString());
+            }
+
+            foreach (ITableBase childTable in childTables)
+            {
+                ExecuteSQL(childTable.ToString());
             }
             #endregion
 
@@ -778,7 +800,16 @@ namespace Tasty.SQLiteManager
         }
 
         /// <summary>
-        /// Re-creates the database.
+        /// Re-create all tables.
+        /// </summary>
+        public void DropDatabase()
+        {
+            string sql = ExportToSQL();
+            ExecuteSQL(sql);
+        }
+
+        /// <summary>
+        /// Re-creates the database file.
         /// </summary>
         public void ResetDatabase()
         {
@@ -987,9 +1018,9 @@ namespace Tasty.SQLiteManager
                         Util.GetTableName(tableType.Name) : sqliteTableAttribute.TableName;
 
                     // Create generic ITable object from tableType property
-                    Type tableDefinitionType = typeof(TableDefinition<>).MakeGenericType(new Type[] { tableType });
+                    Type tableDefinitionType = Util.MakeGenericTableDefinition(tableType);
                     ConstructorInfo ctor = tableDefinitionType.GetConstructors()
-                        .Where(x => Attribute.IsDefined(x, typeof(SqliteConstructor))).FirstOrDefault();
+                        .FirstOrDefault(x => Attribute.IsDefined(x, typeof(SqliteConstructor)));
                     if (ctor != null)
                     {
                         tables.Add((ITable)ctor.Invoke(new object[] { tableName }));

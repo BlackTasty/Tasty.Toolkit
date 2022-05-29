@@ -22,23 +22,26 @@ namespace Tasty.SQLiteManager.Table
         {
             foreignKeys = tableData.ForeignKeys;
 
-            Add(new ColumnDefinition<int>("ID", ColumnMode.PRIMARY_KEY));
+            Add(new ColumnDefinition<int>("ID", name, ColumnMode.PRIMARY_KEY));
 
             foreach (ForeignKeyData foreignKeyData in tableData.ForeignKeys)
             {
-                Type columnDefinitionType = typeof(ColumnDefinition<>)
-                    .MakeGenericType(new Type[] { foreignKeyData.KeyType });
+                Type columnDefinitionType = Util.MakeGenericColumnDefinition(foreignKeyData.KeyType);
 
                 ConstructorInfo ctor = columnDefinitionType.GetConstructors()
                     .Where(x => Attribute.IsDefined(x, typeof(SqliteConstructor))).FirstOrDefault();
 
                 if (ctor != null)
                 {
-                    Add((IColumn)ctor.Invoke(new object[] { foreignKeyData.ForeignKeyName }));
+                    Add((IColumn)ctor.Invoke(new object[] { foreignKeyData.ForeignKeyName, tableData.TableName }));
                 }
-
-                //IColumn foreignColumn = 
             }
+        }
+
+        public IColumn GetChildColumnByParentTable(string parentTableName)
+        {
+            ForeignKeyData target = foreignKeys.FirstOrDefault(x => x.ParentTableName == parentTableName);
+            return this.FirstOrDefault(x => x.Name == target.ForeignKeyName);
         }
 
         public override string ToString()

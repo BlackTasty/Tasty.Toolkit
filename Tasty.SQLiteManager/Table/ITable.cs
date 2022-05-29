@@ -37,20 +37,6 @@ namespace Tasty.SQLiteManager.Table
         List<ForeignKeyDefinition> ForeignKeys { get; }
 
         /// <summary>
-        /// Returns if the specified column exists in this table.
-        /// </summary>
-        /// <param name="target">The column to search for</param>
-        /// <returns>Returns true if the column exists</returns>
-        bool ColumnExists(IColumn target);
-
-        /// <summary>
-        /// Returns if a column with the specified exists in this table.
-        /// </summary>
-        /// <param name="colName">The column name to search for</param>
-        /// <returns>Returns true if the column exists</returns>
-        bool ColumnExists(string colName);
-
-        /// <summary>
         /// Returns the primary key column for this table.
         /// </summary>
         /// <returns>Returns the column which has the "PRIMARY KEY" flag set</returns>

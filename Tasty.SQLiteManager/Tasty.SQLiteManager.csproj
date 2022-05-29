@@ -59,6 +59,7 @@
     <Compile Include="Exceptions\AutoTableException.cs" />
     <Compile Include="Exceptions\DatabaseNotInitializedException.cs" />
     <Compile Include="Exceptions\MissingWriteAccessException.cs" />
+    <Compile Include="Table\Attributes\SqliteDataSetter.cs" />
     <Compile Include="Table\Attributes\SqLiteDefaultValue.cs" />
     <Compile Include="Table\Attributes\SqliteConstructor.cs" />
     <Compile Include="Table\Attributes\SqliteForeignKey.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="Table\Column\IColumn.cs" />
     <Compile Include="Table\ForeignKey\ForeignKeyDefinition.cs" />
     <Compile Include="Table\ICacheTable.cs" />
+    <Compile Include="Table\IDatabaseEntry.cs" />
     <Compile Include="Table\IResultSet.cs" />
     <Compile Include="Table\IRowData.cs" />
     <Compile Include="Table\ITableActions.cs" />

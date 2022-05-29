@@ -149,6 +149,26 @@ namespace Tasty.SQLiteManager.Table
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
+        /// <param name="target"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
+        public bool ColumnExists(IColumn target)
+        {
+            return columns.Exists(x => x.Equals(target));
+        }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <param name="colName"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
+        public bool ColumnExists(string colName)
+        {
+            return columns.Exists(x => x.Name.Equals(colName));
+        }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         /// <param name="command"><inheritdoc/></param>
         /// <param name="awaitData"><inheritdoc/></param>
         /// <returns><inheritdoc/></returns>
@@ -183,6 +203,15 @@ namespace Tasty.SQLiteManager.Table
                 sql = string.Format("SELECT * FROM {0};", name);
             }
             return Database.Instance.SelectData(sql, this);
+        }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <param name="conditions"><inheritdoc/></param>
+        public ResultSet Select(IEnumerable<Condition> conditions)
+        {
+            return Select(conditions.ToArray());
         }
 
         /// <summary>
@@ -335,6 +364,17 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         /// <param name="data"><inheritdoc/></param>
         /// <returns><inheritdoc/></returns>
+        public bool BulkInsert(Dictionary<IColumn, dynamic>[] data)
+        {
+            return Database.Instance.ExecuteSQL(GenerateBulkInsert(data));
+        }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <param name="data"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
+        [Obsolete("This method is replaced with BulkInsert(data), use this method instead. This method will be removed soon!")]
         public string GenerateBulkInsert(Dictionary<IColumn, dynamic>[] data)
         {
             string sql = "BEGIN TRANSACTION;\n";
@@ -352,6 +392,17 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         /// <param name="data"><inheritdoc/></param>
         /// <returns><inheritdoc/></returns>
+        public bool BulkUpdate(Dictionary<IColumn, dynamic>[] data)
+        {
+            return Database.Instance.ExecuteSQL(GenerateBulkUpdate(data));
+        }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <param name="data"><inheritdoc/></param>
+        /// <returns><inheritdoc/></returns>
+        [Obsolete("This method is replaced with BulkInsert(data), use this method instead. This method will be removed soon!")]
         public string GenerateBulkUpdate(Dictionary<IColumn, dynamic>[] data)
         {
             string sql = "BEGIN TRANSACTION;\n";
@@ -449,6 +500,11 @@ namespace Tasty.SQLiteManager.Table
             {
                 return -3;
             }
+        }
+
+        internal IColumn GetPrimaryKeyColumn()
+        {
+            return this.FirstOrDefault(x => x.PrimaryKey);
         }
 
         private string GenerateInsertSQL(Dictionary<IColumn, dynamic> data, bool isReplace, params Condition[] conditions)

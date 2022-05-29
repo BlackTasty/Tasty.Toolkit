@@ -10,12 +10,28 @@ namespace Tasty.SQLiteManager.Table.Column
     /// <typeparam name="T">Column type</typeparam>
     public class ColumnDefinition<T> : DefinitionBase, IColumn
     {
+        private Type dataType;
         private PropertyInfo propertyInfo;
+        private string parentTableName;
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public Type DataType => dataType;
 
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
         public PropertyInfo PropertyInfo => propertyInfo;
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public string ParentTableName
+        {
+            get => parentTableName;
+            internal set => parentTableName = value;
+        }
 
         #region Property definitions
         private T defaultValue = default(T);
@@ -57,40 +73,41 @@ namespace Tasty.SQLiteManager.Table.Column
         /// </summary>
         /// <param name="name">The name of the column</param>
         [SqliteConstructor]
-        public ColumnDefinition(string name)
+        public ColumnDefinition(string name, string parentTableName)
         {
-            Type inputType = typeof(T);
+            this.parentTableName = parentTableName;
+            dataType = typeof(T);
 
-            if (inputType == typeof(int))
+            if (dataType == typeof(int))
             {
                 columnType = ColumnType.INTEGER;
             }
-            else if (inputType == typeof(float) || inputType == typeof(double))
+            else if (dataType == typeof(float) || dataType == typeof(double))
             {
                 columnType = ColumnType.FLOAT;
             }
-            else if (inputType == typeof(string))
+            else if (dataType == typeof(string))
             {
                 columnType = ColumnType.TEXT;
             }
-            else if (inputType == typeof(DateTime))
+            else if (dataType == typeof(DateTime))
             {
                 columnType = ColumnType.TEXT;
                 stringFormatter = "dd-MM-yyyy HH:mm:ss";
                 trueColumnType = "datetime";
             }
-            else if (inputType == typeof(TimeSpan))
+            else if (dataType == typeof(TimeSpan))
             {
                 columnType = ColumnType.TEXT;
                 stringFormatter = "HH:mm:ss";
                 trueColumnType = "timespan";
             }
-            else if (inputType == typeof(ulong))
+            else if (dataType == typeof(ulong))
             {
                 columnType = ColumnType.TEXT;
                 trueColumnType = "ulong";
             }
-            else if (inputType == typeof(bool))
+            else if (dataType == typeof(bool))
             {
                 columnType = ColumnType.BOOLEAN;
             }
@@ -100,7 +117,6 @@ namespace Tasty.SQLiteManager.Table.Column
             }
 
             base.name = name;
-            //this.columnType = columnType;
         }
 
         /// <summary>
@@ -111,8 +127,8 @@ namespace Tasty.SQLiteManager.Table.Column
         /// - NOT_NULL: null not allowed as value
         /// - UNIQUE: Value can only appear once in table
         /// - PRIMARY_KEY: Only on columns with type <see cref="int"/>! Define this column as primary key, auto-increments with each insert into table</param>
-        public ColumnDefinition(string name, ColumnMode columnMode) :
-            this(name)
+        public ColumnDefinition(string name, string parentTableName, ColumnMode columnMode) :
+            this(name, parentTableName)
         {
             SetColumnMode(columnMode);
         }
@@ -122,8 +138,8 @@ namespace Tasty.SQLiteManager.Table.Column
         /// </summary>
         /// <param name="name">The name of the column</param>
         /// <param name="defaultValue">Define a default value for this column</param>
-        public ColumnDefinition(string name, T defaultValue) :
-            this(name)
+        public ColumnDefinition(string name, string parentTableName, T defaultValue) :
+            this(name, parentTableName)
         {
             this.defaultValue = defaultValue;
         }
@@ -137,20 +153,20 @@ namespace Tasty.SQLiteManager.Table.Column
         /// - UNIQUE: Value can only appear once in table
         /// - PRIMARY_KEY: Only on columns with type <see cref="int"/>! Define this column as primary key, auto-increments with each insert into table</param>
         /// <param name="defaultValue">Define a default value for this column</param>
-        public ColumnDefinition(string name, ColumnMode columnMode, T defaultValue) :
-            this(name, defaultValue)
+        public ColumnDefinition(string name, string parentTableName, ColumnMode columnMode, T defaultValue) :
+            this(name, parentTableName, defaultValue)
         {
             SetColumnMode(columnMode);
         }
 
-        internal ColumnDefinition(string name, ColumnMode columnMode, T defaultValue, PropertyInfo propertyInfo) :
-            this(name, columnMode, defaultValue)
+        internal ColumnDefinition(string name, string parentTableName, ColumnMode columnMode, T defaultValue, PropertyInfo propertyInfo) :
+            this(name, parentTableName, columnMode, defaultValue)
         {
             this.propertyInfo = propertyInfo;
         }
 
-        internal ColumnDefinition(string name, ColumnMode columnMode, PropertyInfo propertyInfo) :
-            this(name, columnMode)
+        internal ColumnDefinition(string name, string parentTableName, ColumnMode columnMode, PropertyInfo propertyInfo) :
+            this(name, parentTableName, columnMode)
         {
             this.propertyInfo = propertyInfo;
         }

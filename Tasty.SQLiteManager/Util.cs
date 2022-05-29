@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Tasty.SQLiteManager.Table;
+using Tasty.SQLiteManager.Table.Column;
 
 namespace Tasty.SQLiteManager
 {
@@ -41,6 +43,21 @@ namespace Tasty.SQLiteManager
         internal static string GetSingular(string pluralWord)
         {
             return pluralService.Singularize(pluralWord);
+        }
+
+        internal static Type MakeGenericTableDefinition(Type tableType)
+        {
+            return typeof(TableDefinition<>).MakeGenericType(new Type[] { tableType });
+        }
+
+        internal static Type MakeGenericColumnDefinition(Type columnType)
+        {
+            return typeof(ColumnDefinition<>).MakeGenericType(new Type[] { columnType });
+        }
+
+        internal static Type MakeGenericDatabaseEntry(Type tableType)
+        {
+            return typeof(DatabaseEntry<>).MakeGenericType(new Type[] { tableType, typeof(RowData) });
         }
     }
 }
