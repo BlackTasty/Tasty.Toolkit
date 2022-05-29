@@ -12,16 +12,17 @@ Hooking up a control to the "IConsole" interface allows to catch the logged stri
 ### See the [Wiki](https://github.com/BlackTasty/Tasty.Toolkit/wiki/Tasty.Logging) for more details.
 
 ## Tasty.SQLiteManager
-#### NuGet: `Install-Package TastyApps.Core.SQLiteManager -Version 1.0.3`
-#### GitHub packages: `dotnet add PROJECT package TastyApps.Core.SQLiteManager --version 1.0.3`
+#### NuGet: `Install-Package TastyApps.Core.SQLiteManager -Version 2.0.0.1`
+#### GitHub packages: `dotnet add PROJECT package TastyApps.Core.SQLiteManager --version 2.0.0.1`
 
 Custom SQLite API which handles communication between database and application. Contains functions to allow ALTER TABLE as SQLite doesn't support it.
 
 Current features:
 - [**CREATE/ALTER/DROP TABLE**](): SQLiteManager does this automatically for every table
 - [**Import/Export SQL**](): via their respective methods in Database class
-- [**INSERT/UPDATE/DELETE**](): via their respective methods in TableDescriptor class
-- [**SELECT**](): via Select() method in TableDescriptor, returns a ResultSet object. Can also accept a Condition object to filter results
+- [**INSERT/UPDATE/DELETE**](): via DatabaseEntry class
+- [**SELECT**](): via DatabaseEntry class, returns a ResultSet object. Can also accept a Condition object to filter results
+- [**Relationship tables**](): Automatically generates relationship tables and updates them when configured
 
 ### See the [Wiki](https://github.com/BlackTasty/Tasty.Toolkit/wiki/Tasty.SQLiteManager) for more details.
 

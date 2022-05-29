@@ -2,15 +2,15 @@
 <package >
   <metadata>
     <id>TastyApps.Core.SQLiteManager</id>
-    <version>1.0.3</version>
+    <version>2.0.0.1</version>
     <title>Tasty.SQLiteManager</title>
     <authors>BlackTasty</authors>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">GPL-2.0-only</license>
     <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="ccf1f61b3e8b5d0915b58ed585687fd6199a5775" />
-    <description>Manage your SQLite databases</description>
-    <releaseNotes>Updated parameter name for default logger</releaseNotes>
-    <copyright>Copyright © BlackTasty 2021</copyright>
+    <description>Manage your SQLite databases with ease!</description>
+    <releaseNotes>Overhauled SQLiteManager</releaseNotes>
+    <copyright>Copyright © BlackTasty 2022</copyright>
     <tags>csharp sqlite database manager db sql</tags>
 
     <dependencies>
