@@ -7,6 +7,9 @@ using Tasty.SQLiteManager.Table.Column;
 
 namespace Tasty.SQLiteManager.Table
 {
+    /// <summary>
+    /// Interface for <see cref="CacheTableDefinition{T}"/> objects.
+    /// </summary>
     public interface ICacheTable : ITable
     {
         /// <summary>

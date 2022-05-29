@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Tasty.SQLiteManager.Table
 {
+    /// <summary>
+    /// Interface for <see cref="DatabaseEntry{T}"/> objects.
+    /// </summary>
     public interface IDatabaseEntry
     {
         /// <summary>
@@ -32,5 +35,10 @@ namespace Tasty.SQLiteManager.Table
         /// -1 = Error executing SQL query<para></para>
         /// -10 = Database is not used</returns>
         int SaveToDatabase();
+
+        /// <summary>
+        /// Deletes this <see cref="DatabaseEntry{T}"/> from the database.
+        /// </summary>
+        void DeleteFromDatabase();
     }
 }

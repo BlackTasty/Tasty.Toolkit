@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Tasty.SQLiteManager.Table.Attributes
 {
+    /// <summary>
+    /// Attribute for defining a class as a table.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class SqliteTable : Attribute
     {
@@ -23,7 +26,7 @@ namespace Tasty.SQLiteManager.Table.Attributes
         public bool AutoName => tableName == null;
 
         /// <summary>
-        /// Tell the sqlite manager library to make create table with this class, and generate table name from class name
+        /// Tell the sqlite manager library to create a table with this class, and generate the table name from class name
         /// </summary>
         public SqliteTable()
         {
@@ -31,7 +34,7 @@ namespace Tasty.SQLiteManager.Table.Attributes
         }
 
         /// <summary>
-        /// Tell the sqlite manager library to make create table with this class, and set custom table name
+        /// Tell the SQLiteManager library to create a table with this class, and set custom table name
         /// </summary>
         /// <param name="tableName">The name for the table</param>
         public SqliteTable(string tableName)

@@ -8,7 +8,7 @@ namespace Tasty.SQLiteManager.Table
     /// <summary>
     /// Cache tables are a special definition of tables. 
     /// Use this for tables which save temporary data like expiration tokens and call "ClearCache()" whenever you want to clean this table.
-    /// PS: ClearCache() is always called on startup of the database!
+    /// Note: ClearCache() is always called on startup of the database!
     /// </summary>
     class CacheTableDefinition<T> : TableDefinition<T>, ICacheTable
     {

@@ -19,7 +19,6 @@
         public string Name { get => name; }
 
         /// <summary>
-        /// 
         /// </summary>
         protected void SaveState()
         {

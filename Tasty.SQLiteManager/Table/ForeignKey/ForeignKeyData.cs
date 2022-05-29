@@ -8,6 +8,9 @@ using Tasty.SQLiteManager.Table.Attributes;
 
 namespace Tasty.SQLiteManager.Table.ForeignKey
 {
+    /// <summary>
+    /// For internal use. Holds mapping data for relationship tables.
+    /// </summary>
     public class ForeignKeyData
     {
         private string parentTableName;

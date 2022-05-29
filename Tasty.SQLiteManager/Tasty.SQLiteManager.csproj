@@ -89,8 +89,6 @@
     <Compile Include="Table\ICacheTable.cs" />
     <Compile Include="Table\IDatabaseEntry.cs" />
     <Compile Include="Table\IResultSet.cs" />
-    <Compile Include="Table\IRowData.cs" />
-    <Compile Include="Table\ITableActions.cs" />
     <Compile Include="Table\ITable.cs" />
     <Compile Include="Exceptions\MissingRequiredColumnsException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

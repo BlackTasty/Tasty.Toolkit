@@ -8,6 +8,9 @@ using Tasty.SQLiteManager.Table.Conditions;
 
 namespace Tasty.SQLiteManager.Table
 {
+    /// <summary>
+    /// Base interface for <see cref="TableBaseDefinition"/> objects
+    /// </summary>
     public interface ITableBase : IList<IColumn>
     {
         /// <summary>
@@ -175,7 +178,7 @@ namespace Tasty.SQLiteManager.Table
         /// <summary>
         /// Returns the primary key column for this table.
         /// </summary>
-        /// <returns>Returns the column which has the "PRIMARY KEY" flag set</returns>
+        /// <returns>Returns the column which has the "PRIMARY KEY" flag set or null.</returns>
         IColumn GetPrimaryKeyColumn();
     }
 }

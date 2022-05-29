@@ -15,19 +15,12 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         public bool IsEmpty { get => Count == 0; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public ResultSet()
+        internal ResultSet()
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="data"></param>
-        public ResultSet(List<RowData> data)
+        internal ResultSet(List<RowData> data)
         {
             AddRange(data);
         }

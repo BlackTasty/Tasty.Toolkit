@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Tasty.SQLiteManager.Table.Attributes
 {
     [AttributeUsage(AttributeTargets.Constructor)]
-    public class SqliteConstructor : Attribute
+    internal class SqliteConstructor : Attribute
     {
     }
 }

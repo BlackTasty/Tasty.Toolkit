@@ -127,7 +127,7 @@ namespace Tasty.Tests.SQLiteManager
             int index = 1;
             var table = Database.Instance.GetTable<DemoUser>();
 
-            var result = DemoUser.LoadFromDatabase(table, new Condition(table["ID"], index));
+            var result = DemoUser.LoadFromDatabase(new Condition("ID", index));
             bool rowExists = result != null;
             Base.Console.WriteLine_Status(string.Format("Entry with ID {0} exists", index), rowExists);
 
@@ -155,9 +155,9 @@ namespace Tasty.Tests.SQLiteManager
             var postTable = Database.Instance.GetTable<DemoPost>();
             var userTable = Database.Instance.GetTable<DemoUser>();
 
-            var result = userTable.Select(new Condition(userTable["ID"], 1));
+            var result = userTable.Select(new Condition("ID", 1));
 
-            DemoUser demoUser = DemoUser.LoadFromDatabase(userTable, new Condition(userTable["ID"], 1));
+            DemoUser demoUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
             bool rowExists = !result.IsEmpty;
 
             if (!rowExists)
@@ -175,7 +175,7 @@ namespace Tasty.Tests.SQLiteManager
             demoUser.Posts.Add(demoPost);
             demoUser.SaveToDatabase();
 
-            DemoUser dbUser = DemoUser.LoadFromDatabase(userTable, new Condition(userTable["ID"], 1));
+            DemoUser dbUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
 
             if (!AreUsersIdentical(demoUser, dbUser))
             {

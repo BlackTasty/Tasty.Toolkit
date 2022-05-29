@@ -4,7 +4,7 @@ using System.Reflection;
 namespace Tasty.SQLiteManager.Table.Column
 {
     /// <summary>
-    /// Interface for table columns
+    /// Interface for <see cref="ColumnDefinition{T}"/> objects
     /// </summary>
     public interface IColumn
     {

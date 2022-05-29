@@ -10,6 +10,9 @@ using Tasty.SQLiteManager.Table.Conditions;
 
 namespace Tasty.SQLiteManager.Table
 {
+    /// <summary>
+    /// Base class for table definitions
+    /// </summary>
     public class TableBaseDefinition : DefinitionBase, ITableBase
     {
         /// <summary>
@@ -508,6 +511,10 @@ namespace Tasty.SQLiteManager.Table
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <returns><inheritdoc/></returns>
         public IColumn GetPrimaryKeyColumn()
         {
             return this.FirstOrDefault(x => x.PrimaryKey);
@@ -627,6 +634,11 @@ namespace Tasty.SQLiteManager.Table
             string conditionParameter = "";
             foreach (Condition condition in conditions)
             {
+                if (condition.UseNewSystem)
+                {
+                    condition.ProvideData(this);
+                }
+
                 if (string.IsNullOrWhiteSpace(conditionParameter))
                 {
                     conditionParameter = condition.ToString();

@@ -7,6 +7,9 @@ using Tasty.SQLiteManager.Table.ForeignKey;
 
 namespace Tasty.SQLiteManager.Table.Attributes
 {
+    /// <summary>
+    /// Attribute for defining foreign key properties.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public class SqliteForeignKey : Attribute
     {
@@ -14,6 +17,10 @@ namespace Tasty.SQLiteManager.Table.Attributes
 
         public ForeignKeyData Data => data;
 
+        /// <summary>
+        /// Defines a property as having foreign keys.
+        /// </summary>
+        /// <param name="childTableName">The name for the relationship table.</param>
         public SqliteForeignKey(string childTableName)
         {
             data = new ForeignKeyData(childTableName);

@@ -12,6 +12,10 @@ using Tasty.SQLiteManager.Table.Conditions;
 
 namespace Tasty.SQLiteManager.Table
 {
+    /// <summary>
+    /// Define basic properties for database functionality
+    /// </summary>
+    /// <typeparam name="T">The type of database object.</typeparam>
     public class DatabaseEntry<T> : IDatabaseEntry
     {
         protected TableDefinition<T> table;
@@ -41,12 +45,21 @@ namespace Tasty.SQLiteManager.Table
             get => id;
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="DatabaseEntry{T}"/>.
+        /// </summary>
+        /// <param name="table">The table containing data for this <see cref="DatabaseEntry{T}"/>.</param>
         public DatabaseEntry(TableDefinition<T> table)
         {
             this.table = table;
             useDB = table != null;
         }
 
+        /// <summary>
+        /// Initializes a <see cref="DatabaseEntry{T}"/> and populates it with the given <see cref="RowData"/>.
+        /// </summary>
+        /// <param name="table">The table containing data for this <see cref="DatabaseEntry{T}"/>.</param>
+        /// <param name="data">The <see cref="RowData"/> for this <see cref="DatabaseEntry{T}"/>.</param>
         [SqliteConstructor]
         public DatabaseEntry(TableDefinition<T> table, RowData data) : this(table)
         {
@@ -56,20 +69,42 @@ namespace Tasty.SQLiteManager.Table
             SetRowData(data, true);
         }
 
-        public static T LoadFromDatabase(TableDefinition<T> table, params Condition[] conditions)
+        /// <summary>
+        /// Load a single <see cref="DatabaseEntry{T}"/> from the database.
+        /// </summary>
+        /// <param name="conditions">Optional: Conditions to filter results.</param>
+        /// <returns>If no conditions are passed, the last entry in the table is returned. Else the first occurrence meeting the conditions is returned.</returns>
+        public static T LoadFromDatabase(params Condition[] conditions)
         {
+            var table = GetTableDefinitionForType<T>();
+            foreach (Condition condition in conditions)
+            {
+                if (condition.UseNewSystem)
+                {
+                    condition.ProvideData(table);
+                }
+            }
+
             ResultSet result = table.Select(conditions);
             if (result.IsEmpty)
             {
                 return default;
             }
 
-            return ConstructGeneric(table, result.FirstOrDefault(), true);
+            return ConstructGeneric(table, conditions.Length > 0 ? result.FirstOrDefault() : result.LastOrDefault(), true);
         }
 
-        public static List<T> LoadAllFromDatabase(TableDefinition<T> table)
+        /// <summary>
+        /// Load multiple <see cref="DatabaseEntry{T}"/> from the database.
+        /// </summary>
+        /// <param name="conditions">Optional: Conditions to filter results.</param>
+        /// <returns>If no conditions are passed, returns all entries in the table. Else all occurrences meeting the conditions are returned.</returns>
+        public static List<T> LoadAllFromDatabase(params Condition[] conditions)
         {
-            ResultSet result = table.Select();
+            var table = GetTableDefinitionForType<T>();
+
+            ResultSet result = table.Select(conditions);
+
             List<T> entries = new List<T>();
             foreach (RowData data in result)
             {
@@ -77,59 +112,6 @@ namespace Tasty.SQLiteManager.Table
             }
 
             return entries;
-        }
-
-        private static T ConstructGeneric(TableDefinition<T> table, RowData data, bool loadChildren)
-        {
-            Type rowType = typeof(T);
-
-            Type tableDefinitionType = Util.MakeGenericTableDefinition(rowType);
-            ConstructorInfo ctor = rowType.GetConstructor(new[] { tableDefinitionType });
-            if (ctor != null)
-            {
-                T obj = (T)ctor.Invoke(new object[] { table });
-                MethodInfo setRowData = rowType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
-                    .FirstOrDefault(x => Attribute.IsDefined(x, typeof(SqliteDataSetter)) && !(x.GetCustomAttribute<SqliteDataSetter>()).SetChildData);
-                if (setRowData != null)
-                {
-                    setRowData.Invoke(obj, new object[] { data, loadChildren });
-                }
-
-
-                return obj;
-            }
-            else
-            {
-                return default;
-            }
-        }
-
-        internal IColumn GetColumnByPropertyName(string propertyName)
-        {
-            return table[propertyName];
-        }
-
-        private static Type GetDatabaseEntryType(Type rowType)
-        {
-            Type currentType = rowType;
-            while (currentType != typeof(DatabaseEntry<T>))
-            {
-                if (currentType.BaseType == null)
-                {
-                    return null;
-                }
-                currentType = currentType.BaseType;
-            }
-
-            return currentType;
-        }
-
-        protected Dictionary<IColumn, dynamic> GetRowsForBulkInsertUpdate()
-        {
-            return new Dictionary<IColumn, dynamic>()
-            {
-                { table["ID"], id }
-            };
         }
 
         /// <summary>
@@ -178,9 +160,22 @@ namespace Tasty.SQLiteManager.Table
             return 0;
         }
 
-        private void UpdateChildTables()
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public void DeleteFromDatabase()
         {
+            table.Delete(new Condition("ID", ID));
+            fromDatabase = false;
+            id = 0;
+        }
 
+        protected Dictionary<IColumn, dynamic> GetRowsForBulkInsertUpdate()
+        {
+            return new Dictionary<IColumn, dynamic>()
+            {
+                { table["ID"], id }
+            };
         }
 
         protected ResultSet Select(params Condition[] conditions)
@@ -196,6 +191,11 @@ namespace Tasty.SQLiteManager.Table
         protected ResultSet Select(List<IColumn> columns, bool excludeColumns, params Condition[] conditions)
         {
             return useDB ? table.Select(columns, excludeColumns, conditions) : new ResultSet();
+        }
+
+        internal IColumn GetColumnByPropertyName(string propertyName)
+        {
+            return table[propertyName];
         }
 
         [SqliteDataSetter]
@@ -417,6 +417,51 @@ namespace Tasty.SQLiteManager.Table
             }
 
             return data;
+        }
+
+        private static TableDefinition<T> GetTableDefinitionForType<T>()
+        {
+            return (TableDefinition<T>)Database.Instance[typeof(T)];
+        }
+
+        private static T ConstructGeneric(TableDefinition<T> table, RowData data, bool loadChildren)
+        {
+            Type rowType = typeof(T);
+
+            Type tableDefinitionType = Util.MakeGenericTableDefinition(rowType);
+            ConstructorInfo ctor = rowType.GetConstructor(new[] { tableDefinitionType });
+            if (ctor != null)
+            {
+                T obj = (T)ctor.Invoke(new object[] { table });
+                MethodInfo setRowData = rowType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+                    .FirstOrDefault(x => Attribute.IsDefined(x, typeof(SqliteDataSetter)) && !(x.GetCustomAttribute<SqliteDataSetter>()).SetChildData);
+                if (setRowData != null)
+                {
+                    setRowData.Invoke(obj, new object[] { data, loadChildren });
+                }
+
+
+                return obj;
+            }
+            else
+            {
+                return default;
+            }
+        }
+
+        private static Type GetDatabaseEntryType(Type rowType)
+        {
+            Type currentType = rowType;
+            while (currentType != typeof(DatabaseEntry<T>))
+            {
+                if (currentType.BaseType == null)
+                {
+                    return null;
+                }
+                currentType = currentType.BaseType;
+            }
+
+            return currentType;
         }
     }
 }

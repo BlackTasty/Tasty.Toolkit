@@ -15,6 +15,28 @@ namespace Tasty.SQLiteManager.Table.Conditions
         private KeyValuePair<IColumn, dynamic> right;
         readonly ConditionType conditionType;
 
+        private string columnName;
+        private dynamic value;
+        private bool useNewSystem;
+
+        /// <summary>
+        /// Returns true if this condition uses the new, simpler format for generating conditions.
+        /// </summary>
+        public bool UseNewSystem => useNewSystem;
+
+        /// <summary>
+        /// Define a condition for SQL queries
+        /// </summary>
+        /// <param name="columnName">The column name to compare</param>
+        /// <param name="value">The column value to compare</param>
+        public Condition(string columnName, dynamic value)
+        {
+            this.columnName = columnName != "ID" ? Util.GetColumnName(columnName) : columnName;
+            this.value = value;
+            useNewSystem = true;
+            conditionType = ConditionType.NONE;
+        }
+
         /// <summary>
         /// Define a multi-condition for SQL queries
         /// </summary>
@@ -56,6 +78,12 @@ namespace Tasty.SQLiteManager.Table.Conditions
             this.left = new KeyValuePair<IColumn, dynamic>(targetColumn, value);
             this.right = default;
             this.conditionType = ConditionType.NONE;
+        }
+
+        internal void ProvideData(ITableBase table)
+        {
+            left = new KeyValuePair<IColumn, dynamic>(table[columnName], value);
+            this.right = default;
         }
 
         /// <summary>

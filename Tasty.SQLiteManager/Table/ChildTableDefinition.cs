@@ -38,6 +38,11 @@ namespace Tasty.SQLiteManager.Table
             }
         }
 
+        /// <summary>
+        /// Returns the linked column for the parent table.
+        /// </summary>
+        /// <param name="parentTableName">The name of the parent table whose linked column you want to return.</param>
+        /// <returns>The child <see cref="ColumnDefinition{T}"/> object or null for the parent table.</returns>
         public IColumn GetChildColumnByParentTable(string parentTableName)
         {
             ForeignKeyData target = foreignKeys.FirstOrDefault(x => x.ParentTableName == parentTableName);
