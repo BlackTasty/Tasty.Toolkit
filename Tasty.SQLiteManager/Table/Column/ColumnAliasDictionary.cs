@@ -8,7 +8,7 @@ namespace Tasty.SQLiteManager.Table.Column
     /// </summary>
     public class ColumnAliasDictionary
     {
-        private List<ColumnAlias> columnAliases;
+        private readonly List<ColumnAlias> columnAliases;
 
         /// <summary>
         /// Check if the column has aliases

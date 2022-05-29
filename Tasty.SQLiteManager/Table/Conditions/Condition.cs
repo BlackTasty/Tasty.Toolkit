@@ -8,9 +8,12 @@ namespace Tasty.SQLiteManager.Table.Conditions
     /// </summary>
     public class Condition
     {
+        private readonly ITable targetTable;
+        private readonly IColumn targetColumn;
+
         private KeyValuePair<IColumn, dynamic> left;
         private KeyValuePair<IColumn, dynamic> right;
-        ConditionType conditionType;
+        readonly ConditionType conditionType;
 
         /// <summary>
         /// Define a multi-condition for SQL queries
@@ -35,6 +38,22 @@ namespace Tasty.SQLiteManager.Table.Conditions
         public Condition(IColumn column, dynamic value)
         {
             this.left = new KeyValuePair<IColumn, dynamic>(column, value);
+            this.right = default;
+            this.conditionType = ConditionType.NONE;
+        }
+
+        /// <summary>
+        /// Define a condition for SQL queries
+        /// </summary>
+        /// <param name="targetTable">The table which contains the column to compare</param>
+        /// <param name="columnName">The name of the column to compare</param>
+        /// <param name="value">The column value to compare</param>
+        public Condition(ITable targetTable, string columnName, dynamic value)
+        {
+            this.targetTable = targetTable;
+            targetColumn = targetTable[columnName];
+
+            this.left = new KeyValuePair<IColumn, dynamic>(targetColumn, value);
             this.right = default;
             this.conditionType = ConditionType.NONE;
         }

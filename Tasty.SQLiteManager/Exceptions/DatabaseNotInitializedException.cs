@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Tasty.SQLiteManager
+namespace Tasty.SQLiteManager.Exceptions
 {
     class DatabaseNotInitializedException : Exception
     {

@@ -1,16 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Tasty.SQLiteManager.Table.Column;
 
 namespace Tasty.SQLiteManager.Table
 {
     /// <summary>
-    /// Define a FOREIGN KEY for a <see cref="TableDefinition"/>
+    /// Define a FOREIGN KEY for a <see cref="TableDefinition{T}"/>
     /// </summary>
+    [Obsolete("This type of foreign key declaration is deprecated! See the documentation for more details: [LINK]")]
     public class ForeignKeyDefinition : DefinitionBase
     {
-        private ITable foreignTable;
-        private IColumn foreignKey;
-        private IColumn targetKey;
+        private readonly ITable foreignTable;
+        private readonly IColumn foreignKey;
+        private readonly IColumn targetKey;
 
         /// <summary>
         /// Define a new foreign key.
@@ -19,6 +21,7 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="foreignTable">The target table where the foreign key is located</param>
         /// <param name="targetKey">The <see cref="ColumnDefinition{T}"/> of the foreign key</param>
         /// <param name="foreignKey">The <see cref="ColumnDefinition{T}"/> of the local key</param>
+        [Obsolete("This type of foreign key declaration is deprecated! See the documentation for more details: [LINK]")]
         public ForeignKeyDefinition(string name, ITable foreignTable, IColumn targetKey, IColumn foreignKey)
         {
             this.foreignKey = foreignKey;
