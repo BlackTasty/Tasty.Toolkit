@@ -66,7 +66,11 @@ namespace Tasty.SQLiteManager.Table
 
             foreach (ForeignKeyData foreignKey in foreignKeys)
             {
-                sql_inner += ",\n\t" + foreignKey.ToString();
+                string foreignKeySql = foreignKey.ToString();
+                if (foreignKeySql != null)
+                {
+                    sql_inner += ",\n\t" + foreignKeySql;
+                }
             }
 
             return sql_inner;

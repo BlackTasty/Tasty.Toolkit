@@ -258,6 +258,10 @@ namespace Tasty.SQLiteManager
 
                 foreach (ForeignKeyData foreignKeyData in table.ForeignKeyData)
                 {
+                    if (!foreignKeyData.IsList)
+                    {
+                        continue;
+                    }
                     ChildTableData existing = childTables.FirstOrDefault(x => x.TableName == foreignKeyData.ChildTableName);
 
                     if (existing != null)

@@ -15,7 +15,7 @@ namespace Tasty.Tests.SQLiteManager.Test
 
         public DateTime CreateDate { get; set; }
 
-        [SqliteIgnore]
+        [SqliteForeignKey("mapping_user_posts")]
         public DemoUser Author { get; set; }
 
         public DemoPost(TableDefinition<DemoPost> table) : base(table)

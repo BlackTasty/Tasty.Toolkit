@@ -53,7 +53,7 @@ namespace Tasty.SQLiteManager.Table
             fromDatabase = true;
             id = data["ID"];
 
-            SetRowData(data);
+            SetRowData(data, true);
         }
 
         public static T LoadFromDatabase(TableDefinition<T> table, params Condition[] conditions)
@@ -64,7 +64,7 @@ namespace Tasty.SQLiteManager.Table
                 return default(T);
             }
 
-            return ConstructGeneric(table, result.FirstOrDefault());
+            return ConstructGeneric(table, result.FirstOrDefault(), true);
         }
 
         public static List<T> LoadAllFromDatabase(TableDefinition<T> table)
@@ -73,98 +73,13 @@ namespace Tasty.SQLiteManager.Table
             List<T> entries = new List<T>();
             foreach (RowData data in result)
             {
-                entries.Add(ConstructGeneric(table, data));
+                entries.Add(ConstructGeneric(table, data, true));
             }
 
             return entries;
         }
 
-        [SqliteDataSetter]
-        internal void SetRowData(RowData data)
-        {
-            Type dataType = typeof(T);
-
-            // Set data from DB
-            foreach (var row in data.Columns)
-            {
-                IColumn column = table[row.Key];
-                if (column.Name == "ID")
-                {
-                    id = row.Value;
-                    fromDatabase = true;
-                    continue;
-                }
-
-                PropertyInfo propertyInfo = dataType.GetProperty(column.PropertyInfo.Name);
-                if (!propertyInfo.CanWrite)
-                {
-                    throw new MissingWriteAccessException(propertyInfo.Name);
-                }
-
-
-                object value = Convert.ChangeType(row.Value, propertyInfo.PropertyType);
-                propertyInfo.SetValue(this, value, null);
-            }
-
-            // Populate lists with SqliteForeignKey attribute
-            var foreignProperties = dataType.GetProperties().Where(x => Attribute.IsDefined(x, typeof(SqliteForeignKey)));
-            foreach (PropertyInfo foreignProperty in foreignProperties)
-            {
-                if (foreignProperty.PropertyType.IsGenericType)
-                {
-                    SqliteForeignKey foreignKeyAttribute = foreignProperty.GetCustomAttribute<SqliteForeignKey>();
-                    ChildTableDefinition childTable = Database.Instance.GetChildTable(foreignKeyAttribute.Data.ChildTableName);
-                    IColumn foreignKey = childTable.GetChildColumnByParentTable(table.Name);
-                    ResultSet mappingResults = childTable.Select(new Condition(foreignKey, id)); // Get mapping data for list type
-
-                    if (!mappingResults.IsEmpty)
-                    {
-                        Type childType = foreignProperty.PropertyType.GenericTypeArguments.FirstOrDefault();
-                        Type databaseEntryType = typeof(DatabaseEntry<>).MakeGenericType(new Type[] { childType });
-                        Type targetTableType = Util.MakeGenericTableDefinition(childType);
-
-
-                        ConstructorInfo ctor = childType.GetConstructor(new[] { targetTableType });
-                        if (ctor != null)
-                        {
-                            ITable table = Database.Instance[childType]; // Get table for list type
-
-                            var obj = ctor.Invoke(new object[] { table });
-                            MethodInfo setRowData = databaseEntryType.GetMethod("ConstructGeneric", BindingFlags.Static | BindingFlags.NonPublic);
-                            if (setRowData != null)
-                            {
-                                string targetKeyName = this.table.ForeignKeyData.FirstOrDefault(x => x.ChildTableName == childTable.Name)?.ForeignKeyName;
-
-                                if (targetKeyName != null)
-                                {
-                                    List<Condition> conditions = new List<Condition>();
-                                    foreach (RowData rowData in mappingResults)
-                                    {
-                                        conditions.Add(new Condition(table.GetPrimaryKeyColumn(), rowData[targetKeyName]));
-                                    }
-
-                                    ResultSet dataResult = table.Select(conditions);
-
-                                    Type genericListType = typeof(List<>);
-                                    Type listType = genericListType.MakeGenericType(childType);
-                                    var listInstance = (IList)Activator.CreateInstance(listType);
-
-                                    foreach (RowData rowData in dataResult)
-                                    {
-                                        listInstance.Add(setRowData.Invoke(obj, new object[] { table, rowData }));
-                                    }
-
-                                    foreignProperty.SetValue(this, listInstance);
-                                }
-                            }
-                        }
-                    }
-
-                }
-            }
-        }
-
-        private static T ConstructGeneric(TableDefinition<T> table, RowData data)
+        private static T ConstructGeneric(TableDefinition<T> table, RowData data, bool loadChildren)
         {
             Type rowType = typeof(T);
 
@@ -174,10 +89,10 @@ namespace Tasty.SQLiteManager.Table
             {
                 T obj = (T)ctor.Invoke(new object[] { table });
                 MethodInfo setRowData = rowType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
-                    .FirstOrDefault(x => Attribute.IsDefined(x, typeof(SqliteDataSetter)) && !((SqliteDataSetter)x.GetCustomAttribute<SqliteDataSetter>()).SetChildData);
+                    .FirstOrDefault(x => Attribute.IsDefined(x, typeof(SqliteDataSetter)) && !(x.GetCustomAttribute<SqliteDataSetter>()).SetChildData);
                 if (setRowData != null)
                 {
-                    setRowData.Invoke(obj, new object[] { data });
+                    setRowData.Invoke(obj, new object[] { data, loadChildren });
                 }
 
 
@@ -283,6 +198,140 @@ namespace Tasty.SQLiteManager.Table
             return useDB ? table.Select(columns, excludeColumns, conditions) : new ResultSet();
         }
 
+        [SqliteDataSetter]
+        internal void SetRowData(RowData data, bool loadChildren)
+        {
+            Type dataType = typeof(T);
+
+            // Set data from DB
+            foreach (var row in data.Columns)
+            {
+                IColumn column = table[row.Key];
+                if (column.Name == "ID")
+                {
+                    id = row.Value;
+                    fromDatabase = true;
+                    continue;
+                }
+
+                PropertyInfo propertyInfo = dataType.GetProperty(column.PropertyInfo.Name);
+                if (!propertyInfo.CanWrite)
+                {
+                    throw new MissingWriteAccessException(propertyInfo.Name);
+                }
+
+
+                object value = Convert.ChangeType(row.Value, propertyInfo.PropertyType);
+                propertyInfo.SetValue(this, value, null);
+            }
+
+            if (!loadChildren) // Skip loading of child data for this entry
+            {
+                return;
+            }
+
+            // Populate lists (for parents) and objects (for children) with SqliteForeignKey attribute
+            var foreignProperties = dataType.GetProperties().Where(x => Attribute.IsDefined(x, typeof(SqliteForeignKey)));
+            foreach (PropertyInfo foreignProperty in foreignProperties)
+            {
+                SqliteForeignKey foreignKeyAttribute = foreignProperty.GetCustomAttribute<SqliteForeignKey>();
+                ChildTableDefinition childTable = Database.Instance.GetChildTable(foreignKeyAttribute.Data.ChildTableName);
+                if (foreignProperty.PropertyType.IsGenericType) // Is list, load data for children from database
+                {
+                    #region Load generic data into list of property
+                    IColumn foreignKey = childTable.GetChildColumnByParentTable(table.Name);
+                    ResultSet mappingResults = childTable.Select(new Condition(foreignKey, id)); // Get mapping data for list type
+
+                    if (!mappingResults.IsEmpty)
+                    {
+                        Type childType = foreignProperty.PropertyType.GenericTypeArguments.FirstOrDefault();
+                        Type databaseEntryType = typeof(DatabaseEntry<>).MakeGenericType(new Type[] { childType });
+                        Type targetTableType = Util.MakeGenericTableDefinition(childType);
+
+                        ConstructorInfo ctor = childType.GetConstructor(new[] { targetTableType });
+                        if (ctor != null)
+                        {
+                            ITable table = Database.Instance[childType]; // Get table for list type
+
+                            var obj = ctor.Invoke(new object[] { table });
+                            MethodInfo setRowData = databaseEntryType.GetMethod("ConstructGeneric", BindingFlags.Static | BindingFlags.NonPublic);
+                            if (setRowData != null)
+                            {
+                                string targetKeyName = this.table.ForeignKeyData.FirstOrDefault(x => x.ChildTableName == childTable.Name)?.ForeignKeyName;
+
+                                if (targetKeyName != null)
+                                {
+                                    List<Condition> conditions = new List<Condition>();
+                                    foreach (RowData rowData in mappingResults)
+                                    {
+                                        conditions.Add(new Condition(table.GetPrimaryKeyColumn(), rowData[targetKeyName]));
+                                    }
+
+                                    ResultSet dataResult = table.Select(conditions);
+                                    if (dataResult.IsEmpty)
+                                    {
+                                        return;
+                                    }
+
+                                    Type genericListType = typeof(List<>);
+                                    Type listType = genericListType.MakeGenericType(childType);
+                                    var listInstance = (IList)Activator.CreateInstance(listType);
+
+                                    foreach (RowData rowData in dataResult)
+                                    {
+                                        listInstance.Add(setRowData.Invoke(obj, new object[] { table, rowData, loadChildren }));
+                                    }
+
+                                    foreignProperty.SetValue(this, listInstance);
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                }
+                else // Is object, load data
+                {
+                    #region Load generic data into property
+                    IColumn foreignKey = childTable.GetChildColumnByParentTable(table.Name);
+                    ResultSet mappingResults = childTable.Select(new Condition(foreignKey, id)); // Get mapping data for list type
+
+                    if (!mappingResults.IsEmpty)
+                    {
+                        Type childType = foreignProperty.PropertyType;
+                        Type databaseEntryType = typeof(DatabaseEntry<>).MakeGenericType(new Type[] { childType });
+                        Type targetTableType = Util.MakeGenericTableDefinition(childType);
+
+                        ConstructorInfo ctor = childType.GetConstructor(new[] { targetTableType });
+                        if (ctor != null)
+                        {
+                            ITable table = Database.Instance[childType]; // Get table for list type
+
+                            var obj = ctor.Invoke(new object[] { table });
+                            MethodInfo setRowData = databaseEntryType.GetMethod("ConstructGeneric", BindingFlags.Static | BindingFlags.NonPublic);
+                            if (setRowData != null)
+                            {
+                                string targetKeyName = this.table.ForeignKeyData.FirstOrDefault(x => x.ChildTableName == childTable.Name)?.ForeignKeyName;
+
+                                if (targetKeyName != null)
+                                {
+                                    ResultSet dataResult = table.Select(new Condition(table.GetPrimaryKeyColumn(), 
+                                        mappingResults.FirstOrDefault()[targetKeyName]));
+                                    if (dataResult.IsEmpty)
+                                    {
+                                        return;
+                                    }
+
+                                    IDatabaseEntry entry = (IDatabaseEntry)setRowData.Invoke(obj, new object[] { table, dataResult.FirstOrDefault(), false });
+                                    foreignProperty.SetValue(this, Convert.ChangeType(obj, childType));
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                }
+            }
+        }
+
         private Dictionary<IColumn, dynamic> GetRowData(out bool childSuccess)
         {
             Dictionary<IColumn, dynamic> data = new Dictionary<IColumn, dynamic>();
@@ -326,36 +375,40 @@ namespace Tasty.SQLiteManager.Table
                     }
                     else
                     {
-                        IList childData = property.GetValue(this) as IList;
-
-                        if (childData.Count > 0)
+                        if (property.PropertyType.IsGenericType) // Property is list, which makes this entry the parent
                         {
-                            SqliteForeignKey sqliteForeignKeyAttribute = (SqliteForeignKey)property.GetCustomAttribute(typeof(SqliteForeignKey));
+                            #region Save list of generic data into database
+                            IList childData = property.GetValue(this) as IList;
 
-                            ChildTableDefinition childTable = Database.Instance.GetChildTable(sqliteForeignKeyAttribute.Data.ChildTableName);
-                            IColumn foreignKey = childTable.GetChildColumnByParentTable(table.Name);
-                            IColumn childForeignKey = null;
-
-                            Dictionary<IColumn, dynamic>[] queryData = new Dictionary<IColumn, dynamic>[childData.Count];
-                            for (int i = 0; i < childData.Count; i++)
+                            if (childData.Count > 0)
                             {
-                                var childEntry = (childData[i] as IDatabaseEntry);
-                                if (childForeignKey == null)
+                                SqliteForeignKey sqliteForeignKeyAttribute = (SqliteForeignKey)property.GetCustomAttribute(typeof(SqliteForeignKey));
+
+                                ChildTableDefinition childTable = Database.Instance.GetChildTable(sqliteForeignKeyAttribute.Data.ChildTableName);
+                                IColumn foreignKey = childTable.GetChildColumnByParentTable(table.Name);
+                                IColumn childForeignKey = null;
+
+                                Dictionary<IColumn, dynamic>[] queryData = new Dictionary<IColumn, dynamic>[childData.Count];
+                                for (int i = 0; i < childData.Count; i++)
                                 {
-                                    childForeignKey = childTable.GetChildColumnByParentTable(childEntry.Table.Name);
+                                    var childEntry = (childData[i] as IDatabaseEntry);
+                                    if (childForeignKey == null)
+                                    {
+                                        childForeignKey = childTable.GetChildColumnByParentTable(childEntry.Table.Name);
+                                    }
+                                    childEntry.SaveToDatabase();
+
+                                    queryData[i] = new Dictionary<IColumn, dynamic>()
+                                    {
+                                        { foreignKey, ID }, // Put ID of this element into foreign key for that field
+                                        { childForeignKey, childEntry.ID } // Put ID of the child element into foreign key for that field
+                                    };
                                 }
-                                childEntry.SaveToDatabase();
 
-                                queryData[i] = new Dictionary<IColumn, dynamic>()
-                                {
-                                    { foreignKey, ID }, // Put ID of this element into foreign key for that field
-                                    { childForeignKey, childEntry.ID } // Put ID of the child element into foreign key for that field
-                                };
-
+                                string sql = childTable.GenerateBulkInsert(queryData);
+                                childSuccess = Database.Instance.ExecuteSQL(sql);
                             }
-
-                            string sql = childTable.GenerateBulkInsert(queryData);
-                            childSuccess = Database.Instance.ExecuteSQL(sql);
+                            #endregion
                         }
                     }
                 }

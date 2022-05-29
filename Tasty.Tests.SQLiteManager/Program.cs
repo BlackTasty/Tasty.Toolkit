@@ -30,7 +30,6 @@ namespace Tasty.Tests.SQLiteManager
             TestRunner.RunTest(Test_Select, "Testing Select method");
             TestRunner.RunTest(Test_ChildTable, "Testing foreign key functionality");
 
-            //Console.Write("Correct data returned:\t\t", Test_Select());
             if (TestRunner.FailedTests == 0)
             {
                 Base.Console.WriteLine_Status(string.Format("Successfully ran {0}/{0} tests!", TestRunner.TestCount), Status.Success);
@@ -174,10 +173,43 @@ namespace Tasty.Tests.SQLiteManager
                 Title = "Foobar"
             };
             demoUser.Posts.Add(demoPost);
-
             demoUser.SaveToDatabase();
 
             DemoUser dbUser = DemoUser.LoadFromDatabase(userTable, new Condition(userTable["ID"], 1));
+
+            if (!AreUsersIdentical(demoUser, dbUser))
+            {
+                System.Console.WriteLine("Test aborted! Loaded user data not identical.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool AreUsersIdentical(DemoUser originalUser, DemoUser dbUser)
+        {
+            if (originalUser.Age != dbUser.Age || originalUser.Guid != dbUser.Guid ||
+                originalUser.Name != dbUser.Name || originalUser.Password != dbUser.Password ||
+                originalUser.Posts.Count != dbUser.Posts.Count)
+            {
+                return false;
+            }
+
+            foreach (DemoPost dbPost in dbUser.Posts)
+            {
+                DemoPost originalPost = originalUser.Posts.FirstOrDefault(x => x.ID == dbPost.ID);
+                if (originalPost == null)
+                {
+                    return false;
+                }
+
+                double timeDeviation = Math.Round(originalPost.CreateDate.Subtract(dbPost.CreateDate).TotalSeconds);
+
+                if (originalPost.Title != dbPost.Title || timeDeviation < -1 || timeDeviation > 1)
+                {
+                    return false;
+                }
+            }
 
             return true;
         }

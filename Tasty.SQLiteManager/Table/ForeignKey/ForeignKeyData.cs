@@ -16,6 +16,8 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
         private string parentKeyName;
         private Type keyType;
 
+        private bool isList;
+
         internal string ParentTableName => parentTableName;
 
         internal string ChildTableName => childTableName;
@@ -25,6 +27,8 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
         internal string ParentKeyName => parentKeyName;
 
         internal Type KeyType => keyType;
+
+        internal bool IsList => isList;
 
         internal ForeignKeyData(string childTableName)
         {
@@ -41,10 +45,12 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
 
         internal void SetParentData(string parentKeyName, PropertyInfo propertyInfo)
         {
+            isList = propertyInfo.PropertyType.IsGenericType;
+
             this.parentKeyName = parentKeyName;
             Type realType = GetRealType(propertyInfo.PropertyType);
             keyType = GetPrimaryKeyTypeFromType(realType);
-            foreignKeyName = string.Format("{0}_{1}", realType.Name.ToUpper(), parentKeyName);
+            foreignKeyName = string.Format("{0}_{1}", Util.GetColumnName(realType.Name).ToUpper(), parentKeyName);
 
             SqliteTable sqliteTableAttribute = (SqliteTable)realType.GetCustomAttribute(typeof(SqliteTable));
             this.parentTableName = sqliteTableAttribute.AutoName ? Util.GetTableName(realType.Name) : sqliteTableAttribute.TableName;
@@ -64,7 +70,8 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
 
         public override string ToString()
         {
-            return string.Format("FOREIGN KEY (\"{0}\") REFERENCES \"{1}\"(\"{2}\") ON DELETE SET NULL", foreignKeyName, parentTableName, parentKeyName);
+            return isList ? string.Format("FOREIGN KEY (\"{0}\") REFERENCES \"{1}\"(\"{2}\") ON DELETE SET NULL", foreignKeyName, parentTableName, parentKeyName) 
+                        : null;
         }
     }
 }
