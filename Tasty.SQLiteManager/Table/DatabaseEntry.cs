@@ -53,6 +53,7 @@ namespace Tasty.SQLiteManager.Table
         {
             this.table = table;
             useDB = table != null;
+            SetDefaultValues();
         }
 
         /// <summary>
@@ -369,6 +370,17 @@ namespace Tasty.SQLiteManager.Table
             }
         }
 
+        private void SetDefaultValues()
+        {
+            Type t = typeof(T);
+
+            foreach (PropertyInfo property in t.GetProperties().Where(x => Attribute.IsDefined(x, typeof(SqLiteDefaultValue))))
+            {
+                var defaultValue = GetDefaultValue(property);
+                property.SetValue(this, Convert.ChangeType(defaultValue, property.PropertyType));
+            }
+        }
+
         private Dictionary<IColumn, dynamic> GetRowData(bool isInsert, out bool childSuccess)
         {
             Dictionary<IColumn, dynamic> data = new Dictionary<IColumn, dynamic>();
@@ -408,7 +420,6 @@ namespace Tasty.SQLiteManager.Table
                         }
 
                         string columnName = columnMode != ColumnMode.PRIMARY_KEY ? Util.GetColumnName(property.Name) : property.Name.ToUpper();
-                        var value = !isInsert ? property.GetValue(this) : GetDefaultValue(property);
                         data.Add(table[columnName], property.GetValue(this));
                     }
                     else
@@ -477,7 +488,7 @@ namespace Tasty.SQLiteManager.Table
             if (Attribute.IsDefined(propertyInfo, typeof(SqLiteDefaultValue))) // Checks if the property has the SqliteDefaultValue attribute
             {
                 SqLiteDefaultValue defaultValueAttribute = propertyInfo.GetCustomAttribute<SqLiteDefaultValue>();
-                Type valueType = value.GetType();
+                Type valueType = propertyInfo.PropertyType;
                 dynamic defaultValueForType = valueType.IsPrimitive ? Activator.CreateInstance(valueType) : null; // Generates a new instance of the value type
 
                 if (value == defaultValueForType) // Checks if currently set value is default value for type
