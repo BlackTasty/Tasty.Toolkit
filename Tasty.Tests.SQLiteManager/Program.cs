@@ -220,11 +220,28 @@ namespace Tasty.Tests.SQLiteManager
             };
 
             DemoUser demoUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
+            bool rowExists = demoUser != null;
+
+            Base.Console.WriteLine_Status("Entry with ID 1 exists", rowExists);
+            if (!rowExists)
+            {
+                System.Console.WriteLine("Test aborted! User doesn't exist.");
+                return false;
+            }
+
             demoUser.UserSettings = userSettings;
 
             demoUser.SaveToDatabase();
 
             DemoUser dbUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
+
+            bool usersIdentical = AreUsersIdentical(demoUser, dbUser);
+            Base.Console.WriteLine_Status("Is user same after saving to database", usersIdentical);
+            if (!usersIdentical)
+            {
+                System.Console.WriteLine("Test aborted! Loaded user data not identical.");
+                return false;
+            }
 
             return true;
         }
