@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.CSharp.RuntimeBinder;
+using System;
 using System.Reflection;
+using Tasty.SQLiteManager.Exceptions;
 using Tasty.SQLiteManager.Table.Attributes;
 
 namespace Tasty.SQLiteManager.Table.Column
@@ -13,6 +15,7 @@ namespace Tasty.SQLiteManager.Table.Column
         private readonly Type dataType;
         private readonly PropertyInfo propertyInfo;
         private string parentTableName;
+        private bool isForeignKey;
 
         /// <summary>
         /// <inheritdoc/>
@@ -66,6 +69,9 @@ namespace Tasty.SQLiteManager.Table.Column
 
         /// <inheritdoc/>
         public string StringFormatter => stringFormatter;
+
+        /// <inheritdoc/>
+        public bool IsForeignKey => isForeignKey;
         #endregion
 
         /// <summary>
@@ -73,8 +79,9 @@ namespace Tasty.SQLiteManager.Table.Column
         /// </summary>
         /// <param name="name">The name of the column</param>
         [SqliteConstructor]
-        public ColumnDefinition(string name, string parentTableName)
+        public ColumnDefinition(string name, string parentTableName, bool isForeignKey)
         {
+            this.isForeignKey = isForeignKey;
             this.parentTableName = parentTableName;
             dataType = typeof(T);
 
@@ -111,6 +118,11 @@ namespace Tasty.SQLiteManager.Table.Column
             {
                 columnType = ColumnType.BOOLEAN;
             }
+            else if (dataType.IsEnum)
+            {
+                columnType = ColumnType.INTEGER;
+                trueColumnType = "enum";
+            }
             else
             {
                 columnType = ColumnType.OBJECT;
@@ -127,8 +139,8 @@ namespace Tasty.SQLiteManager.Table.Column
         /// - NOT_NULL: null not allowed as value
         /// - UNIQUE: Value can only appear once in table
         /// - PRIMARY_KEY: Only on columns with type <see cref="int"/>! Define this column as primary key, auto-increments with each insert into table</param>
-        public ColumnDefinition(string name, string parentTableName, ColumnMode columnMode) :
-            this(name, parentTableName)
+        public ColumnDefinition(string name, string parentTableName, ColumnMode columnMode, bool isForeignKey) :
+            this(name, parentTableName, isForeignKey)
         {
             SetColumnMode(columnMode);
         }
@@ -138,8 +150,8 @@ namespace Tasty.SQLiteManager.Table.Column
         /// </summary>
         /// <param name="name">The name of the column</param>
         /// <param name="defaultValue">Define a default value for this column</param>
-        public ColumnDefinition(string name, string parentTableName, T defaultValue) :
-            this(name, parentTableName)
+        public ColumnDefinition(string name, string parentTableName, T defaultValue, bool isForeignKey) :
+            this(name, parentTableName, isForeignKey)
         {
             this.defaultValue = defaultValue;
         }
@@ -153,20 +165,20 @@ namespace Tasty.SQLiteManager.Table.Column
         /// - UNIQUE: Value can only appear once in table
         /// - PRIMARY_KEY: Only on columns with type <see cref="int"/>! Define this column as primary key, auto-increments with each insert into table</param>
         /// <param name="defaultValue">Define a default value for this column</param>
-        public ColumnDefinition(string name, string parentTableName, ColumnMode columnMode, T defaultValue) :
-            this(name, parentTableName, defaultValue)
+        public ColumnDefinition(string name, string parentTableName, ColumnMode columnMode, T defaultValue, bool isForeignKey) :
+            this(name, parentTableName, defaultValue, isForeignKey)
         {
             SetColumnMode(columnMode);
         }
 
-        internal ColumnDefinition(string name, string parentTableName, ColumnMode columnMode, T defaultValue, PropertyInfo propertyInfo) :
-            this(name, parentTableName, columnMode, defaultValue)
+        internal ColumnDefinition(string name, string parentTableName, ColumnMode columnMode, T defaultValue, PropertyInfo propertyInfo, bool isForeignKey) :
+            this(name, parentTableName, columnMode, defaultValue, isForeignKey)
         {
             this.propertyInfo = propertyInfo;
         }
 
-        internal ColumnDefinition(string name, string parentTableName, ColumnMode columnMode, PropertyInfo propertyInfo) :
-            this(name, parentTableName, columnMode)
+        internal ColumnDefinition(string name, string parentTableName, ColumnMode columnMode, PropertyInfo propertyInfo, bool isForeignKey) :
+            this(name, parentTableName, columnMode, isForeignKey)
         {
             this.propertyInfo = propertyInfo;
         }
@@ -177,6 +189,15 @@ namespace Tasty.SQLiteManager.Table.Column
             if (value == null)
             {
                 return "NULL";
+            }
+
+            if (propertyInfo != null && isForeignKey) // Column is foreign key
+            {
+                SqliteForeignKey foreignKeyAttribute = propertyInfo.GetCustomAttribute<SqliteForeignKey>();
+                if (foreignKeyAttribute.Data.IsOneToOne && value is IDatabaseEntry foreignEntry) // Foreign column key has one-to-one relation
+                {
+                    return foreignEntry.ID.ToString();
+                }
             }
 
             if (columnType == ColumnType.TEXT)
@@ -201,7 +222,14 @@ namespace Tasty.SQLiteManager.Table.Column
             }
             else if (!string.IsNullOrWhiteSpace(trueColumnType))
             {
-                return ParseSpecialColumnValue(value);
+                try
+                {
+                    return ParseSpecialColumnValue(value);
+                }
+                catch (RuntimeBinderException)
+                {
+                    throw new ColumnParseException(typeof(T).Name);
+                }
             }
             else
             {
@@ -226,7 +254,9 @@ namespace Tasty.SQLiteManager.Table.Column
                     }
                     return default(TimeSpan).ToString(stringFormatter);
                 case "ulong":
-                    return default(ulong).ToString();
+                    return value.ToString();
+                case "enum":
+                    return ((int)value).ToString();
                 default:
                     return value;
             }

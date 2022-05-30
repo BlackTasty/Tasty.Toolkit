@@ -266,14 +266,14 @@ namespace Tasty.SQLiteManager
 
                     if (existing != null)
                     {
-                        if (!existing.ForeignKeys.Contains(foreignKeyData))
+                        if (!existing.ForeignKeyData.Contains(foreignKeyData))
                         {
-                            existing.ForeignKeys.Add(foreignKeyData);
+                            existing.ForeignKeyData.Add(foreignKeyData);
                         }
 
-                        if (!existing.ForeignKeys.Contains(rootKeyData))
+                        if (!existing.ForeignKeyData.Contains(rootKeyData))
                         {
-                            existing.ForeignKeys.Add(rootKeyData);
+                            existing.ForeignKeyData.Add(rootKeyData);
                         }
                     }
                     else
@@ -286,11 +286,16 @@ namespace Tasty.SQLiteManager
 
             this.tables = tables;
 
+            foreach (ITable table in tables)
+            {
+                table.SetOneToOneRelationData(tables);
+            }
+
             foreach (ChildTableData childTableData in childTables)
             {
                 ChildTableDefinition childTable = new ChildTableDefinition(childTableData);
                 this.childTables.Add(childTable);
-                foreach (ForeignKeyData foreignKeyData in childTableData.ForeignKeys)
+                foreach (ForeignKeyData foreignKeyData in childTableData.ForeignKeyData)
                 {
                     this.FirstOrDefault(x => x.Name == foreignKeyData.ParentTableName)?.ChildTables.Add(childTable);
                 }
@@ -324,123 +329,97 @@ namespace Tasty.SQLiteManager
         /// Converts all tables, columns and rows to a SQL query string. Useful for exporting the database as a text
         /// </summary>
         /// <returns></returns>
-        public string ExportToSQL()
+        public string ExportToSQL(bool includeData)
         {
             StringBuilder tableSql = new StringBuilder();
             StringBuilder dataSql = new StringBuilder();
             //TODO: Iterate through all tables, get all rows of each table and "convert" those entries into INSERT statements
             //this.logger?.WriteLog("Starting database export...", Color.Magenta);
-            foreach (ITable table in this)
+            ExportTablesToSql(tables.OrderBy(x => x.ForeignKeyData.Count), "table", tableSql, dataSql, includeData);
+            ExportTablesToSql(childTables, "child table", tableSql, dataSql, includeData);
+
+            StringBuilder sql = new StringBuilder();
+            sql.Append(tableSql.ToString());
+            if (dataSql.Length > 0)
             {
-                #region Create DROP TABLE
-                tableSql.Append(string.Format("-- Recreate table '{0}'\n" +
-                    "DROP TABLE IF EXISTS \"{0}\";\n{1}\n\n", table.Name, table.ToString()));
-                #endregion
-
-                #region Iterate through all rows and create INSERT
-                ResultSet result = table.Select();
-                if (result.Count > 0)
-                {
-                    #region Create first part of INSERT
-                    StringBuilder columnSql = new StringBuilder();
-                    foreach (IColumn column in table)
-                    {
-                        if (columnSql.Length == 0)
-                        {
-                            columnSql.Append(column.Name);
-                        }
-                        else
-                        {
-                            columnSql.Append(", " + column.Name);
-                        }
-                    }
-
-                    dataSql.Append(string.Format("-- Fill table '{0}' with data\n" +
-                        "INSERT INTO \"{0}\" ({1}) VALUES", table.Name, columnSql));
-                    #endregion
-
-                    #region Iterate every row, read column data and add to INSERT
-                    foreach (RowData row in result)
-                    {
-                        StringBuilder rowSql = new StringBuilder();
-                        foreach (IColumn resultColumn in table)
-                        {
-                            if (row.Columns.TryGetValue(resultColumn.Name, out dynamic value))
-                            {
-                                if (rowSql.Length == 0)
-                                {
-                                    rowSql.Append(resultColumn.ParseColumnValue(value));
-                                }
-                                else
-                                {
-                                    rowSql.Append(", " + resultColumn.ParseColumnValue(value));
-                                }
-                            }
-                        }
-                        dataSql.Append(string.Format("\n\t({0})", rowSql));
-                    }
-                    dataSql.Append(";\n");
-                    #endregion
-                }
-                #endregion
+                sql.Append(dataSql.ToString());
             }
 
-            foreach (ChildTableDefinition childTable in childTables)
+            return sql.ToString();
+        }
+
+        private void ExportTablesToSql(IEnumerable<ITableBase> tables, string tableType,
+            StringBuilder tableSql, StringBuilder dataSql, bool includeData)
+        {
+            foreach (ITableBase table in tables)
             {
-                #region Create DROP TABLE
-                tableSql.Append(string.Format("-- Recreate child table '{0}'\n" +
-                    "DROP TABLE IF EXISTS \"{0}\";\n{1}\n\n", childTable.Name, childTable.ToString()));
+                string sql = table.ToString();
+                /*if (table is IChildTable childTable)
+                {
+                    sql = childTable.GetQueryData(false);
+                    foreignKeySql.Append(string.Format(""));
+                }
+                else
+                {
+                    sql = table.ToString();
+                }*/
+
+
+                #region Create DROP TABLE + CREATE TABLE
+                tableSql.Append(string.Format("-- Recreate {0} '{1}'\n" +
+                    "DROP TABLE IF EXISTS \"{1}\";\n{2};\n\n", tableType, table.Name, sql));
                 #endregion
 
-                #region Iterate through all rows and create INSERT
-                ResultSet result = childTable.Select();
-                if (result.Count > 0)
+                if (includeData)
                 {
-                    #region Create first part of INSERT
-                    StringBuilder columnSql = new StringBuilder();
-                    foreach (IColumn column in childTable)
+                    #region Iterate through all rows and create INSERT
+                    ResultSet result = table.Select();
+                    if (result.Count > 0)
                     {
-                        if (columnSql.Length == 0)
+                        #region Create first part of INSERT
+                        StringBuilder columnSql = new StringBuilder();
+                        foreach (IColumn column in table)
                         {
-                            columnSql.Append(column.Name);
-                        }
-                        else
-                        {
-                            columnSql.Append(", " + column.Name);
-                        }
-                    }
-
-                    dataSql.Append(string.Format("-- Fill child table '{0}' with data\n" +
-                        "INSERT INTO \"{0}\" ({1}) VALUES", childTable.Name, columnSql));
-                    #endregion
-
-                    #region Iterate every row, read column data and add to INSERT
-                    foreach (RowData row in result)
-                    {
-                        StringBuilder rowSql = new StringBuilder();
-                        foreach (IColumn resultColumn in childTable)
-                        {
-                            if (row.Columns.TryGetValue(resultColumn.Name, out dynamic value))
+                            if (columnSql.Length == 0)
                             {
-                                if (rowSql.Length == 0)
-                                {
-                                    rowSql.Append(resultColumn.ParseColumnValue(value));
-                                }
-                                else
-                                {
-                                    rowSql.Append(", " + resultColumn.ParseColumnValue(value));
-                                }
+                                columnSql.Append(column.Name);
+                            }
+                            else
+                            {
+                                columnSql.Append(", " + column.Name);
                             }
                         }
-                        dataSql.Append(string.Format("\n\t({0})", rowSql));
+
+                        dataSql.Append(string.Format("-- Fill child table '{0}' with data\n" +
+                            "INSERT INTO \"{0}\" ({1}) VALUES", table.Name, columnSql));
+                        #endregion
+
+                        #region Iterate every row, read column data and add to INSERT
+                        foreach (RowData row in result)
+                        {
+                            StringBuilder rowSql = new StringBuilder();
+                            foreach (IColumn resultColumn in table)
+                            {
+                                if (row.Columns.TryGetValue(resultColumn.Name, out dynamic value))
+                                {
+                                    if (rowSql.Length == 0)
+                                    {
+                                        rowSql.Append(resultColumn.ParseColumnValue(value));
+                                    }
+                                    else
+                                    {
+                                        rowSql.Append(", " + resultColumn.ParseColumnValue(value));
+                                    }
+                                }
+                            }
+                            dataSql.Append(string.Format("\n\t({0})", rowSql));
+                        }
+                        dataSql.Append(";\n");
+                        #endregion
                     }
-                    dataSql.Append(";\n");
                     #endregion
                 }
-                #endregion
             }
-
-            return tableSql + "\n" + dataSql;
         }
 
         /// <summary>
@@ -553,41 +532,7 @@ namespace Tasty.SQLiteManager
                             if (pressedKey == ConsoleKey.Y)
                             {
                                 Console.WriteLine();
-                                #region Copy data
-                                this.logger?.WriteLog("(1/3) Copying data...");
-
-                                var result = SelectData("SELECT * FROM " + table.Name, table);
-                                Dictionary<IColumn, dynamic>[] dataBackup = new Dictionary<IColumn, dynamic>[result.Count];
-                                for (int i = 0; i < result.Count; i++)
-                                {
-                                    if (consoleWindowAttached)
-                                    {
-                                        Console.CursorLeft = 0;
-                                        Console.Write("                                                                     ");
-                                        Console.CursorLeft = 0;
-                                        Console.Write("Process: {0}/{1}", i + 1, result.Count);
-                                    }
-                                    RowData row = result[i];
-                                    Dictionary<IColumn, dynamic> dataCopy = new Dictionary<IColumn, dynamic>();
-                                    foreach (KeyValuePair<string, dynamic> data in row.Columns)
-                                    {
-                                        dataCopy.Add(table[data.Key], data.Value);
-                                    }
-                                    dataBackup[i] = dataCopy;
-                                }
-                                #endregion
-
-                                #region Rebuild original table
-                                Console.WriteLine();
-                                this.logger?.WriteLog("(2/3) Rebuilding {0}...", tableType);
-                                ExecuteSQL("DROP TABLE " + table.Name + ";");
-                                ExecuteSQL(table.ToString());
-                                #endregion
-
-                                #region Restoring data
-                                this.logger?.WriteLog("(3/3) Restoring data...");
-                                ExecuteSQL(table.GenerateBulkInsert(dataBackup));
-                                #endregion
+                                RebuildTable(table, tableType, consoleWindowAttached);
 
                                 columnsRemoved = true;
                             }
@@ -600,6 +545,20 @@ namespace Tasty.SQLiteManager
                         else
                         {
                             this.logger?.WriteLog("Columns kept!");
+                        }
+                    }
+                    #endregion
+
+                    #region Check if foreign keys have changed
+                    string tableCreateStatementSql = "SELECT sql FROM sqlite_master WHERE name='" + table.Name + "';";
+
+                    RowData tableData = SelectData(tableCreateStatementSql, table).FirstOrDefault();
+                    if (tableData != null)
+                    {
+                        string dbSql = tableData[0];
+                        if (table.ToString().Replace("IF NOT EXISTS ", "") != dbSql)
+                        {
+                            RebuildTable(table, tableType, false);
                         }
                     }
                     #endregion
@@ -678,8 +637,16 @@ namespace Tasty.SQLiteManager
         /// </summary>
         public void DropDatabase()
         {
-            string sql = ExportToSQL();
-            ExecuteSQL(sql);
+            try
+            {
+                string sql = ExportToSQL(false);
+                ExecuteSQL(sql);
+            }
+            catch (Exception ex)
+            {
+                this.logger?.WriteLog("Couldn't drop database, re-creating file...", LogType.WARNING, ex);
+                ResetDatabase();
+            }
         }
 
         /// <summary>
@@ -876,6 +843,45 @@ namespace Tasty.SQLiteManager
         private string ParseString(string str)
         {
             return str != null ? str.Replace("'", "''") : "";
+        }
+
+        private void RebuildTable(ITableBase table, string tableType, bool consoleWindowAttached)
+        {
+            #region Copy data
+            this.logger?.WriteLog("(1/3) Copying data...");
+
+            var result = SelectData("SELECT * FROM " + table.Name, table);
+            Dictionary<IColumn, dynamic>[] dataBackup = new Dictionary<IColumn, dynamic>[result.Count];
+            for (int i = 0; i < result.Count; i++)
+            {
+                if (consoleWindowAttached)
+                {
+                    Console.CursorLeft = 0;
+                    Console.Write("                                                                     ");
+                    Console.CursorLeft = 0;
+                    Console.Write("Process: {0}/{1}", i + 1, result.Count);
+                }
+                RowData row = result[i];
+                Dictionary<IColumn, dynamic> dataCopy = new Dictionary<IColumn, dynamic>();
+                foreach (KeyValuePair<string, dynamic> data in row.Columns)
+                {
+                    dataCopy.Add(table[data.Key], data.Value);
+                }
+                dataBackup[i] = dataCopy;
+            }
+            #endregion
+
+            #region Rebuild original table
+            Console.WriteLine();
+            this.logger?.WriteLog("(2/3) Rebuilding {0}...", tableType);
+            ExecuteSQL("DROP TABLE " + table.Name + ";");
+            ExecuteSQL(table.ToString());
+            #endregion
+
+            #region Restoring data
+            this.logger?.WriteLog("(3/3) Restoring data...");
+            ExecuteSQL(table.GenerateBulkInsert(dataBackup));
+            #endregion
         }
 
         private static List<ITable> GetTablesFromAssemblies()

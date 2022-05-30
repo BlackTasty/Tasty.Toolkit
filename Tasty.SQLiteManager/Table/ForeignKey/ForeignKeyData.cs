@@ -20,6 +20,7 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
         private Type keyType;
 
         private bool isList;
+        private bool isOneToOne;
 
         internal string ParentTableName => parentTableName;
 
@@ -33,6 +34,13 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
 
         internal bool IsList => isList;
 
+        internal bool IsOneToOne => isOneToOne;
+
+        internal ForeignKeyData(bool isOneToOne)
+        {
+            this.isOneToOne = isOneToOne;
+        }
+
         internal ForeignKeyData(string childTableName)
         {
             this.childTableName = childTableName;
@@ -40,13 +48,18 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
 
         internal ForeignKeyData(string parentKeyName, string foreignKeyName, Type keyType, string parentTableName)
         {
+            SetOneToOneData(parentKeyName, foreignKeyName, keyType, parentTableName);
+        }
+
+        internal void SetOneToOneData(string parentKeyName, string foreignKeyName, Type keyType, string parentTableName)
+        {
             this.parentKeyName = parentKeyName;
             this.foreignKeyName = foreignKeyName;
             this.keyType = keyType;
             this.parentTableName = parentTableName;
         }
 
-        internal void SetParentData(string parentKeyName, PropertyInfo propertyInfo)
+        internal void SetOneToManyData(string parentKeyName, PropertyInfo propertyInfo)
         {
             isList = propertyInfo.PropertyType.IsGenericType;
 

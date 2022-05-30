@@ -13,7 +13,7 @@ namespace Tasty.Tests.Base
 
         public static int TestCount => testCount;
 
-        public static int FailedTests = failedTests;
+        public static int FailedTests => failedTests;
 
         /// <summary>
         /// Main function to run tests
@@ -21,7 +21,7 @@ namespace Tasty.Tests.Base
         /// <param name="testMethod">The method which runs the actual test. Always has to return a <see cref="bool"/>!</param>
         /// <param name="testTitle">The title of the test. Will be printed to console.</param>
         /// <param name="testResultText">The result text.</param>
-        public static void RunTest(Func<bool> testMethod, string testTitle)
+        public static bool RunTest(Func<bool> testMethod, string testTitle)
         {
             string testName = testMethod.Method.Name.Replace("Test_", "");
 
@@ -52,6 +52,8 @@ namespace Tasty.Tests.Base
             {
                 failedTests++;
             }
+
+            return testSuccess;
         }
     }
 }
