@@ -27,6 +27,9 @@ namespace Tasty.Tests.SQLiteManager.Test
         [SqliteForeignKey("mapping_user_posts")]
         public List<DemoPost> Posts { get; set; } = new List<DemoPost>();
 
+        [SqliteForeignKey(true)]
+        public DemoUserSettings UserSettings { get; set; }
+
         public DemoUser(TableDefinition<DemoUser> table): base(table)
         {
 

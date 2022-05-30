@@ -34,6 +34,11 @@ namespace Tasty.SQLiteManager.Table
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
+        public bool HasOneToOneRelations => foreignKeyData.Any(x => x.IsOneToOne);
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public List<ChildTableDefinition> ChildTables
         {
             get => childTables;
@@ -98,31 +103,51 @@ namespace Tasty.SQLiteManager.Table
             this.foreignKeys = foreignKeys;
         }
 
+        public void SetOneToOneRelationData(IEnumerable<ITable> tables)
+        {
+        }
+
         /// <summary>
         /// Returns the CREATE statement for this table.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("CREATE TABLE IF NOT EXISTS \"{0}\" ({1});", name, ParseColumns());
+            return string.Format("CREATE TABLE IF NOT EXISTS \"{0}\" ({1});", name, GetQueryData());
         }
 
-        private string ParseColumns()
+        private string GetQueryData()
         {
-            string sql_inner = null;
+            StringBuilder queryBuilder = new StringBuilder();
             foreach (IColumn column in columns)
             {
-                if (sql_inner == null)
+                if (queryBuilder.Length > 0)
                 {
-                    sql_inner = "\n\t" + column.ToString();
+                    queryBuilder.Append(",\n\t" + column.ToString());
                 }
                 else
                 {
-                    sql_inner += ",\n\t" + column.ToString();
+                    queryBuilder.Append("\n\t" + column.ToString());
                 }
             }
 
-            return sql_inner;
+            foreach (ForeignKeyData foreignKey in foreignKeyData.Where(x => x.IsOneToOne))
+            {
+                string foreignKeySql = foreignKey.ToString();
+                if (foreignKeySql != null)
+                {
+                    if (queryBuilder.Length > 0)
+                    {
+                        queryBuilder.Append(",\n\t" + foreignKeySql);
+                    }
+                    else
+                    {
+                        queryBuilder.Append("\n\t" + foreignKeySql);
+                    }
+                }
+            }
+
+            return queryBuilder.ToString();
         }
 
         private static List<IColumn> GetColumnsFromClass(Type target, string tableName)
@@ -131,7 +156,16 @@ namespace Tasty.SQLiteManager.Table
 
             foreach (PropertyInfo property in target.GetProperties().OrderByDescending(x => Attribute.IsDefined(x, typeof(SqlitePrimaryKey))))
             {
-                if (!Attribute.IsDefined(property, typeof(SqliteIgnore)) && !Attribute.IsDefined(property, typeof(SqliteForeignKey)))
+                bool isOneToManyRelation = false;
+                bool isOneToOneRelation = false;
+                if (Attribute.IsDefined(property, typeof(SqliteForeignKey)))
+                {
+                    SqliteForeignKey foreignKeyAttribute = property.GetCustomAttribute<SqliteForeignKey>();
+                    isOneToOneRelation = foreignKeyAttribute.Data.IsOneToOne;
+                    isOneToManyRelation = !isOneToOneRelation;
+                }
+
+                if (!Attribute.IsDefined(property, typeof(SqliteIgnore)) && !isOneToManyRelation)
                 {
                     ColumnMode columnMode;
 
@@ -163,84 +197,52 @@ namespace Tasty.SQLiteManager.Table
                         defaultValue = null;
                     }
 
-                    string columnName = columnMode != ColumnMode.PRIMARY_KEY ? Util.GetColumnName(property.Name) : property.Name.ToUpper();
-                    switch (property.PropertyType.Name)
+                    string columnName;
+                    Type columnType;
+                    if (isOneToOneRelation)
                     {
-                        case "String":
-                            if (defaultValue != null)
-                            {
-                                columns.Add(new ColumnDefinition<string>(columnName, tableName, columnMode, defaultValue, property));
-                            }
-                            else
-                            {
-                                columns.Add(new ColumnDefinition<string>(columnName, tableName, columnMode, property));
-                            }
-                            break;
-                        case "Int32":
-                            if (defaultValue != null)
-                            {
-                                columns.Add(new ColumnDefinition<int>(columnName, tableName, columnMode, defaultValue, property));
-                            }
-                            else
-                            {
-                                columns.Add(new ColumnDefinition<int>(columnName, tableName, columnMode, property));
-                            }
-                            break;
-                        case "Double":
-                            if (defaultValue != null)
-                            {
-                                columns.Add(new ColumnDefinition<double>(columnName, tableName, columnMode, defaultValue, property));
-                            }
-                            else
-                            {
-                                columns.Add(new ColumnDefinition<double>(columnName, tableName, columnMode, property));
-                            }
-                            break;
-                        case "Single":
-                            if (defaultValue != null)
-                            {
-                                columns.Add(new ColumnDefinition<float>(columnName, tableName, columnMode, defaultValue, property));
-                            }
-                            else
-                            {
-                                columns.Add(new ColumnDefinition<float>(columnName, tableName, columnMode, property));
-                            }
-                            break;
-                        case "Int64":
-                            if (defaultValue != null)
-                            {
-                                columns.Add(new ColumnDefinition<long>(columnName, tableName, columnMode, defaultValue, property));
-                            }
-                            else
-                            {
-                                columns.Add(new ColumnDefinition<long>(columnName, tableName, columnMode, property));
-                            }
-                            break;
-                        case "DateTime":
-                            if (defaultValue != null)
-                            {
-                                columns.Add(new ColumnDefinition<DateTime>(columnName, tableName, columnMode, defaultValue, property));
-                            }
-                            else
-                            {
-                                columns.Add(new ColumnDefinition<DateTime>(columnName, tableName, columnMode, property));
-                            }
-                            break;
-                        default:
-                            if (defaultValue != null)
-                            {
-                                columns.Add(new ColumnDefinition<object>(columnName, tableName, columnMode, defaultValue, property));
-                            }
-                            else
-                            {
-                                columns.Add(new ColumnDefinition<object>(columnName, tableName, columnMode, property));
-                            }
-                            break;
+                        Type entryType = property.PropertyType.GetInterface("IDatabaseEntry");
+                        if (entryType != null)
+                        {
+                            columnType = entryType.GetProperty("ID").PropertyType;
+                            columnName = Util.GetColumnName(property.Name).ToUpper() + "_ID";
+                        }
+                        else // Property type is not a database entry, throw exception
+                        {
+                            throw new ForeignKeyException(tableName, property.Name);
+                        }
                     }
+                    else
+                    {
+                        columnType = property.PropertyType;
+                        columnName = columnMode != ColumnMode.PRIMARY_KEY ? Util.GetColumnName(property.Name) : property.Name.ToUpper();
+                    }
+
+                    ConstructorInfo ctor;
+                    object[] args;
+                    Type columnDefinitionType = Util.MakeGenericColumnDefinition(columnType);
+
+                    if (defaultValue == null)
+                    {
+                        ctor = MakeColumnConstructor(columnDefinitionType, new Type[] { typeof(string), typeof(string), typeof(ColumnMode), typeof(PropertyInfo), typeof(bool) });
+                        args = new object[] { columnName, tableName, columnMode, property, isOneToOneRelation };
+                    }
+                    else
+                    {
+                        ctor = MakeColumnConstructor(columnDefinitionType, new Type[] { typeof(string), typeof(string), typeof(ColumnMode), columnType, typeof(PropertyInfo), typeof(bool) });
+                        args = new object[] { columnName, tableName, columnMode, defaultValue, property, isOneToOneRelation };
+                    }
+
+                    columns.Add((IColumn)ctor.Invoke(args));
                 }
             }
 
             return columns;
+        }
+
+        private static ConstructorInfo MakeColumnConstructor(Type columnDefinitionType, Type[] paramTypes)
+        {
+            return columnDefinitionType.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, paramTypes, null);
         }
 
         private List<ForeignKeyData> GetForeignKeysFromClass(Type target)
@@ -261,7 +263,7 @@ namespace Tasty.SQLiteManager.Table
                 if (Attribute.IsDefined(property, typeof(SqliteForeignKey)))
                 {
                     SqliteForeignKey foreignKeyAttribute = (SqliteForeignKey)Attribute.GetCustomAttribute(property, typeof(SqliteForeignKey));
-                    foreignKeyAttribute.Data.SetParentData(primaryKeyProperty.Name.ToUpper(), property);
+                    foreignKeyAttribute.Data.SetOneToManyData(primaryKeyProperty.Name.ToUpper(), property);
                     foreignKeyData.Add(foreignKeyAttribute.Data);
                 }
             }

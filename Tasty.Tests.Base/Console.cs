@@ -5,7 +5,7 @@ namespace Tasty.Tests.Base
     public static class Console
     {
         public static int titlePosition = 4;
-        public static int statusPosition = 60;
+        public static int statusPosition = 80;
         public static char fillCharacter = '.';
 
         public static void WriteLine(string message, ConsoleColor backgroundColor)

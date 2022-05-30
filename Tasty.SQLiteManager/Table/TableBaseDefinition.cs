@@ -436,6 +436,11 @@ namespace Tasty.SQLiteManager.Table
             string conditionParameter = ParseConditions(conditions);
             foreach (KeyValuePair<IColumn, dynamic> entry in data)
             {
+                if (entry.Key.PrimaryKey)
+                {
+                    continue;
+                }
+
                 if (string.IsNullOrWhiteSpace(setParameter))
                 {
                     setParameter = string.Format("{0} = {1}", entry.Key.Name, entry.Key.ParseColumnValue(entry.Value));

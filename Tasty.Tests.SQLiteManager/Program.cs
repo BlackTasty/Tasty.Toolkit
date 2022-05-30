@@ -25,10 +25,7 @@ namespace Tasty.Tests.SQLiteManager
             Logger.Default.DisableLogging = true;
 
             System.Console.Clear();
-            TestRunner.RunTest(Test_CheckDatabase, "Checking if database has been setup properly"); //, "Database contains all tables and columns"
-            TestRunner.RunTest(Test_Insert_GetIndex, "Testing Insert_GetIndex method"); //, "Insert_GetIndex completed"
-            TestRunner.RunTest(Test_Select, "Testing Select method");
-            TestRunner.RunTest(Test_ChildTable, "Testing foreign key functionality");
+            RunAllTests();
 
             if (TestRunner.FailedTests == 0)
             {
@@ -46,6 +43,32 @@ namespace Tasty.Tests.SQLiteManager
             System.Console.ReadLine();
         }
 
+        static void RunAllTests()
+        {
+            if (!TestRunner.RunTest(Test_CheckDatabase, "Checking if database has been setup properly")) // "Database contains all tables and columns"
+            {
+                return;
+            }
+            if (!TestRunner.RunTest(Test_Insert_GetIndex, "Testing Insert_GetIndex method")) // "Insert_GetIndex completed"
+            {
+                return;
+            }
+            if (!TestRunner.RunTest(Test_Select, "Testing Select method"))
+            {
+                return;
+            }
+            if (!TestRunner.RunTest(Test_OneToManyRelationship, "Testing one-to-many (1-n) relationship"))
+            {
+                return;
+            }
+            if (!TestRunner.RunTest(Test_OneToOneRelationship, "Testing one-to-one (1-1) relationship"))
+            {
+                return;
+            }
+        }
+
+
+        #region Tests
         static bool Test_CheckDatabase()
         {
             if (!CheckTables(Database.Instance))
@@ -77,18 +100,19 @@ namespace Tasty.Tests.SQLiteManager
 
                 if (!tableExists)
                 {
-                    System.Console.WriteLine("Test aborted!");
+                    System.Console.WriteLine(string.Format("Test aborted! Table \"{0}\" doesn't exist.", table.Name));
                     return false;
                 }
 
                 foreach (var column in table)
                 {
                     bool columnExists = table.ColumnExists(column);
-                    Base.Console.WriteLine_Status(string.Format("  Column {0} ({1}) exists", column.Name, column.DataType.Name), columnExists);
+                    Base.Console.WriteLine_Status(string.Format("  {0} {1} ({2}) exists", 
+                        !column.IsForeignKey ? "Column" : "Foreign column", column.Name, column.DataType.Name), columnExists);
 
                     if (!columnExists)
                     {
-                        System.Console.WriteLine("Test aborted!");
+                        System.Console.WriteLine(string.Format("Test aborted! Column \"{0}\" doesn't exist.", column.Name));
                         return false;
                     }
                 }
@@ -129,37 +153,35 @@ namespace Tasty.Tests.SQLiteManager
 
             var result = DemoUser.LoadFromDatabase(new Condition("ID", index));
             bool rowExists = result != null;
-            Base.Console.WriteLine_Status(string.Format("Entry with ID {0} exists", index), rowExists);
+            Base.Console.WriteLine_Status(string.Format("User with ID {0} exists", index), rowExists);
 
             if (!rowExists)
             {
-                System.Console.WriteLine("Test aborted!");
+                System.Console.WriteLine("Test aborted! User doesn't exist.");
                 return false;
             }
 
             string name = "Jon Doe";
             bool nameCorrect = result.Name == name;
-            Base.Console.WriteLine_Status(string.Format("Entry name is {0}", name), nameCorrect);
+            Base.Console.WriteLine_Status(string.Format("User name is {0}", name), nameCorrect);
 
             if (!nameCorrect)
             {
-                System.Console.WriteLine("Test aborted!");
+                System.Console.WriteLine("Test aborted! Name incorrect.");
                 return false;
             }
 
             return true;
         }
 
-        static bool Test_ChildTable()
+        static bool Test_OneToManyRelationship()
         {
             var postTable = Database.Instance.GetTable<DemoPost>();
-            var userTable = Database.Instance.GetTable<DemoUser>();
-
-            var result = userTable.Select(new Condition("ID", 1));
 
             DemoUser demoUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
-            bool rowExists = !result.IsEmpty;
+            bool rowExists = demoUser != null;
 
+            Base.Console.WriteLine_Status("Entry with ID 1 exists", rowExists);
             if (!rowExists)
             {
                 System.Console.WriteLine("Test aborted! User doesn't exist.");
@@ -177,7 +199,9 @@ namespace Tasty.Tests.SQLiteManager
 
             DemoUser dbUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
 
-            if (!AreUsersIdentical(demoUser, dbUser))
+            bool usersIdentical = AreUsersIdentical(demoUser, dbUser);
+            Base.Console.WriteLine_Status("Is user same after saving to database", usersIdentical);
+            if (!usersIdentical)
             {
                 System.Console.WriteLine("Test aborted! Loaded user data not identical.");
                 return false;
@@ -185,6 +209,26 @@ namespace Tasty.Tests.SQLiteManager
 
             return true;
         }
+
+        static bool Test_OneToOneRelationship()
+        {
+            var settingsTable = Database.Instance.GetTable<DemoUserSettings>();
+
+            DemoUserSettings userSettings = new DemoUserSettings(settingsTable)
+            {
+                Language = Test.Enum.DemoLanguageType.Swedish
+            };
+
+            DemoUser demoUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
+            demoUser.UserSettings = userSettings;
+
+            demoUser.SaveToDatabase();
+
+            DemoUser dbUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
+
+            return true;
+        }
+        #endregion
 
         private static bool AreUsersIdentical(DemoUser originalUser, DemoUser dbUser)
         {

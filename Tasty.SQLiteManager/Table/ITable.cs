@@ -35,5 +35,16 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         [Obsolete("This method of retrieving foreign keys is deprecated and will be removed soon! Check out the documentation for more information: [LINK]")]
         List<ForeignKeyDefinition> ForeignKeys { get; }
+
+        /// <summary>
+        /// Returns true if any one-to-one (1-1) relationships are defined.
+        /// </summary>
+        bool HasOneToOneRelations { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tables"></param>
+        void SetOneToOneRelationData(IEnumerable<ITable> tables);
     }
 }

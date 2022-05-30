@@ -59,6 +59,11 @@ namespace Tasty.SQLiteManager.Table.Column
         string StringFormatter { get; }
 
         /// <summary>
+        /// Returns if this column is a foreign key.
+        /// </summary>
+        bool IsForeignKey { get; }
+
+        /// <summary>
         /// Formats a value into a SQL-friendly value
         /// </summary>
         /// <param name="value">The value to format</param>

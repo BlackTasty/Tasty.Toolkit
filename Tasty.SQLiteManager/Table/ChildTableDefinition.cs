@@ -16,24 +16,24 @@ namespace Tasty.SQLiteManager.Table
     /// </summary>
     public class ChildTableDefinition : TableBaseDefinition
     {
-        private readonly List<ForeignKeyData> foreignKeys;
+        private readonly List<ForeignKeyData> foreignKeyData;
 
         internal ChildTableDefinition(ChildTableData tableData) : base(tableData.TableName)
         {
-            foreignKeys = tableData.ForeignKeys;
+            foreignKeyData = tableData.ForeignKeyData;
 
-            Add(new ColumnDefinition<int>("ID", name, ColumnMode.PRIMARY_KEY));
+            Add(new ColumnDefinition<int>("ID", name, ColumnMode.PRIMARY_KEY, false));
 
-            foreach (ForeignKeyData foreignKeyData in tableData.ForeignKeys)
+            foreach (ForeignKeyData foreignKeyData in tableData.ForeignKeyData)
             {
                 Type columnDefinitionType = Util.MakeGenericColumnDefinition(foreignKeyData.KeyType);
 
                 ConstructorInfo ctor = columnDefinitionType.GetConstructors()
-                    .Where(x => Attribute.IsDefined(x, typeof(SqliteConstructor))).FirstOrDefault();
+                    .FirstOrDefault(x => Attribute.IsDefined(x, typeof(SqliteConstructor)));
 
                 if (ctor != null)
                 {
-                    Add((IColumn)ctor.Invoke(new object[] { foreignKeyData.ForeignKeyName, tableData.TableName }));
+                    Add((IColumn)ctor.Invoke(new object[] { foreignKeyData.ForeignKeyName, tableData.TableName, true }));
                 }
             }
         }
@@ -45,7 +45,7 @@ namespace Tasty.SQLiteManager.Table
         /// <returns>The child <see cref="ColumnDefinition{T}"/> object or null for the parent table.</returns>
         public IColumn GetChildColumnByParentTable(string parentTableName)
         {
-            ForeignKeyData target = foreignKeys.FirstOrDefault(x => x.ParentTableName == parentTableName);
+            ForeignKeyData target = foreignKeyData.FirstOrDefault(x => x.ParentTableName == parentTableName);
             return this.FirstOrDefault(x => x.Name == target.ForeignKeyName);
         }
 
@@ -69,7 +69,7 @@ namespace Tasty.SQLiteManager.Table
                 }
             }
 
-            foreach (ForeignKeyData foreignKey in foreignKeys)
+            foreach (ForeignKeyData foreignKey in foreignKeyData)
             {
                 string foreignKeySql = foreignKey.ToString();
                 if (foreignKeySql != null)
