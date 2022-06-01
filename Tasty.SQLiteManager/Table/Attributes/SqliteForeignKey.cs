@@ -30,9 +30,9 @@ namespace Tasty.SQLiteManager.Table.Attributes
         /// Defines a property as having foreign keys.
         /// </summary>
         /// <param name="isOneToOne">The name for the relationship table.</param>
-        public SqliteForeignKey(bool isOneToOne)
+        public SqliteForeignKey()
         {
-            data = new ForeignKeyData(isOneToOne);
+            data = new ForeignKeyData(true);
         }
     }
 }

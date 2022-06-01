@@ -60,7 +60,7 @@
     <Compile Include="Exceptions\ColumnParseException.cs" />
     <Compile Include="Exceptions\DatabaseNotInitializedException.cs" />
     <Compile Include="Exceptions\ForeignKeyException.cs" />
-    <Compile Include="Exceptions\MissingWriteAccessException.cs" />
+    <Compile Include="Exceptions\MissingAccessException.cs" />
     <Compile Include="Table\Attributes\SqliteDataSetter.cs" />
     <Compile Include="Table\Attributes\SqLiteDefaultValue.cs" />
     <Compile Include="Table\Attributes\SqliteConstructor.cs" />

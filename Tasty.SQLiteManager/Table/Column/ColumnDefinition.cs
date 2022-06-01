@@ -13,6 +13,7 @@ namespace Tasty.SQLiteManager.Table.Column
     public class ColumnDefinition<T> : DefinitionBase, IColumn
     {
         private readonly Type dataType;
+        private readonly Type underlyingType;
         private readonly PropertyInfo propertyInfo;
         private string parentTableName;
         private bool isForeignKey;
@@ -21,6 +22,8 @@ namespace Tasty.SQLiteManager.Table.Column
         /// <inheritdoc/>
         /// </summary>
         public Type DataType => dataType;
+
+        public Type UnderlyingType => underlyingType;
 
         /// <summary>
         /// <inheritdoc/>
@@ -84,41 +87,43 @@ namespace Tasty.SQLiteManager.Table.Column
             this.isForeignKey = isForeignKey;
             this.parentTableName = parentTableName;
             dataType = typeof(T);
+            underlyingType = Nullable.GetUnderlyingType(dataType);
 
-            if (dataType == typeof(int))
+            if (IsOfType(dataType, underlyingType, typeof(int)))
             {
                 columnType = ColumnType.INTEGER;
             }
-            else if (dataType == typeof(float) || dataType == typeof(double))
+            else if (IsOfType(dataType, underlyingType, typeof(float)) ||
+                        IsOfType(dataType, underlyingType, typeof(double)))
             {
                 columnType = ColumnType.FLOAT;
             }
-            else if (dataType == typeof(string))
+            else if (IsOfType(dataType, underlyingType, typeof(string)))
             {
                 columnType = ColumnType.TEXT;
             }
-            else if (dataType == typeof(DateTime))
+            else if (IsOfType(dataType, underlyingType, typeof(DateTime)))
             {
                 columnType = ColumnType.TEXT;
                 stringFormatter = "dd-MM-yyyy HH:mm:ss";
                 trueColumnType = "datetime";
             }
-            else if (dataType == typeof(TimeSpan))
+            else if (IsOfType(dataType, underlyingType, typeof(TimeSpan)))
             {
                 columnType = ColumnType.TEXT;
-                stringFormatter = "HH:mm:ss";
+                stringFormatter = "hh\\:mm\\:ss";
                 trueColumnType = "timespan";
             }
-            else if (dataType == typeof(ulong))
+            else if (IsOfType(dataType, underlyingType, typeof(ulong)))
             {
                 columnType = ColumnType.TEXT;
                 trueColumnType = "ulong";
             }
-            else if (dataType == typeof(bool))
+            else if (IsOfType(dataType, underlyingType, typeof(bool)))
             {
                 columnType = ColumnType.BOOLEAN;
             }
-            else if (dataType.IsEnum)
+            else if (IsTypeEnum(dataType, underlyingType))
             {
                 columnType = ColumnType.INTEGER;
                 trueColumnType = "enum";
@@ -250,9 +255,9 @@ namespace Tasty.SQLiteManager.Table.Column
                 case "timespan":
                     if (value is TimeSpan time)
                     {
-                        return time.ToString(stringFormatter);
+                        return time.ToString();
                     }
-                    return default(TimeSpan).ToString(stringFormatter);
+                    return default(TimeSpan).ToString();
                 case "ulong":
                     return value.ToString();
                 case "enum":
@@ -347,6 +352,16 @@ namespace Tasty.SQLiteManager.Table.Column
             }
 
             return options;
+        }
+
+        private bool IsOfType(Type columnType, Type underlyingType, Type target)
+        {
+            return underlyingType != null ? underlyingType == target : columnType == target;
+        }
+
+        private bool IsTypeEnum(Type columnType, Type underlyingType)
+        {
+            return underlyingType != null ? underlyingType.IsEnum : columnType.IsEnum;
         }
     }
 }

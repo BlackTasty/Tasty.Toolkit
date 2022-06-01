@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>TastyApps.Core.SQLiteManager</id>
-    <version>2.0.0.1</version>
+    <version>2.0.1.2</version>
     <title>Tasty.SQLiteManager</title>
     <authors>BlackTasty</authors>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">GPL-2.0-only</license>
-    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="ccf1f61b3e8b5d0915b58ed585687fd6199a5775" />
+    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="b79e61ecb6a9305131622184862b48bb8fefdf59" />
     <description>Manage your SQLite databases with ease!</description>
-    <releaseNotes>Overhauled SQLiteManager</releaseNotes>
+    <releaseNotes>Added one-to-many relation support, fixed default value not applying on properties with [SqliteDefaultValue] attribute</releaseNotes>
     <copyright>Copyright © BlackTasty 2022</copyright>
     <tags>csharp sqlite database manager db sql</tags>
 

@@ -10,7 +10,7 @@ using Tasty.Tests.SQLiteManager.Test.Enum;
 namespace Tasty.Tests.SQLiteManager.Test
 {
     [SqliteTable]
-    class DemoUserSettings : DatabaseEntry<DemoUserSettings>
+    public class DemoUserSettings : DatabaseEntry<DemoUserSettings>
     {
         [SqLiteDefaultValue(true)]
         public bool DarkMode { get; set; }

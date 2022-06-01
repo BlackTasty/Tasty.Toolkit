@@ -75,3 +75,5 @@ IF NOT "%versionSql%"=="" (
 		dotnet nuget push "TastyApps.Core.SQLiteManager.%versionSql%.nupkg"  --api-key %gitKey% --source "github"
 	)
 )
+
+cmd /k

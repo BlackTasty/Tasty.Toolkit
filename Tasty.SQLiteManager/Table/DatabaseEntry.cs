@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -51,6 +53,11 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="table">The table containing data for this <see cref="DatabaseEntry{T}"/>.</param>
         public DatabaseEntry(TableDefinition<T> table)
         {
+            if (!GetType().Attributes.HasFlag(TypeAttributes.Public))
+            {
+                throw new MissingAccessException("Cannot access to class \"" + GetType().Name + "\", set access modifier to public.");
+            }
+
             this.table = table;
             useDB = table != null;
             SetDefaultValues();
@@ -218,13 +225,38 @@ namespace Tasty.SQLiteManager.Table
                 PropertyInfo propertyInfo = dataType.GetProperty(column.PropertyInfo.Name);
                 if (!propertyInfo.CanWrite)
                 {
-                    throw new MissingWriteAccessException(propertyInfo.Name);
+                    throw new MissingAccessException("Cannot write to property \"" + propertyInfo.Name + "\" because no set method is set! Check out the documentation for more information: [LINK]");
                 }
 
                 if (!column.IsForeignKey)
                 {
-                    propertyInfo.SetValue(this, Convert.ChangeType(!column.DataType.IsEnum ? row.Value : Enum.ToObject(column.DataType, row.Value), 
-                        propertyInfo.PropertyType), null);
+                    if (row.Value != null)
+                    {
+                        dynamic parsedValue;
+                        Type columnType = column.UnderlyingType != null ? column.UnderlyingType : column.DataType;
+
+                        if (columnType == typeof(DateTime))
+                        {
+                            parsedValue = ParseValue(column, DateTime.ParseExact(row.Value, column.StringFormatter,
+                                CultureInfo.InvariantCulture));
+                        }
+                        else if (columnType == typeof(TimeSpan))
+                        {
+                            parsedValue = ParseValue(column, TimeSpan.ParseExact(row.Value, column.StringFormatter,
+                                CultureInfo.InvariantCulture));
+                        }
+                        else
+                        {
+                            parsedValue = ParseValue(column, row.Value);
+                        }
+
+                        propertyInfo.SetValue(this, Convert.ChangeType(!columnType.IsEnum ? parsedValue : Enum.ToObject(columnType, row.Value),
+                            propertyInfo.PropertyType));
+                    }
+                    else
+                    {
+                        propertyInfo.SetValue(this, null);
+                    }
                 }
                 else
                 {
@@ -258,8 +290,8 @@ namespace Tasty.SQLiteManager.Table
             }
 
             // Populate lists (for parents) and objects (for children) with SqliteForeignKey attribute
-            var foreignProperties = dataType.GetProperties().Where(x => Attribute.IsDefined(x, typeof(SqliteForeignKey)));
-            foreach (PropertyInfo foreignProperty in foreignProperties)
+            foreach (PropertyInfo foreignProperty in dataType
+                .GetProperties().Where(x => Attribute.IsDefined(x, typeof(SqliteForeignKey))))
             {
                 SqliteForeignKey foreignKeyAttribute = foreignProperty.GetCustomAttribute<SqliteForeignKey>();
                 
@@ -370,6 +402,23 @@ namespace Tasty.SQLiteManager.Table
             }
         }
 
+        private dynamic ParseValue(IColumn column, dynamic value)
+        {
+            if (value == null)
+            {
+                return default;
+            }
+
+            if (column.UnderlyingType != null)
+            {
+                return Expression.Constant(value, column.DataType);
+            }
+            else
+            {
+                return value;
+            }
+        }
+
         private void SetDefaultValues()
         {
             Type t = typeof(T);
@@ -389,92 +438,95 @@ namespace Tasty.SQLiteManager.Table
 
             foreach (PropertyInfo property in t.GetProperties())
             {
+                if (Attribute.IsDefined(property, typeof(SqliteIgnore)))
+                {
+                    continue;
+                }
+
                 bool hasForeignKeys = Attribute.IsDefined(property, typeof(SqliteForeignKey));
-                bool isList = property.PropertyType.IsGenericType;
+                Type underlyingType = Nullable.GetUnderlyingType(property.PropertyType);
+                bool isList = property.PropertyType.IsGenericType && underlyingType == null;
                 if (isList && !hasForeignKeys) // If property is a list and doesn't have SqliteForeignKey attribute, skip
                 {
                     continue;
                 }
 
-                if (!Attribute.IsDefined(property, typeof(SqliteIgnore)))
+                if (!hasForeignKeys)
                 {
-                    if (!hasForeignKeys)
+                    ColumnMode columnMode;
+
+                    if (Attribute.IsDefined(property, typeof(SqlitePrimaryKey)))
                     {
-                        ColumnMode columnMode;
-
-                        if (Attribute.IsDefined(property, typeof(SqlitePrimaryKey)))
-                        {
-                            columnMode = ColumnMode.PRIMARY_KEY;
-                        }
-                        else if (Attribute.IsDefined(property, typeof(SqliteNotNull)))
-                        {
-                            columnMode = ColumnMode.NOT_NULL;
-                        }
-                        else if (Attribute.IsDefined(property, typeof(SqliteUnique)))
-                        {
-                            columnMode = ColumnMode.UNIQUE;
-                        }
-                        else
-                        {
-                            columnMode = ColumnMode.DEFAULT;
-                        }
-
-                        string columnName = columnMode != ColumnMode.PRIMARY_KEY ? Util.GetColumnName(property.Name) : property.Name.ToUpper();
-                        data.Add(table[columnName], property.GetValue(this));
+                        columnMode = ColumnMode.PRIMARY_KEY;
+                    }
+                    else if (Attribute.IsDefined(property, typeof(SqliteNotNull)))
+                    {
+                        columnMode = ColumnMode.NOT_NULL;
+                    }
+                    else if (Attribute.IsDefined(property, typeof(SqliteUnique)))
+                    {
+                        columnMode = ColumnMode.UNIQUE;
                     }
                     else
                     {
-                        SqliteForeignKey foreignKeyAttribute = property.GetCustomAttribute<SqliteForeignKey>();
-                        if (property.PropertyType.IsGenericType) // Property is list, which makes this entry the parent
+                        columnMode = ColumnMode.DEFAULT;
+                    }
+
+                    string columnName = columnMode != ColumnMode.PRIMARY_KEY ? Util.GetColumnName(property.Name) : property.Name.ToUpper();
+                    data.Add(table[columnName], property.GetValue(this));
+                }
+                else
+                {
+                    SqliteForeignKey foreignKeyAttribute = property.GetCustomAttribute<SqliteForeignKey>();
+                    if (property.PropertyType.IsGenericType) // Property is list, which makes this entry the parent
+                    {
+                        #region Save list of generic data into database
+                        IList childData = property.GetValue(this) as IList;
+
+                        if (childData?.Count > 0)
                         {
-                            #region Save list of generic data into database
-                            IList childData = property.GetValue(this) as IList;
+                            SqliteForeignKey sqliteForeignKeyAttribute = (SqliteForeignKey)property.GetCustomAttribute(typeof(SqliteForeignKey));
 
-                            if (childData.Count > 0)
+                            ChildTableDefinition childTable = Database.Instance.GetChildTable(sqliteForeignKeyAttribute.Data.ChildTableName);
+                            IColumn foreignKey = childTable.GetChildColumnByParentTable(table.Name);
+                            IColumn childForeignKey = null;
+
+                            Dictionary<IColumn, dynamic>[] queryData = new Dictionary<IColumn, dynamic>[childData.Count];
+                            for (int i = 0; i < childData.Count; i++)
                             {
-                                SqliteForeignKey sqliteForeignKeyAttribute = (SqliteForeignKey)property.GetCustomAttribute(typeof(SqliteForeignKey));
-
-                                ChildTableDefinition childTable = Database.Instance.GetChildTable(sqliteForeignKeyAttribute.Data.ChildTableName);
-                                IColumn foreignKey = childTable.GetChildColumnByParentTable(table.Name);
-                                IColumn childForeignKey = null;
-
-                                Dictionary<IColumn, dynamic>[] queryData = new Dictionary<IColumn, dynamic>[childData.Count];
-                                for (int i = 0; i < childData.Count; i++)
+                                var childEntry = (childData[i] as IDatabaseEntry);
+                                if (childForeignKey == null)
                                 {
-                                    var childEntry = (childData[i] as IDatabaseEntry);
-                                    if (childForeignKey == null)
-                                    {
-                                        childForeignKey = childTable.GetChildColumnByParentTable(childEntry.Table.Name);
-                                    }
-                                    childEntry.SaveToDatabase();
+                                    childForeignKey = childTable.GetChildColumnByParentTable(childEntry.Table.Name);
+                                }
+                                childEntry.SaveToDatabase();
 
-                                    queryData[i] = new Dictionary<IColumn, dynamic>()
+                                queryData[i] = new Dictionary<IColumn, dynamic>()
                                     {
                                         { foreignKey, ID }, // Put ID of this element into foreign key for that field
                                         { childForeignKey, childEntry.ID } // Put ID of the child element into foreign key for that field
                                     };
-                                }
+                            }
 
 #pragma warning disable CS0618 // Typ oder Element ist veraltet
-                                string sql = childTable.GenerateBulkInsert(queryData);
+                            string sql = childTable.GenerateBulkInsert(queryData);
 #pragma warning restore CS0618 // Typ oder Element ist veraltet
-                                childSuccess = Database.Instance.ExecuteSQL(sql);
-                            }
-                            #endregion
+                            childSuccess = Database.Instance.ExecuteSQL(sql);
                         }
-                        else if (foreignKeyAttribute.Data.IsOneToOne)
+                        #endregion
+                    }
+                    else if (foreignKeyAttribute.Data.IsOneToOne)
+                    {
+                        var value = property.GetValue(this);
+                        #region Save foreign data into database and save id into foreign column
+                        if (value is IDatabaseEntry foreignEntry)
                         {
-                            var value = property.GetValue(this);
-                            #region Save foreign data into database and save id into foreign column
-                            if (value is IDatabaseEntry foreignEntry)
-                            {
-                                foreignEntry.SaveToDatabase();
+                            foreignEntry.SaveToDatabase();
 
-                                string columnName = Util.GetColumnName(property.Name).ToUpper() + "_ID";
-                                data.Add(table[columnName], foreignEntry);
-                            }
-                            #endregion
+                            string columnName = Util.GetColumnName(property.Name).ToUpper() + "_ID";
+                            data.Add(table[columnName], foreignEntry);
                         }
+                        #endregion
                     }
                 }
             }

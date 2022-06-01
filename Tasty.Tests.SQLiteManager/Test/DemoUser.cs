@@ -9,7 +9,7 @@ using Tasty.SQLiteManager.Table.Attributes;
 namespace Tasty.Tests.SQLiteManager.Test
 {
     [SqliteTable]
-    class DemoUser : DatabaseEntry<DemoUser>
+    public class DemoUser : DatabaseEntry<DemoUser>
     {
         private string guid = "Foobar";
 
@@ -27,7 +27,7 @@ namespace Tasty.Tests.SQLiteManager.Test
         [SqliteForeignKey("mapping_user_posts")]
         public List<DemoPost> Posts { get; set; } = new List<DemoPost>();
 
-        [SqliteForeignKey(true)]
+        [SqliteForeignKey()]
         public DemoUserSettings UserSettings { get; set; }
 
         public DemoUser(TableDefinition<DemoUser> table): base(table)

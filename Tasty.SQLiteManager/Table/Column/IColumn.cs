@@ -14,6 +14,11 @@ namespace Tasty.SQLiteManager.Table.Column
         Type DataType { get; }
 
         /// <summary>
+        /// Returns the real type of this column in case DataType is <see cref="Nullable"/>, or null.
+        /// </summary>
+        Type UnderlyingType { get; }
+
+        /// <summary>
         /// Property data, used to match database rows to their class property equivalent.
         /// </summary>
         PropertyInfo PropertyInfo { get; }

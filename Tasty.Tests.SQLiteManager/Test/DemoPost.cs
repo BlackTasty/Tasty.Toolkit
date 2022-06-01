@@ -9,7 +9,7 @@ using Tasty.SQLiteManager.Table.Attributes;
 namespace Tasty.Tests.SQLiteManager.Test
 {
     [SqliteTable]
-    class DemoPost: DatabaseEntry<DemoPost>
+    public class DemoPost : DatabaseEntry<DemoPost>
     {
         public string Title { get; set; }
 
