@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Test\DemoCommunity.cs" />
     <Compile Include="Test\DemoPost.cs" />
     <Compile Include="Test\DemoUser.cs" />
     <Compile Include="Test\DemoUserSettings.cs" />

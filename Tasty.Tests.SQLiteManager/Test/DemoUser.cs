@@ -34,6 +34,9 @@ namespace Tasty.Tests.SQLiteManager.Test
         [SqliteForeignKey()]
         public DemoUserSettings UserSettings { get; set; }
 
+        [SqliteForeignKey("mapping_users_communities", true)]
+        public List<DemoCommunity> Communities { get; set; } = new List<DemoCommunity>();
+
         public DemoUser(TableDefinition<DemoUser> table): base(table)
         {
 

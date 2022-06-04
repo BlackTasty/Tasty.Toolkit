@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>TastyApps.Core.SQLiteManager</id>
-    <version>2.0.1.3</version>
+    <version>2.0.1.6</version>
     <title>Tasty.SQLiteManager</title>
     <authors>BlackTasty</authors>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">GPL-2.0-only</license>
-    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="900bedb4f6aafdeda278acc6952cf17767b32eac" />
+    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="578069884f18cecf3b77954a11b6effcf9d5566f" />
     <description>Manage your SQLite databases with ease!</description>
-    <releaseNotes>One-to-one relations no longer require you to pass a bool to the SqliteForeginKey attribute</releaseNotes>
+    <releaseNotes>Fixed issues with n-n relations, when the relation was linking to another class/table</releaseNotes>
     <copyright>Copyright © BlackTasty 2022</copyright>
     <tags>csharp sqlite database manager db sql</tags>
 

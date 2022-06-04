@@ -65,7 +65,11 @@ namespace Tasty.Tests.SQLiteManager
             {
                 return;
             }
-            if (!TestRunner.RunTest(Test_ManyToManyRelationship, "Testing many-to-many (n-n) relationship"))
+            if (!TestRunner.RunTest(Test_ManyToManyRelationship_SameTable, "Testing many-to-many (n-n) relationship in same table"))
+            {
+                return;
+            }
+            if (!TestRunner.RunTest(Test_ManyToManyRelationship_DifferentTable, "Testing many-to-many (n-n) relationship with two tables"))
             {
                 return;
             }
@@ -250,7 +254,7 @@ namespace Tasty.Tests.SQLiteManager
             return true;
         }
 
-        static bool Test_ManyToManyRelationship()
+        static bool Test_ManyToManyRelationship_SameTable()
         {
             DemoUser demoUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
             bool rowExists = demoUser != null;
@@ -271,6 +275,59 @@ namespace Tasty.Tests.SQLiteManager
 
             demoFriend.SaveToDatabase();
             demoUser.Friends.Add(demoFriend);
+
+            demoUser.SaveToDatabase();
+
+            DemoUser dbUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
+
+            bool usersIdentical = AreUsersIdentical(demoUser, dbUser);
+            Base.Console.WriteLine_Status("Is user same after saving to database", usersIdentical);
+            if (!usersIdentical)
+            {
+                System.Console.WriteLine("Test aborted! Loaded user data not identical.");
+                return false;
+            }
+
+            return true;
+        }
+
+        static bool Test_ManyToManyRelationship_DifferentTable()
+        {
+            DemoUser demoUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
+            bool rowExists = demoUser != null;
+
+            Base.Console.WriteLine_Status("Entry with ID 1 exists", rowExists);
+            if (!rowExists)
+            {
+                System.Console.WriteLine("Test aborted! User doesn't exist.");
+                return false;
+            }
+
+            List<DemoCommunity> demoCommunities = new List<DemoCommunity>()
+            {
+                new DemoCommunity()
+                {
+                    Name = "Tasty Apps"
+                },
+                new DemoCommunity()
+                {
+                    Name = "Nergi Fanclub"
+                },
+                new DemoCommunity()
+                {
+                    Name = "City builders"
+                },
+                new DemoCommunity()
+                {
+                    Name = "Developers by heart"
+                }
+            };
+
+            foreach (DemoCommunity demoCommunity in demoCommunities)
+            {
+                demoCommunity.SaveToDatabase();
+                demoUser.Communities.Add(demoCommunity);
+            }
 
             demoUser.SaveToDatabase();
 
@@ -323,7 +380,24 @@ namespace Tasty.Tests.SQLiteManager
                         return false;
                     }
 
-                    return AreUsersIdentical(originalFriend, dbFriend, false);
+                    if (!AreUsersIdentical(originalFriend, dbFriend, false))
+                    {
+                        return false;
+                    }
+                }
+
+                foreach (DemoCommunity dbCommunity in dbUser.Communities)
+                {
+                    DemoCommunity originalCommunity = originalUser.Communities.FirstOrDefault(x => x.ID == dbCommunity.ID);
+                    if (originalUser == null)
+                    {
+                        return false;
+                    }
+
+                    if (originalCommunity.Name != dbCommunity.Name)
+                    {
+                        return false;
+                    }
                 }
             }
 

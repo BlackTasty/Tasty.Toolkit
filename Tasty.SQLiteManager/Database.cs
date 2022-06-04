@@ -279,6 +279,7 @@ namespace Tasty.SQLiteManager
                     else
                     {
                         ForeignKeyData realRootData = null;
+                        bool isSameTableRelation = false;
                         if (foreignKeyData.IsManyToMany)
                         {
                             Type tableType = table.TableType;
@@ -288,10 +289,22 @@ namespace Tasty.SQLiteManager
                                 if (foreignKeyAttribute.Data.ChildTableName == foreignKeyData.ChildTableName)
                                 {
                                     realRootData = new ForeignKeyData(foreignKeyData.ChildTableName, true);
+                                    isSameTableRelation = rootKeyData.ForeignKeyName == foreignKeyData.ForeignKeyName;
+                                    string targetKey = isSameTableRelation ? string.Format("{0}_{1}", Util.GetColumnName(Util.GetSingular(propertyInfo.Name)).ToUpper(), rootKeyData.ParentKeyName) :
+                                        string.Format("{0}_{1}", Util.GetSingular(table.Name).ToUpper(), primaryKey.Name);
 
-                                    string targetKey = string.Format("{0}_{1}", Util.GetColumnName(Util.GetSingular(propertyInfo.Name)).ToUpper(), rootKeyData.ParentKeyName);
                                     realRootData.SetManyToManyData(rootKeyData.ParentKeyName, propertyInfo, targetKey);
-                                    foreignKeyData.ManyToManyTargetKeyName = targetKey;
+
+                                    if (rootKeyData.ForeignKeyName == foreignKeyData.ForeignKeyName)
+                                    {
+                                        foreignKeyData.ManyToManyTargetKeyName = targetKey;
+                                    }
+                                    else
+                                    {
+                                        realRootData.ChildTableName = foreignKeyData.ChildTableName;
+                                        realRootData.ParentTableName = rootKeyData.ParentTableName;
+                                    }
+                                    break;
                                 }
                             }
                         }
@@ -310,7 +323,7 @@ namespace Tasty.SQLiteManager
                             realRootData.ForeignKeyName += "_1";
                             foreignKeyData.ForeignKeyName += "_2";
                         }
-                        existing = new ChildTableData(foreignKeyData, realRootData);
+                        existing = new ChildTableData(foreignKeyData, realRootData, isSameTableRelation);
                         childTables.Add(existing);
                     }
                 }
@@ -344,7 +357,8 @@ namespace Tasty.SQLiteManager
                                     string primaryKeyName = target.GetPrimaryKeyColumn().Name;
                                     childForeignKeyData.SetManyToManyData(primaryKeyName, propertyInfo,
                                         string.Format("{0}_{1}", Util.GetColumnName(Util.GetSingular(propertyInfo.Name)).ToUpper(), primaryKeyName));
-                                    //target.ForeignKeyData.Add(childForeignKeyData);
+                                    target.ForeignKeyData.Add(childForeignKeyData);
+                                    break;
                                 }
                             }
                         }

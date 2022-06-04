@@ -17,14 +17,30 @@ namespace Tasty.SQLiteManager.Table
     public class ChildTableDefinition : TableBaseDefinition
     {
         private readonly List<ForeignKeyData> foreignKeyData;
+        private readonly bool isSameTableRelation;
+
+        public bool IsSameTableRelation => isSameTableRelation;
 
         internal ChildTableDefinition(ChildTableData tableData) : base(tableData.TableName)
         {
-            foreignKeyData = tableData.ForeignKeyData;
+            isSameTableRelation = tableData.IsSameTableRelation;
+
+            #region Sanity check on foreign key data
+            List<ForeignKeyData> sanitized = new List<ForeignKeyData>();
+            foreach(ForeignKeyData foreignKeyData in tableData.ForeignKeyData)
+            {
+                if (!sanitized.Any(x => x.ToString().Equals(foreignKeyData.ToString())))
+                {
+                    sanitized.Add(foreignKeyData);
+                }
+            }
+            #endregion
+            foreignKeyData = sanitized;
 
             Add(new ColumnDefinition<int>("ID", name, ColumnMode.PRIMARY_KEY, false));
 
-            foreach (ForeignKeyData foreignKeyData in tableData.ForeignKeyData)
+            #region Generate tables for each foreign key
+            foreach (ForeignKeyData foreignKeyData in foreignKeyData)
             {
                 Type columnDefinitionType = Util.MakeGenericColumnDefinition(foreignKeyData.KeyType);
 
@@ -33,9 +49,14 @@ namespace Tasty.SQLiteManager.Table
 
                 if (ctor != null)
                 {
-                    Add((IColumn)ctor.Invoke(new object[] { foreignKeyData.ForeignKeyName, tableData.TableName, true }));
+                    IColumn column = (IColumn)ctor.Invoke(new object[] { foreignKeyData.ForeignKeyName, tableData.TableName, true });
+                    if (!this.Any(x => x.Name == column.Name))
+                    {
+                        Add(column);
+                    }
                 }
             }
+            #endregion
         }
 
         /// <summary>

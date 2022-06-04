@@ -14,7 +14,7 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
     public class ForeignKeyData
     {
         private string parentTableName;
-        private readonly string childTableName;
+        private string childTableName;
         private string foreignKeyName;
         private string parentKeyName;
         private Type keyType;
@@ -24,9 +24,17 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
         private bool isManyToMany;
         private string manyToManyTargetKeyName;
 
-        internal string ParentTableName => parentTableName;
+        internal string ParentTableName
+        {
+            get => parentTableName;
+            set => parentTableName = value;
+        }
 
-        internal string ChildTableName => childTableName;
+        internal string ChildTableName
+        {
+            get => childTableName;
+            set => childTableName = value;
+        }
 
         internal string ForeignKeyName
         {

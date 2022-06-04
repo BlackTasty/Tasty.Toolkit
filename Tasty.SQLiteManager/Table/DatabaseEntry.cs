@@ -507,9 +507,18 @@ namespace Tasty.SQLiteManager.Table
                                     }
                                     else
                                     {
-                                        ITable foreignParentTable = Database.Instance[propertyInfo.DeclaringType];
-                                        childForeignKey = childTable[string.Format("{0}_{1}", 
-                                            Util.GetColumnName(Util.GetSingular(propertyInfo.Name)).ToUpper(), foreignParentTable.GetPrimaryKeyColumn().Name)];
+                                        Type foreignType = propertyInfo.PropertyType.GenericTypeArguments[0];
+                                        ITable foreignParentTable = Database.Instance[foreignType];
+                                        if (childTable.IsSameTableRelation)
+                                        {
+                                            childForeignKey = childTable[string.Format("{0}_{1}",
+                                                Util.GetColumnName(Util.GetSingular(propertyInfo.Name)).ToUpper(), foreignParentTable.GetPrimaryKeyColumn().Name)];
+                                        }
+                                        else
+                                        {
+                                            childForeignKey = childTable[string.Format("{0}_{1}",
+                                                Util.GetColumnName(Util.GetColumnName(foreignType.Name)).ToUpper(), foreignParentTable.GetPrimaryKeyColumn().Name)];
+                                        }
                                     }
                                 }
                                 childEntry.SaveToDatabase();

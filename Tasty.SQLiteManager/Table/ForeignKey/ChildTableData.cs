@@ -10,6 +10,7 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
     {
         private readonly string tableName;
         private readonly List<ForeignKeyData> foreignKeyData;
+        private readonly bool isSameTableRelation;
 
         internal string TableName => tableName;
 
@@ -17,13 +18,16 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
 
         internal bool IsManyToMany => foreignKeyData.FirstOrDefault()?.IsManyToMany ?? false;
 
-        internal ChildTableData(ForeignKeyData remoteKeyData, ForeignKeyData rootKeyData)
+        internal bool IsSameTableRelation => isSameTableRelation;
+
+        internal ChildTableData(ForeignKeyData remoteKeyData, ForeignKeyData rootKeyData, bool isSameTableRelation)
         {
             tableName = remoteKeyData.ChildTableName;
             foreignKeyData = new List<ForeignKeyData>() {
                 remoteKeyData,
                 rootKeyData
             };
+            this.isSameTableRelation = isSameTableRelation;
         }
     }
 }
