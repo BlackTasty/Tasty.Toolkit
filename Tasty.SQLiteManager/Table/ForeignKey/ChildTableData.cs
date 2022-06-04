@@ -15,6 +15,8 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
 
         internal List<ForeignKeyData> ForeignKeyData => foreignKeyData;
 
+        internal bool IsManyToMany => foreignKeyData.FirstOrDefault()?.IsManyToMany ?? false;
+
         internal ChildTableData(ForeignKeyData remoteKeyData, ForeignKeyData rootKeyData)
         {
             tableName = remoteKeyData.ChildTableName;

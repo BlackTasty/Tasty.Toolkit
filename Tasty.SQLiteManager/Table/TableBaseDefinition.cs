@@ -19,16 +19,10 @@ namespace Tasty.SQLiteManager.Table
         /// </summary>
         protected List<IColumn> columns = new List<IColumn>();
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public List<IColumn> ColumnDefinitions => columns;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
-        /// <param name="columnName"><inheritdoc/></param>
-        /// <returns><inheritdoc/></returns>
         public IColumn this[string columnName] => columns.FirstOrDefault(x => x.Name == columnName);
 
         public TableBaseDefinition(string name)
@@ -140,41 +134,25 @@ namespace Tasty.SQLiteManager.Table
         }
         #endregion
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
-        /// <returns><inheritdoc/></returns>
         public bool TableExists()
         {
             return Query("SELECT name FROM sqlite_master WHERE type='table' AND name='" + Name + "';", true).Count > 0;
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
-        /// <param name="target"><inheritdoc/></param>
-        /// <returns><inheritdoc/></returns>
         public bool ColumnExists(IColumn target)
         {
             return columns.Exists(x => x.Equals(target));
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
-        /// <param name="colName"><inheritdoc/></param>
-        /// <returns><inheritdoc/></returns>
         public bool ColumnExists(string colName)
         {
             return columns.Exists(x => x.Name.Equals(colName));
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
-        /// <param name="command"><inheritdoc/></param>
-        /// <param name="awaitData"><inheritdoc/></param>
-        /// <returns><inheritdoc/></returns>
         public ResultSet Query(string command, bool awaitData)
         {
             if (awaitData)
@@ -188,13 +166,10 @@ namespace Tasty.SQLiteManager.Table
             }
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
-        /// <param name="conditions"><inheritdoc/></param>
-        public ResultSet Select(params Condition[] conditions)
+        public ResultSet Select(bool isOr = true, params Condition[] conditions)
         {
-            string conditionParameter = ParseConditions(conditions);
+            string conditionParameter = ParseConditions(isOr, conditions);
             string sql;
 
             if (!string.IsNullOrWhiteSpace(conditionParameter))
@@ -208,36 +183,22 @@ namespace Tasty.SQLiteManager.Table
             return Database.Instance.SelectData(sql, this);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
-        /// <param name="conditions"><inheritdoc/></param>
-        public ResultSet Select(IEnumerable<Condition> conditions)
+        public ResultSet Select(bool isOr, IEnumerable<Condition> conditions)
         {
-            return Select(conditions.ToArray());
+            return Select(isOr, conditions.ToArray());
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
-        /// <param name="columns"><inheritdoc/></param>
-        /// <param name="conditions"><inheritdoc/></param>
-        /// <returns><inheritdoc/></returns>
-        public ResultSet Select(List<IColumn> columns, params Condition[] conditions)
+        public ResultSet Select(bool isOr, List<IColumn> columns, params Condition[] conditions)
         {
-            return Select(columns, false, conditions);
+            return Select(isOr, columns, false, conditions);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
-        /// <param name="columns"><inheritdoc/></param>
-        /// <param name="excludeColumns"><inheritdoc/></param>
-        /// <param name="conditions"><inheritdoc/></param>
-        /// <returns><inheritdoc/></returns>
-        public ResultSet Select(List<IColumn> columns, bool excludeColumns, params Condition[] conditions)
+        public ResultSet Select(bool isOr, List<IColumn> columns, bool excludeColumns, params Condition[] conditions)
         {
-            string conditionParameter = ParseConditions(conditions);
+            string conditionParameter = ParseConditions(isOr, conditions);
             string selectParameter = "";
             string sql;
 
@@ -275,7 +236,7 @@ namespace Tasty.SQLiteManager.Table
 
             if (string.IsNullOrWhiteSpace(selectParameter))
             {
-                return Select(conditions);
+                return Select(isOr, conditions);
             }
             else
             {
@@ -331,11 +292,11 @@ namespace Tasty.SQLiteManager.Table
                 {
                     if (!string.IsNullOrEmpty(conditions))
                     {
-                        conditions += string.Format(" AND {0} == {1}", whereData.Key.Name, whereData.Key.ParseColumnValue(whereData.Value));
+                        conditions += string.Format(" AND {0} == {1}", whereData.Key.Name, whereData.Key.ParseToDatabaseValue(whereData.Value));
                     }
                     else
                     {
-                        conditions = string.Format("{0} == {1}", whereData.Key.Name, whereData.Key.ParseColumnValue(whereData.Value));
+                        conditions = string.Format("{0} == {1}", whereData.Key.Name, whereData.Key.ParseToDatabaseValue(whereData.Value));
                     }
                 }
 
@@ -433,7 +394,7 @@ namespace Tasty.SQLiteManager.Table
         public bool Update(Dictionary<IColumn, dynamic> data, params Condition[] conditions)
         {
             string setParameter = "";
-            string conditionParameter = ParseConditions(conditions);
+            string conditionParameter = ParseConditions(true, conditions);
             foreach (KeyValuePair<IColumn, dynamic> entry in data)
             {
                 if (entry.Key.PrimaryKey)
@@ -443,11 +404,11 @@ namespace Tasty.SQLiteManager.Table
 
                 if (string.IsNullOrWhiteSpace(setParameter))
                 {
-                    setParameter = string.Format("{0} = {1}", entry.Key.Name, entry.Key.ParseColumnValue(entry.Value));
+                    setParameter = string.Format("{0} = {1}", entry.Key.Name, entry.Key.ParseToDatabaseValue(entry.Value));
                 }
                 else
                 {
-                    setParameter += string.Format(", {0} = {1}", entry.Key.Name, entry.Key.ParseColumnValue(entry.Value));
+                    setParameter += string.Format(", {0} = {1}", entry.Key.Name, entry.Key.ParseToDatabaseValue(entry.Value));
                 }
             }
 
@@ -480,7 +441,7 @@ namespace Tasty.SQLiteManager.Table
         /// <returns><inheritdoc/></returns>
         public bool Delete(params Condition[] conditions)
         {
-            string conditionParameter = conditions != null ? ParseConditions(conditions) : "";
+            string conditionParameter = conditions != null ? ParseConditions(true, conditions) : "";
             string sql;
             if (!string.IsNullOrWhiteSpace(conditionParameter))
             {
@@ -504,7 +465,7 @@ namespace Tasty.SQLiteManager.Table
 
             if (idColumn != null)
             {
-                ResultSet result = Select();
+                ResultSet result = Select(true);
                 IEnumerable<int> ids = result.Select(x => x.GetColumn<int>(idColumn.Name)).OrderByDescending(x => x);
                 int lastId = ids.FirstOrDefault();
 
@@ -555,7 +516,7 @@ namespace Tasty.SQLiteManager.Table
 
                         if (entry.Value != null)
                         {
-                            values = entry.Key.ParseColumnValue(entry.Value);
+                            values = entry.Key.ParseToDatabaseValue(entry.Value);
                         }
                         else
                         {
@@ -567,7 +528,7 @@ namespace Tasty.SQLiteManager.Table
                         rows += ", " + entry.Key.Name;
                         if (entry.Value != null)
                         {
-                            values += ", " + entry.Key.ParseColumnValue(entry.Value);
+                            values += ", " + entry.Key.ParseToDatabaseValue(entry.Value);
                         }
                         else
                         {
@@ -579,11 +540,11 @@ namespace Tasty.SQLiteManager.Table
                 {
                     if (string.IsNullOrEmpty(combinedRowAndValue))
                     {
-                        combinedRowAndValue = string.Format("{0} = {1}", entry.Key.Name, entry.Value != null ? entry.Key.ParseColumnValue(entry.Value) : "NULL");
+                        combinedRowAndValue = string.Format("{0} = {1}", entry.Key.Name, entry.Value != null ? entry.Key.ParseToDatabaseValue(entry.Value) : "NULL");
                     }
                     else
                     {
-                        combinedRowAndValue += string.Format(", {0} = {1}", entry.Key.Name, entry.Value != null ? entry.Key.ParseColumnValue(entry.Value) : "NULL");
+                        combinedRowAndValue += string.Format(", {0} = {1}", entry.Key.Name, entry.Value != null ? entry.Key.ParseToDatabaseValue(entry.Value) : "NULL");
                     }
                 }
             }
@@ -598,29 +559,29 @@ namespace Tasty.SQLiteManager.Table
                         if (string.IsNullOrEmpty(rows))
                         {
                             rows = column.Name;
-                            values = column.ParseColumnValue(column.DefaultValue);
+                            values = column.ParseToDatabaseValue(column.DefaultValue);
                         }
                         else
                         {
                             rows += ", " + column.Name;
-                            values += ", " + column.ParseColumnValue(column.DefaultValue);
+                            values += ", " + column.ParseToDatabaseValue(column.DefaultValue);
                         }
                     }
                     else
                     {
                         if (string.IsNullOrEmpty(combinedRowAndValue))
                         {
-                            combinedRowAndValue = string.Format("{0} = {1}", column.Name, column.ParseColumnValue(column.DefaultValue));
+                            combinedRowAndValue = string.Format("{0} = {1}", column.Name, column.ParseToDatabaseValue(column.DefaultValue));
                         }
                         else
                         {
-                            combinedRowAndValue = string.Format(", {0} = {1}", column.Name, column.ParseColumnValue(column.DefaultValue));
+                            combinedRowAndValue = string.Format(", {0} = {1}", column.Name, column.ParseToDatabaseValue(column.DefaultValue));
                         }
                     }
                 }
             }
 
-            string conditionParameter = ParseConditions(conditions);
+            string conditionParameter = ParseConditions(true, conditions);
 
             if (!isReplace)
             {
@@ -634,7 +595,7 @@ namespace Tasty.SQLiteManager.Table
             }
         }
 
-        private string ParseConditions(params Condition[] conditions)
+        private string ParseConditions(bool isOr, params Condition[] conditions)
         {
             string conditionParameter = "";
             foreach (Condition condition in conditions)
@@ -650,7 +611,7 @@ namespace Tasty.SQLiteManager.Table
                 }
                 else
                 {
-                    conditionParameter += ", " + condition.ToString();
+                    conditionParameter += (isOr ? " OR " : " AND ") + condition.ToString();
                 }
             }
 

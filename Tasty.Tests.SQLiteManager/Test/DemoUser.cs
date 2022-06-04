@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Tasty.SQLiteManager;
 using Tasty.SQLiteManager.Table;
 using Tasty.SQLiteManager.Table.Attributes;
 
@@ -11,7 +12,7 @@ namespace Tasty.Tests.SQLiteManager.Test
     [SqliteTable]
     public class DemoUser : DatabaseEntry<DemoUser>
     {
-        private string guid = "Foobar";
+        private string guid;
 
         [SqliteUnique]
         public string Guid { get => guid; private set => guid = value; }
@@ -27,12 +28,20 @@ namespace Tasty.Tests.SQLiteManager.Test
         [SqliteForeignKey("mapping_user_posts")]
         public List<DemoPost> Posts { get; set; } = new List<DemoPost>();
 
+        [SqliteForeignKey("mapping_users_friends", true)]
+        public List<DemoUser> Friends { get; set; } = new List<DemoUser>();
+
         [SqliteForeignKey()]
         public DemoUserSettings UserSettings { get; set; }
 
         public DemoUser(TableDefinition<DemoUser> table): base(table)
         {
 
+        }
+
+        public DemoUser(): this(Database.Instance.GetTable<DemoUser>())
+        {
+            guid = System.Guid.NewGuid().ToString();
         }
     }
 }

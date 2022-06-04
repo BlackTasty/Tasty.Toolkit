@@ -258,14 +258,11 @@ namespace Tasty.SQLiteManager.Table
                 return new List<ForeignKeyData>();
             }
 
-            foreach (PropertyInfo property in propertyInfos)
+            foreach (PropertyInfo property in propertyInfos.Where(x => Attribute.IsDefined(x, typeof(SqliteForeignKey))))
             {
-                if (Attribute.IsDefined(property, typeof(SqliteForeignKey)))
-                {
-                    SqliteForeignKey foreignKeyAttribute = (SqliteForeignKey)Attribute.GetCustomAttribute(property, typeof(SqliteForeignKey));
-                    foreignKeyAttribute.Data.SetOneToManyData(primaryKeyProperty.Name.ToUpper(), property);
-                    foreignKeyData.Add(foreignKeyAttribute.Data);
-                }
+                SqliteForeignKey foreignKeyAttribute = (SqliteForeignKey)Attribute.GetCustomAttribute(property, typeof(SqliteForeignKey));
+                foreignKeyAttribute.Data.SetOneToManyData(primaryKeyProperty.Name.ToUpper(), property);
+                foreignKeyData.Add(foreignKeyAttribute.Data);
             }
 
             return foreignKeyData;

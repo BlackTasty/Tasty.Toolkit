@@ -21,12 +21,18 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
 
         private bool isList;
         private bool isOneToOne;
+        private bool isManyToMany;
+        private string manyToManyTargetKeyName;
 
         internal string ParentTableName => parentTableName;
 
         internal string ChildTableName => childTableName;
 
-        internal string ForeignKeyName => foreignKeyName;
+        internal string ForeignKeyName
+        {
+            get => foreignKeyName;
+            set => foreignKeyName = value;
+        }
 
         internal string ParentKeyName => parentKeyName;
 
@@ -36,14 +42,23 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
 
         internal bool IsOneToOne => isOneToOne;
 
+        internal bool IsManyToMany => isManyToMany;
+
+        internal string ManyToManyTargetKeyName
+        {
+            get => manyToManyTargetKeyName;
+            set => manyToManyTargetKeyName = value;
+        }
+
         internal ForeignKeyData(bool isOneToOne)
         {
             this.isOneToOne = isOneToOne;
         }
 
-        internal ForeignKeyData(string childTableName)
+        internal ForeignKeyData(string childTableName, bool isManyToMany)
         {
             this.childTableName = childTableName;
+            this.isManyToMany = isManyToMany;
         }
 
         internal ForeignKeyData(string parentKeyName, string foreignKeyName, Type keyType, string parentTableName)
@@ -70,6 +85,12 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
 
             SqliteTable sqliteTableAttribute = (SqliteTable)realType.GetCustomAttribute(typeof(SqliteTable));
             this.parentTableName = sqliteTableAttribute.AutoName ? Util.GetTableName(realType.Name) : sqliteTableAttribute.TableName;
+        }
+
+        internal void SetManyToManyData(string parentKeyName, PropertyInfo propertyInfo, string foreignKeyName)
+        {
+            SetOneToManyData(parentKeyName, propertyInfo);
+            this.foreignKeyName = foreignKeyName;
         }
 
         private Type GetRealType(Type rootType)

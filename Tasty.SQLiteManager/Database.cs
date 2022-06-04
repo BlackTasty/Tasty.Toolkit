@@ -278,7 +278,39 @@ namespace Tasty.SQLiteManager
                     }
                     else
                     {
-                        existing = new ChildTableData(foreignKeyData, rootKeyData);
+                        ForeignKeyData realRootData = null;
+                        if (foreignKeyData.IsManyToMany)
+                        {
+                            Type tableType = table.TableType;
+                            foreach (PropertyInfo propertyInfo in tableType.GetProperties().Where(x => Attribute.IsDefined(x, typeof(SqliteForeignKey))))
+                            {
+                                SqliteForeignKey foreignKeyAttribute = propertyInfo.GetCustomAttribute<SqliteForeignKey>();
+                                if (foreignKeyAttribute.Data.ChildTableName == foreignKeyData.ChildTableName)
+                                {
+                                    realRootData = new ForeignKeyData(foreignKeyData.ChildTableName, true);
+
+                                    string targetKey = string.Format("{0}_{1}", Util.GetColumnName(Util.GetSingular(propertyInfo.Name)).ToUpper(), rootKeyData.ParentKeyName);
+                                    realRootData.SetManyToManyData(rootKeyData.ParentKeyName, propertyInfo, targetKey);
+                                    foreignKeyData.ManyToManyTargetKeyName = targetKey;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            realRootData = rootKeyData;
+                        }
+
+                        if (realRootData == null)
+                        {
+                            throw new UnknownSqliteManagerException("An error occurred while preparing relationship table data.");
+                        }
+
+                        if (foreignKeyData.ForeignKeyName == realRootData.ForeignKeyName)
+                        {
+                            realRootData.ForeignKeyName += "_1";
+                            foreignKeyData.ForeignKeyName += "_2";
+                        }
+                        existing = new ChildTableData(foreignKeyData, realRootData);
                         childTables.Add(existing);
                     }
                 }
@@ -297,7 +329,28 @@ namespace Tasty.SQLiteManager
                 this.childTables.Add(childTable);
                 foreach (ForeignKeyData foreignKeyData in childTableData.ForeignKeyData)
                 {
-                    this.FirstOrDefault(x => x.Name == foreignKeyData.ParentTableName)?.ChildTables.Add(childTable);
+                    ITable target = this.FirstOrDefault(x => x.Name == foreignKeyData.ParentTableName);
+                    if (target != null)
+                    {
+                        if (foreignKeyData.IsManyToMany)
+                        {
+                            Type tableType = target.TableType;
+                            foreach (PropertyInfo propertyInfo in tableType.GetProperties().Where(x => Attribute.IsDefined(x, typeof(SqliteForeignKey))))
+                            {
+                                SqliteForeignKey foreignKeyAttribute = propertyInfo.GetCustomAttribute<SqliteForeignKey>();
+                                if (foreignKeyAttribute.Data.ChildTableName == foreignKeyData.ChildTableName)
+                                {
+                                    ForeignKeyData childForeignKeyData = new ForeignKeyData(foreignKeyData.ChildTableName, true);
+                                    string primaryKeyName = target.GetPrimaryKeyColumn().Name;
+                                    childForeignKeyData.SetManyToManyData(primaryKeyName, propertyInfo,
+                                        string.Format("{0}_{1}", Util.GetColumnName(Util.GetSingular(propertyInfo.Name)).ToUpper(), primaryKeyName));
+                                    //target.ForeignKeyData.Add(childForeignKeyData);
+                                }
+                            }
+                        }
+                        target.ChildTables.Add(childTable);
+                    }
+
                 }
             }
             #endregion
@@ -373,7 +426,7 @@ namespace Tasty.SQLiteManager
                 if (includeData)
                 {
                     #region Iterate through all rows and create INSERT
-                    ResultSet result = table.Select();
+                    ResultSet result = table.Select(false);
                     if (result.Count > 0)
                     {
                         #region Create first part of INSERT
@@ -404,11 +457,11 @@ namespace Tasty.SQLiteManager
                                 {
                                     if (rowSql.Length == 0)
                                     {
-                                        rowSql.Append(resultColumn.ParseColumnValue(value));
+                                        rowSql.Append(resultColumn.ParseToDatabaseValue(value));
                                     }
                                     else
                                     {
-                                        rowSql.Append(", " + resultColumn.ParseColumnValue(value));
+                                        rowSql.Append(", " + resultColumn.ParseToDatabaseValue(value));
                                     }
                                 }
                             }
@@ -791,32 +844,45 @@ namespace Tasty.SQLiteManager
                                     if (!reader.IsDBNull(i))
                                     {
                                         string value = reader[colName].ToString();
-                                        switch (table.ColumnDefinitions.Find(x => x.Name == colName)?.ColumnType)
+                                        IColumn column = table.ColumnDefinitions.Find(x => x.Name == colName);
+                                        if (column == null)
                                         {
-                                            case ColumnType.BOOLEAN:
-                                                if (int.TryParse(value, out int result))
-                                                {
-                                                    columns.Add(colName, result == 1);
-                                                }
-                                                break;
-                                            case ColumnType.FLOAT:
-                                                if (float.TryParse(value, out float bigNumber))
-                                                {
-                                                    columns.Add(colName, bigNumber);
-                                                }
-                                                break;
-                                            case ColumnType.INTEGER:
-                                                if (int.TryParse(value, out int number))
-                                                {
-                                                    columns.Add(colName, number);
-                                                }
-                                                break;
-                                            case ColumnType.TEXT:
-                                                columns.Add(colName, value.Replace("''", "\""));
-                                                break;
-                                            default:
-                                                columns.Add(colName, reader.GetValue(i));
-                                                break;
+                                            columns.Add(colName, reader.GetValue(i));
+                                        }
+                                        else if (string.IsNullOrEmpty(column.StringFormatter))
+                                        {
+                                            switch (column?.ColumnType)
+                                            {
+                                                case ColumnType.BOOLEAN:
+                                                    if (int.TryParse(value, out int result))
+                                                    {
+                                                        columns.Add(colName, result == 1);
+                                                    }
+                                                    break;
+                                                case ColumnType.FLOAT:
+                                                    if (float.TryParse(value, out float bigNumber))
+                                                    {
+                                                        columns.Add(colName, bigNumber);
+                                                    }
+                                                    break;
+                                                case ColumnType.INTEGER:
+                                                    if (int.TryParse(value, out int number))
+                                                    {
+                                                        columns.Add(colName, number);
+                                                    }
+                                                    break;
+                                                case ColumnType.TEXT:
+                                                    column.ParseToDatabaseValue(value.Replace("''", "\""));
+                                                    columns.Add(colName, value.Replace("''", "\""));
+                                                    break;
+                                                default:
+                                                    columns.Add(colName, reader.GetValue(i));
+                                                    break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            columns.Add(colName, column.ParseFromDatabaseValue(value));
                                         }
                                     }
                                     else

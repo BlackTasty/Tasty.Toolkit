@@ -1,5 +1,6 @@
 ﻿using Microsoft.CSharp.RuntimeBinder;
 using System;
+using System.Globalization;
 using System.Reflection;
 using Tasty.SQLiteManager.Exceptions;
 using Tasty.SQLiteManager.Table.Attributes;
@@ -25,19 +26,18 @@ namespace Tasty.SQLiteManager.Table.Column
 
         public Type UnderlyingType => underlyingType;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public PropertyInfo PropertyInfo => propertyInfo;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public string ParentTableName
         {
             get => parentTableName;
             internal set => parentTableName = value;
         }
+
+        /// <inheritdoc/>
+        public bool IsForeignKey => isForeignKey;
 
         #region Property definitions
         private readonly T defaultValue = default;
@@ -72,9 +72,6 @@ namespace Tasty.SQLiteManager.Table.Column
 
         /// <inheritdoc/>
         public string StringFormatter => stringFormatter;
-
-        /// <inheritdoc/>
-        public bool IsForeignKey => isForeignKey;
         #endregion
 
         /// <summary>
@@ -189,7 +186,7 @@ namespace Tasty.SQLiteManager.Table.Column
         }
 
         /// <inheritdoc/>
-        public string ParseColumnValue(dynamic value)
+        public string ParseToDatabaseValue(dynamic value)
         {
             if (value == null)
             {
@@ -239,6 +236,27 @@ namespace Tasty.SQLiteManager.Table.Column
             else
             {
                 return value.ToString();
+            }
+        }
+
+        public dynamic ParseFromDatabaseValue(dynamic value)
+        {
+            switch (trueColumnType)
+            {
+                case "datetime":
+                    return DateTime.TryParseExact(value, stringFormatter,
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime) ?
+                        dateTime : default;
+                case "timespan":
+                    return TimeSpan.TryParseExact(value, stringFormatter,
+                        CultureInfo.InvariantCulture, out TimeSpan timeSpan) ?
+                        timeSpan : default;
+                case "ulong":
+                    return ulong.TryParse(value, out ulong result) ? result : default;
+                case "enum":
+                    return (T)value;
+                default:
+                    return value;
             }
         }
 

@@ -102,7 +102,7 @@ namespace Tasty.SQLiteManager.Table
                 case CacheMethod.DELETE_EXPIRED:
                     if (ColumnExists(expireDateColumn))
                     {
-                        ResultSet result = Select(new List<IColumn>() { this["ID"], expireDateColumn });
+                        ResultSet result = Select(true, new List<IColumn>() { this["ID"], expireDateColumn });
 
                         string dateTimeFormat = expireDateColumn.StringFormatter;
                         string sql = "BEGIN TRANSACTION;\n";
@@ -113,7 +113,7 @@ namespace Tasty.SQLiteManager.Table
                             DateTime expireDate = DateTime.ParseExact(row.Columns[ExpireDateColumn.Name], dateTimeFormat, CultureInfo.InvariantCulture);
                             if (DateTime.Now > expireDate)
                             {
-                                sql += string.Format("DELETE FROM {0} WHERE ID = {1};\n", Name, this["ID"].ParseColumnValue(row.Columns["ID"]));
+                                sql += string.Format("DELETE FROM {0} WHERE ID = {1};\n", Name, this["ID"].ParseToDatabaseValue(row.Columns["ID"]));
                                 removedEntries++;
                             }
                         }

@@ -95,13 +95,13 @@ namespace Tasty.SQLiteManager.Table.Conditions
             switch (conditionType)
             {
                 case ConditionType.AND:
-                    return string.Format("{0} = {1} AND {2} = {3}", left.Key.Name, left.Key.ParseColumnValue(left.Value),
-                        right.Key.Name, right.Key.ParseColumnValue(right.Value));
+                    return string.Format("{0} = {1} AND {2} = {3}", left.Key.Name, left.Key.ParseToDatabaseValue(left.Value),
+                        right.Key.Name, right.Key.ParseToDatabaseValue(right.Value));
                 case ConditionType.OR:
-                    return string.Format("{0} = {1} OR {2} = {3}", left.Key.Name, left.Key.ParseColumnValue(left.Value),
-                        right.Key.Name, right.Key.ParseColumnValue(right.Value));
+                    return string.Format("{0} = {1} OR {2} = {3}", left.Key.Name, left.Key.ParseToDatabaseValue(left.Value),
+                        right.Key.Name, right.Key.ParseToDatabaseValue(right.Value));
                 default:
-                    return string.Format("{0} = {1}", left.Key.Name, left.Key.ParseColumnValue(left.Value));
+                    return string.Format("{0} = {1}", left.Key.Name, left.Key.ParseToDatabaseValue(left.Value));
             }
         }
     }

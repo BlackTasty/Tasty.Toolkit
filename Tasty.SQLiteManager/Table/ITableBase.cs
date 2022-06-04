@@ -62,21 +62,24 @@ namespace Tasty.SQLiteManager.Table
         /// Returns the result of a SELECT query for this table
         /// </summary>
         /// <param name="conditions">The WHERE statement of the query. Leave empty to return all data</param>
-        ResultSet Select(params Condition[] conditions);
+        /// <param name="isOr">When true, multiple conditions are connected with OR, else they are connected with AND</param>
+        ResultSet Select(bool isOr, params Condition[] conditions);
 
         /// <summary>
         /// Returns the result of a SELECT query for this table
         /// </summary>
         /// <param name="conditions">The WHERE statement of the query. Leave empty to return all data</param>
-        ResultSet Select(IEnumerable<Condition> conditions);
+        /// <param name="isOr">When true, multiple conditions are connected with OR, else they are connected with AND</param>
+        ResultSet Select(bool isOr, IEnumerable<Condition> conditions);
 
         /// <summary>
         /// Returns the result of a SELECT query for this table
         /// </summary>
         /// <param name="columns">The columns to return</param>
         /// <param name="conditions">The WHERE statement of the query</param>
+        /// <param name="isOr">When true, multiple conditions are connected with OR, else they are connected with AND</param>
         /// <returns></returns>
-        ResultSet Select(List<IColumn> columns, params Condition[] conditions);
+        ResultSet Select(bool isOr, List<IColumn> columns, params Condition[] conditions);
 
         /// <summary>
         /// Returns the result of a SELECT query for this table
@@ -84,8 +87,9 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="columns">The columns to return. Can be toggled to act as a blacklist with the second parameter</param>
         /// <param name="excludeColumns">If true the columns parameter acts as a blacklist. The result will contain all columns except the blacklisted ones</param>
         /// <param name="conditions">The WHERE statement of the query</param>
+        /// <param name="isOr">When true, multiple conditions are connected with OR, else they are connected with AND</param>
         /// <returns></returns>
-        ResultSet Select(List<IColumn> columns, bool excludeColumns, params Condition[] conditions);
+        ResultSet Select(bool isOr, List<IColumn> columns, bool excludeColumns, params Condition[] conditions);
 
         /// <summary>
         /// Inserts a new dataset into the table

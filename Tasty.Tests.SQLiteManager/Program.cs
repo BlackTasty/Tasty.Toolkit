@@ -65,6 +65,10 @@ namespace Tasty.Tests.SQLiteManager
             {
                 return;
             }
+            if (!TestRunner.RunTest(Test_ManyToManyRelationship, "Testing many-to-many (n-n) relationship"))
+            {
+                return;
+            }
         }
 
 
@@ -125,7 +129,7 @@ namespace Tasty.Tests.SQLiteManager
         {
             var table = Database.Instance.GetTable<DemoUser>();
 
-            DemoUser demoUser = new DemoUser(table)
+            DemoUser demoUser = new DemoUser()
             {
                 Name = "Jon Doe",
                 Age = 20,
@@ -245,9 +249,46 @@ namespace Tasty.Tests.SQLiteManager
 
             return true;
         }
+
+        static bool Test_ManyToManyRelationship()
+        {
+            DemoUser demoUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
+            bool rowExists = demoUser != null;
+
+            Base.Console.WriteLine_Status("Entry with ID 1 exists", rowExists);
+            if (!rowExists)
+            {
+                System.Console.WriteLine("Test aborted! User doesn't exist.");
+                return false;
+            }
+
+            DemoUser demoFriend = new DemoUser()
+            {
+                Name = "Jane Doe",
+                Age = 27,
+                Password = "XYZ987"
+            };
+
+            demoFriend.SaveToDatabase();
+            demoUser.Friends.Add(demoFriend);
+
+            demoUser.SaveToDatabase();
+
+            DemoUser dbUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
+
+            bool usersIdentical = AreUsersIdentical(demoUser, dbUser);
+            Base.Console.WriteLine_Status("Is user same after saving to database", usersIdentical);
+            if (!usersIdentical)
+            {
+                System.Console.WriteLine("Test aborted! Loaded user data not identical.");
+                return false;
+            }
+
+            return true;
+        }
         #endregion
 
-        private static bool AreUsersIdentical(DemoUser originalUser, DemoUser dbUser)
+        private static bool AreUsersIdentical(DemoUser originalUser, DemoUser dbUser, bool checkLists = true)
         {
             if (originalUser.Age != dbUser.Age || originalUser.Guid != dbUser.Guid ||
                 originalUser.Name != dbUser.Name || originalUser.Password != dbUser.Password ||
@@ -256,19 +297,33 @@ namespace Tasty.Tests.SQLiteManager
                 return false;
             }
 
-            foreach (DemoPost dbPost in dbUser.Posts)
+            if (checkLists)
             {
-                DemoPost originalPost = originalUser.Posts.FirstOrDefault(x => x.ID == dbPost.ID);
-                if (originalPost == null)
+                foreach (DemoPost dbPost in dbUser.Posts)
                 {
-                    return false;
+                    DemoPost originalPost = originalUser.Posts.FirstOrDefault(x => x.ID == dbPost.ID);
+                    if (originalPost == null)
+                    {
+                        return false;
+                    }
+
+                    double timeDeviation = Math.Round(originalPost.CreateDate.Subtract(dbPost.CreateDate).TotalSeconds);
+
+                    if (originalPost.Title != dbPost.Title || timeDeviation < -1 || timeDeviation > 1)
+                    {
+                        return false;
+                    }
                 }
 
-                double timeDeviation = Math.Round(originalPost.CreateDate.Subtract(dbPost.CreateDate).TotalSeconds);
-
-                if (originalPost.Title != dbPost.Title || timeDeviation < -1 || timeDeviation > 1)
+                foreach (DemoUser dbFriend in dbUser.Friends)
                 {
-                    return false;
+                    DemoUser originalFriend = originalUser.Friends.FirstOrDefault(x => x.ID == dbFriend.ID);
+                    if (originalUser == null)
+                    {
+                        return false;
+                    }
+
+                    return AreUsersIdentical(originalFriend, dbFriend, false);
                 }
             }
 

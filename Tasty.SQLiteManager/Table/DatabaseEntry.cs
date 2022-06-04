@@ -11,6 +11,7 @@ using Tasty.SQLiteManager.Exceptions;
 using Tasty.SQLiteManager.Table.Attributes;
 using Tasty.SQLiteManager.Table.Column;
 using Tasty.SQLiteManager.Table.Conditions;
+using Tasty.SQLiteManager.Table.ForeignKey;
 
 namespace Tasty.SQLiteManager.Table
 {
@@ -30,7 +31,11 @@ namespace Tasty.SQLiteManager.Table
         /// <inheritdoc/>
         /// </summary>
         [SqliteIgnore]
-        public bool FromDatabase => fromDatabase;
+        public bool FromDatabase
+        {
+            get => fromDatabase;
+            protected set => fromDatabase = value;
+        }
 
         /// <summary>
         /// <inheritdoc/>
@@ -45,6 +50,7 @@ namespace Tasty.SQLiteManager.Table
         public int ID
         {
             get => id;
+            protected set => id = value;
         }
 
         /// <summary>
@@ -93,7 +99,7 @@ namespace Tasty.SQLiteManager.Table
                 }
             }
 
-            ResultSet result = table.Select(conditions);
+            ResultSet result = table.Select(true, conditions);
             if (result.IsEmpty)
             {
                 return default;
@@ -111,7 +117,7 @@ namespace Tasty.SQLiteManager.Table
         {
             var table = GetTableDefinitionForType<T>();
 
-            ResultSet result = table.Select(conditions);
+            ResultSet result = table.Select(true, conditions);
 
             List<T> entries = new List<T>();
             foreach (RowData data in result)
@@ -186,19 +192,19 @@ namespace Tasty.SQLiteManager.Table
             };
         }
 
-        protected ResultSet Select(params Condition[] conditions)
+        protected ResultSet Select(bool isOr, params Condition[] conditions)
         {
-            return useDB ? table.Select(conditions) : new ResultSet();
+            return useDB ? table.Select(isOr, conditions) : new ResultSet();
         }
 
-        protected ResultSet Select(List<IColumn> columns, params Condition[] conditions)
+        protected ResultSet Select(bool isOr, List<IColumn> columns, params Condition[] conditions)
         {
-            return useDB ? table.Select(columns, conditions) : new ResultSet();
+            return useDB ? table.Select(isOr, columns, conditions) : new ResultSet();
         }
 
-        protected ResultSet Select(List<IColumn> columns, bool excludeColumns, params Condition[] conditions)
+        protected ResultSet Select(bool isOr, List<IColumn> columns, bool excludeColumns, params Condition[] conditions)
         {
-            return useDB ? table.Select(columns, excludeColumns, conditions) : new ResultSet();
+            return useDB ? table.Select(isOr, columns, excludeColumns, conditions) : new ResultSet();
         }
 
         internal IColumn GetColumnByPropertyName(string propertyName)
@@ -235,15 +241,9 @@ namespace Tasty.SQLiteManager.Table
                         dynamic parsedValue;
                         Type columnType = column.UnderlyingType != null ? column.UnderlyingType : column.DataType;
 
-                        if (columnType == typeof(DateTime))
+                        if (columnType == typeof(DateTime) || columnType == typeof(TimeSpan))
                         {
-                            parsedValue = ParseValue(column, DateTime.ParseExact(row.Value, column.StringFormatter,
-                                CultureInfo.InvariantCulture));
-                        }
-                        else if (columnType == typeof(TimeSpan))
-                        {
-                            parsedValue = ParseValue(column, TimeSpan.ParseExact(row.Value, column.StringFormatter,
-                                CultureInfo.InvariantCulture));
+                            parsedValue = row.Value;
                         }
                         else
                         {
@@ -266,7 +266,7 @@ namespace Tasty.SQLiteManager.Table
                     ITable foreignTable = Database.Instance[foreignType];
                     IColumn foreignKeyColumn = foreignTable.GetPrimaryKeyColumn();
 
-                    ResultSet result = foreignTable.Select(new Condition(foreignKeyColumn, row.Value));
+                    ResultSet result = foreignTable.Select(true, new Condition(foreignKeyColumn, row.Value));
                     if (!result.IsEmpty)
                     {
                         ConstructorInfo ctor = foreignType.GetConstructor(new[] { foreignTableType });
@@ -304,7 +304,7 @@ namespace Tasty.SQLiteManager.Table
                     {
                         #region Load generic data into list of property
                         IColumn foreignKey = childTable.GetChildColumnByParentTable(table.Name);
-                        ResultSet mappingResults = childTable.Select(new Condition(foreignKey, id)); // Get mapping data for list type
+                        ResultSet mappingResults = childTable.Select(true, new Condition(foreignKey, id)); // Get mapping data for list type
 
                         if (!mappingResults.IsEmpty)
                         {
@@ -321,36 +321,40 @@ namespace Tasty.SQLiteManager.Table
                                 MethodInfo setRowData = databaseEntryType.GetMethod("ConstructGeneric", BindingFlags.Static | BindingFlags.NonPublic);
                                 if (setRowData != null)
                                 {
-                                    string targetKeyName = this.table.ForeignKeyData.FirstOrDefault(x => x.ChildTableName == childTable.Name)?.ForeignKeyName;
-
-                                    if (targetKeyName != null)
+                                    ForeignKeyData foreignKeyData = this.table.ForeignKeyData.FirstOrDefault(x => x.ChildTableName == childTable.Name);
+                                    if (foreignKeyData != null)
                                     {
-                                        List<Condition> conditions = new List<Condition>();
-                                        foreach (RowData rowData in mappingResults)
+                                        string targetKeyName = foreignKeyData.ManyToManyTargetKeyName == null ? foreignKeyData.ForeignKeyName : foreignKeyData.ManyToManyTargetKeyName;
+
+                                        if (targetKeyName != null)
                                         {
-                                            Condition condition = new Condition(table.GetPrimaryKeyColumn(), rowData[targetKeyName]);
-                                            if (!conditions.Any(x => x.ToString().Equals(condition.ToString())))
+                                            List<Condition> conditions = new List<Condition>();
+                                            foreach (RowData rowData in mappingResults)
                                             {
-                                                conditions.Add(condition);
+                                                Condition condition = new Condition(table.GetPrimaryKeyColumn(), rowData[targetKeyName]);
+                                                if (!conditions.Any(x => x.ToString().Equals(condition.ToString())))
+                                                {
+                                                    conditions.Add(condition);
+                                                }
                                             }
+
+                                            ResultSet dataResult = table.Select(true, conditions);
+                                            if (dataResult.IsEmpty)
+                                            {
+                                                return;
+                                            }
+
+                                            Type genericListType = typeof(List<>);
+                                            Type listType = genericListType.MakeGenericType(childType);
+                                            var listInstance = (IList)Activator.CreateInstance(listType);
+
+                                            foreach (RowData rowData in dataResult)
+                                            {
+                                                listInstance.Add(setRowData.Invoke(obj, new object[] { table, rowData, !foreignKeyAttribute.Data.IsManyToMany ? loadChildren : false }));
+                                            }
+
+                                            foreignProperty.SetValue(this, listInstance);
                                         }
-
-                                        ResultSet dataResult = table.Select(conditions);
-                                        if (dataResult.IsEmpty)
-                                        {
-                                            return;
-                                        }
-
-                                        Type genericListType = typeof(List<>);
-                                        Type listType = genericListType.MakeGenericType(childType);
-                                        var listInstance = (IList)Activator.CreateInstance(listType);
-
-                                        foreach (RowData rowData in dataResult)
-                                        {
-                                            listInstance.Add(setRowData.Invoke(obj, new object[] { table, rowData, loadChildren }));
-                                        }
-
-                                        foreignProperty.SetValue(this, listInstance);
                                     }
                                 }
                             }
@@ -361,7 +365,7 @@ namespace Tasty.SQLiteManager.Table
                     {
                         #region Load generic data into property
                         IColumn foreignKey = childTable.GetChildColumnByParentTable(table.Name);
-                        ResultSet mappingResults = childTable.Select(new Condition(foreignKey, id)); // Get mapping data for list type
+                        ResultSet mappingResults = childTable.Select(true, new Condition(foreignKey, id)); // Get mapping data for list type
 
                         if (!mappingResults.IsEmpty)
                         {
@@ -382,7 +386,7 @@ namespace Tasty.SQLiteManager.Table
 
                                     if (targetKeyName != null)
                                     {
-                                        ResultSet dataResult = table.Select(new Condition(table.GetPrimaryKeyColumn(),
+                                        ResultSet dataResult = table.Select(true, new Condition(table.GetPrimaryKeyColumn(),
                                             mappingResults.FirstOrDefault()[targetKeyName]));
                                         if (dataResult.IsEmpty)
                                         {
@@ -436,16 +440,16 @@ namespace Tasty.SQLiteManager.Table
             Type t = typeof(T);
             childSuccess = true;
 
-            foreach (PropertyInfo property in t.GetProperties())
+            foreach (PropertyInfo propertyInfo in t.GetProperties())
             {
-                if (Attribute.IsDefined(property, typeof(SqliteIgnore)))
+                if (Attribute.IsDefined(propertyInfo, typeof(SqliteIgnore)))
                 {
                     continue;
                 }
 
-                bool hasForeignKeys = Attribute.IsDefined(property, typeof(SqliteForeignKey));
-                Type underlyingType = Nullable.GetUnderlyingType(property.PropertyType);
-                bool isList = property.PropertyType.IsGenericType && underlyingType == null;
+                bool hasForeignKeys = Attribute.IsDefined(propertyInfo, typeof(SqliteForeignKey));
+                Type underlyingType = Nullable.GetUnderlyingType(propertyInfo.PropertyType);
+                bool isList = propertyInfo.PropertyType.IsGenericType && underlyingType == null;
                 if (isList && !hasForeignKeys) // If property is a list and doesn't have SqliteForeignKey attribute, skip
                 {
                     continue;
@@ -455,15 +459,15 @@ namespace Tasty.SQLiteManager.Table
                 {
                     ColumnMode columnMode;
 
-                    if (Attribute.IsDefined(property, typeof(SqlitePrimaryKey)))
+                    if (Attribute.IsDefined(propertyInfo, typeof(SqlitePrimaryKey)))
                     {
                         columnMode = ColumnMode.PRIMARY_KEY;
                     }
-                    else if (Attribute.IsDefined(property, typeof(SqliteNotNull)))
+                    else if (Attribute.IsDefined(propertyInfo, typeof(SqliteNotNull)))
                     {
                         columnMode = ColumnMode.NOT_NULL;
                     }
-                    else if (Attribute.IsDefined(property, typeof(SqliteUnique)))
+                    else if (Attribute.IsDefined(propertyInfo, typeof(SqliteUnique)))
                     {
                         columnMode = ColumnMode.UNIQUE;
                     }
@@ -472,20 +476,20 @@ namespace Tasty.SQLiteManager.Table
                         columnMode = ColumnMode.DEFAULT;
                     }
 
-                    string columnName = columnMode != ColumnMode.PRIMARY_KEY ? Util.GetColumnName(property.Name) : property.Name.ToUpper();
-                    data.Add(table[columnName], property.GetValue(this));
+                    string columnName = columnMode != ColumnMode.PRIMARY_KEY ? Util.GetColumnName(propertyInfo.Name) : propertyInfo.Name.ToUpper();
+                    data.Add(table[columnName], propertyInfo.GetValue(this));
                 }
                 else
                 {
-                    SqliteForeignKey foreignKeyAttribute = property.GetCustomAttribute<SqliteForeignKey>();
-                    if (property.PropertyType.IsGenericType) // Property is list, which makes this entry the parent
+                    SqliteForeignKey foreignKeyAttribute = propertyInfo.GetCustomAttribute<SqliteForeignKey>();
+                    if (propertyInfo.PropertyType.IsGenericType) // Property is list, which makes this entry the parent
                     {
                         #region Save list of generic data into database
-                        IList childData = property.GetValue(this) as IList;
+                        IList childData = propertyInfo.GetValue(this) as IList;
 
                         if (childData?.Count > 0)
                         {
-                            SqliteForeignKey sqliteForeignKeyAttribute = (SqliteForeignKey)property.GetCustomAttribute(typeof(SqliteForeignKey));
+                            SqliteForeignKey sqliteForeignKeyAttribute = (SqliteForeignKey)propertyInfo.GetCustomAttribute(typeof(SqliteForeignKey));
 
                             ChildTableDefinition childTable = Database.Instance.GetChildTable(sqliteForeignKeyAttribute.Data.ChildTableName);
                             IColumn foreignKey = childTable.GetChildColumnByParentTable(table.Name);
@@ -497,7 +501,16 @@ namespace Tasty.SQLiteManager.Table
                                 var childEntry = (childData[i] as IDatabaseEntry);
                                 if (childForeignKey == null)
                                 {
-                                    childForeignKey = childTable.GetChildColumnByParentTable(childEntry.Table.Name);
+                                    if (!sqliteForeignKeyAttribute.Data.IsManyToMany)
+                                    {
+                                        childForeignKey = childTable.GetChildColumnByParentTable(childEntry.Table.Name);
+                                    }
+                                    else
+                                    {
+                                        ITable foreignParentTable = Database.Instance[propertyInfo.DeclaringType];
+                                        childForeignKey = childTable[string.Format("{0}_{1}", 
+                                            Util.GetColumnName(Util.GetSingular(propertyInfo.Name)).ToUpper(), foreignParentTable.GetPrimaryKeyColumn().Name)];
+                                    }
                                 }
                                 childEntry.SaveToDatabase();
 
@@ -517,13 +530,13 @@ namespace Tasty.SQLiteManager.Table
                     }
                     else if (foreignKeyAttribute.Data.IsOneToOne)
                     {
-                        var value = property.GetValue(this);
+                        var value = propertyInfo.GetValue(this);
                         #region Save foreign data into database and save id into foreign column
                         if (value is IDatabaseEntry foreignEntry)
                         {
                             foreignEntry.SaveToDatabase();
 
-                            string columnName = Util.GetColumnName(property.Name).ToUpper() + "_ID";
+                            string columnName = Util.GetColumnName(propertyInfo.Name).ToUpper() + "_ID";
                             data.Add(table[columnName], foreignEntry);
                         }
                         #endregion

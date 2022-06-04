@@ -21,9 +21,18 @@ namespace Tasty.SQLiteManager.Table.Attributes
         /// Defines a property as having foreign keys.
         /// </summary>
         /// <param name="childTableName">The name for the relationship table.</param>
-        public SqliteForeignKey(string childTableName)
+        public SqliteForeignKey(string childTableName) : this(childTableName, false)
         {
-            data = new ForeignKeyData(childTableName);
+        }
+
+        /// <summary>
+        /// Defines a property as having foreign keys.
+        /// </summary>
+        /// <param name="childTableName">The name for the relationship table.</param>
+        /// <param name="isManyToMany">If set to true, this relation is treated as a many-to-many (n-n) relation.</param>
+        public SqliteForeignKey(string childTableName, bool isManyToMany)
+        {
+            data = new ForeignKeyData(childTableName, isManyToMany);
         }
 
         /// <summary>

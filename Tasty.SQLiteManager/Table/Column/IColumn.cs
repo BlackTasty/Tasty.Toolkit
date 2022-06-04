@@ -73,6 +73,8 @@ namespace Tasty.SQLiteManager.Table.Column
         /// </summary>
         /// <param name="value">The value to format</param>
         /// <returns></returns>
-        string ParseColumnValue(dynamic value);
+        string ParseToDatabaseValue(dynamic value);
+
+        dynamic ParseFromDatabaseValue(dynamic value);
     }
 }
