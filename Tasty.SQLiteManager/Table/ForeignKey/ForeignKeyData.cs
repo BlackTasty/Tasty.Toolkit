@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Tasty.SQLiteManager.Exceptions;
 using Tasty.SQLiteManager.Table.Attributes;
 
 namespace Tasty.SQLiteManager.Table.ForeignKey
@@ -91,7 +92,7 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
             keyType = GetPrimaryKeyTypeFromType(realType);
             foreignKeyName = string.Format("{0}_{1}", Util.GetColumnName(realType.Name).ToUpper(), parentKeyName);
 
-            SqliteTable sqliteTableAttribute = (SqliteTable)realType.GetCustomAttribute(typeof(SqliteTable));
+            SqliteTable sqliteTableAttribute = (SqliteTable)realType.GetCustomAttribute(typeof(SqliteTable), true);
             this.parentTableName = sqliteTableAttribute.AutoName ? Util.GetTableName(realType.Name) : sqliteTableAttribute.TableName;
         }
 
@@ -108,9 +109,23 @@ namespace Tasty.SQLiteManager.Table.ForeignKey
 
         private Type GetPrimaryKeyTypeFromType(Type type)
         {
-            PropertyInfo primaryKeyProperty = type.GetProperties().FirstOrDefault(x => Attribute.IsDefined(x, typeof(SqlitePrimaryKey)));
+            PropertyInfo primaryKeyProperty = GetPrimaryKeyProperty(type);
 
+            if (primaryKeyProperty == null && type.GetInterface("IDatabaseEntry") is Type iDBEntry)
+            {
+                primaryKeyProperty = GetPrimaryKeyProperty(iDBEntry);
+            }
+
+            if (primaryKeyProperty == null)
+            {
+                throw new MissingPrimaryKeyException(type);
+            }
             return primaryKeyProperty.PropertyType;
+        }
+
+        private PropertyInfo GetPrimaryKeyProperty(Type type)
+        {
+            return type.GetProperties().FirstOrDefault(x => Attribute.IsDefined(x, typeof(SqlitePrimaryKey)));
         }
 
         public override string ToString()

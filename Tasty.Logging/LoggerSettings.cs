@@ -15,5 +15,6 @@
         public static string TIMESTAMP_FORMAT_TIME = "HH:mm:ss.fff";
 
         public static bool SHOW_LOG_NAME = true;
+        public static string DEFAULT_LOG_NAME = "log.log";
     }
 }

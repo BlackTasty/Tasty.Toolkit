@@ -17,11 +17,20 @@ namespace Tasty.Tests.SQLiteManager
     class Program
     {
         private static readonly string dbPath = AppDomain.CurrentDomain.BaseDirectory + "\\test.db";
+        private static readonly string foobarDBPath = AppDomain.CurrentDomain.BaseDirectory + "\\foobar.db";
+
+        private static Database foobarDatabase;
+
+        internal const string FOOBAR_IDENT = "foobar";
 
         static void Main()
         {
-            Database.Initialize(dbPath, Logger.Initialize(false));
+            Database.Initialize(dbPath, null, Logger.Initialize(2000, false));
+
+            foobarDatabase = Database.CreateInstance(foobarDBPath, FOOBAR_IDENT);
+
             Database.Instance.DropDatabase();
+            foobarDatabase.DropDatabase();
             Logger.Default.DisableLogging = true;
 
             System.Console.Clear();
@@ -29,15 +38,15 @@ namespace Tasty.Tests.SQLiteManager
 
             if (TestRunner.FailedTests == 0)
             {
-                Base.Console.WriteLine_Status(string.Format("Successfully ran {0}/{0} tests!", TestRunner.TestCount), Status.Success);
+                Base.Console.WriteLine_Status(string.Format("Successfully ran {0}/{0} tests!", TestRunner.TestCount), Status.Success, false);
             }
             else if (TestRunner.FailedTests < TestRunner.TestCount)
             {
-                Base.Console.WriteLine_Status(string.Format("Ran {0}/{1} tests, but some failed!", TestRunner.TestCount - TestRunner.FailedTests, TestRunner.TestCount), Status.Warning);
+                Base.Console.WriteLine_Status(string.Format("Ran {0}/{1} tests, but some failed!", TestRunner.TestCount - TestRunner.FailedTests, TestRunner.TestCount), Status.Warning, false);
             }
             else
             {
-                Base.Console.WriteLine_Status("All tests failed!", Status.Fail);
+                Base.Console.WriteLine_Status("All tests failed!", Status.Fail, false);
             }
             System.Console.WriteLine("Press any key to exit.");
             System.Console.ReadLine();
@@ -45,11 +54,11 @@ namespace Tasty.Tests.SQLiteManager
 
         static void RunAllTests()
         {
-            if (!TestRunner.RunTest(Test_CheckDatabase, "Checking if database has been setup properly")) // "Database contains all tables and columns"
+            if (!TestRunner.RunTest(Test_CheckDatabase, "Checking if database has been setup properly"))
             {
                 return;
             }
-            if (!TestRunner.RunTest(Test_Insert_GetIndex, "Testing Insert_GetIndex method")) // "Insert_GetIndex completed"
+            if (!TestRunner.RunTest(Test_Insert_GetIndex, "Testing Insert_GetIndex method"))
             {
                 return;
             }
@@ -73,18 +82,38 @@ namespace Tasty.Tests.SQLiteManager
             {
                 return;
             }
+
+            System.Console.WriteLine(new string('=', System.Console.BufferWidth) + "\n");
+
+            if (!TestRunner.RunTest(Test_CheckAdditionalDatabase, "Checking if additional database instance has been setup properly"))
+            {
+                return;
+            }
+            if (!TestRunner.RunTest(Test_Insert_GetIndex_AdditionalDatabase, "Testing Insert_GetIndex for additional database method"))
+            {
+                return;
+            }
+            if (!TestRunner.RunTest(Test_Select_AdditionalDatabase, "Testing Select for additional database method"))
+            {
+                return;
+            }
         }
 
 
         #region Tests
         static bool Test_CheckDatabase()
         {
-            if (!CheckTables(Database.Instance))
+            return CheckDatabase(Database.Instance);
+        }
+
+        private static bool CheckDatabase(Database database)
+        {
+            if (!CheckTables(database))
             {
                 return false;
             }
 
-            if (!CheckTables(Database.Instance.ChildTables))
+            if (!CheckTables(database.ChildTables))
             {
                 return false;
             }
@@ -99,11 +128,11 @@ namespace Tasty.Tests.SQLiteManager
                 bool tableExists = table.TableExists();
                 if (table is ITable rootTable)
                 {
-                    Base.Console.WriteLine_Status(string.Format("Table {0} ({1}) exists", table.Name, rootTable.TableType.Name), tableExists);
+                    Base.Console.WriteLine_Status(string.Format("Table \"{0}\" ({1}) exists", table.Name, rootTable.TableType.Name), tableExists);
                 }
                 else
                 {
-                    Base.Console.WriteLine_Status(string.Format("Child table {0} exists", table.Name), tableExists);
+                    Base.Console.WriteLine_Status(string.Format("Child table \"{0}\" exists", table.Name), tableExists);
                 }
 
                 if (!tableExists)
@@ -115,7 +144,7 @@ namespace Tasty.Tests.SQLiteManager
                 foreach (var column in table)
                 {
                     bool columnExists = table.ColumnExists(column);
-                    Base.Console.WriteLine_Status(string.Format("  {0} {1} ({2}) exists", 
+                    Base.Console.WriteLine_Status(string.Format("  {0} \"{1}\" ({2}) exists", 
                         !column.IsForeignKey ? "Column" : "Foreign column", column.Name, column.DataType.Name), columnExists);
 
                     if (!columnExists)
@@ -131,7 +160,7 @@ namespace Tasty.Tests.SQLiteManager
 
         static bool Test_Insert_GetIndex()
         {
-            var table = Database.Instance.GetTable<DemoUser>();
+            var table = Database.GetTable<DemoUser>();
 
             DemoUser demoUser = new DemoUser()
             {
@@ -157,7 +186,7 @@ namespace Tasty.Tests.SQLiteManager
         static bool Test_Select()
         {
             int index = 1;
-            var table = Database.Instance.GetTable<DemoUser>();
+            var table = Database.GetTable<DemoUser>();
 
             var result = DemoUser.LoadFromDatabase(new Condition("ID", index));
             bool rowExists = result != null;
@@ -184,7 +213,7 @@ namespace Tasty.Tests.SQLiteManager
 
         static bool Test_OneToManyRelationship()
         {
-            var postTable = Database.Instance.GetTable<DemoPost>();
+            var postTable = Database.GetTable<DemoPost>();
 
             DemoUser demoUser = DemoUser.LoadFromDatabase(new Condition("ID", 1));
             bool rowExists = demoUser != null;
@@ -220,7 +249,7 @@ namespace Tasty.Tests.SQLiteManager
 
         static bool Test_OneToOneRelationship()
         {
-            var settingsTable = Database.Instance.GetTable<DemoUserSettings>();
+            var settingsTable = Database.GetTable<DemoUserSettings>();
 
             DemoUserSettings userSettings = new DemoUserSettings(settingsTable)
             {
@@ -338,6 +367,62 @@ namespace Tasty.Tests.SQLiteManager
             if (!usersIdentical)
             {
                 System.Console.WriteLine("Test aborted! Loaded user data not identical.");
+                return false;
+            }
+
+            return true;
+        }
+
+        static bool Test_CheckAdditionalDatabase()
+        {
+            return CheckDatabase(foobarDatabase);
+        }
+
+        static bool Test_Insert_GetIndex_AdditionalDatabase()
+        {
+            var table = Database.GetTable<DemoExcludedTable>();
+
+            DemoExcludedTable demoObj = new DemoExcludedTable()
+            {
+                Name = "Foobar"
+            };
+
+            int result = demoObj.SaveToDatabase();
+
+            bool insertSuccess = result == 0;
+            Base.Console.WriteLine_Status(string.Format("Insert into table {0} success", table.Name), insertSuccess);
+
+            if (!insertSuccess)
+            {
+                System.Console.WriteLine("Test aborted! Error code " + result);
+                return false;
+            }
+
+            return true;
+        }
+
+        static bool Test_Select_AdditionalDatabase()
+        {
+            int index = 1;
+            var table = Database.GetTable<DemoExcludedTable>();
+
+            var result = DemoExcludedTable.LoadFromDatabase(new Condition("ID", index));
+            bool rowExists = result != null;
+            Base.Console.WriteLine_Status(string.Format("Entry with ID {0} exists", index), rowExists);
+
+            if (!rowExists)
+            {
+                System.Console.WriteLine("Test aborted! Entry doesn't exist.");
+                return false;
+            }
+
+            string name = "Foobar";
+            bool nameCorrect = result.Name == name;
+            Base.Console.WriteLine_Status(string.Format("Entry name is {0}", name), nameCorrect);
+
+            if (!nameCorrect)
+            {
+                System.Console.WriteLine("Test aborted! Name incorrect.");
                 return false;
             }
 

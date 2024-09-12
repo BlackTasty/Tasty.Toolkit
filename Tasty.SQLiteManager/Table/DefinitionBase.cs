@@ -13,10 +13,14 @@
         /// </summary>
         protected string name;
 
+        protected Database assignedDatabase;
+
         /// <summary>
         /// Name of this definition
         /// </summary>
         public string Name { get => name; }
+
+        internal Database AssignedDatabase => assignedDatabase;
 
         /// <summary>
         /// </summary>

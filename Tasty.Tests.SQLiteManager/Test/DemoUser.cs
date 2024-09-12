@@ -42,7 +42,7 @@ namespace Tasty.Tests.SQLiteManager.Test
 
         }
 
-        public DemoUser(): this(Database.Instance.GetTable<DemoUser>())
+        public DemoUser(): this(Database.GetTable<DemoUser>())
         {
             guid = System.Guid.NewGuid().ToString();
         }

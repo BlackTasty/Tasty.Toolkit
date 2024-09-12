@@ -15,6 +15,8 @@ namespace Tasty.SQLiteManager.Table
     /// </summary>
     public class TableBaseDefinition : DefinitionBase, ITableBase
     {
+        private string databaseIdent;
+
         /// <summary>
         /// </summary>
         protected List<IColumn> columns = new List<IColumn>();
@@ -38,6 +40,10 @@ namespace Tasty.SQLiteManager.Table
 
         /// <inheritdoc/>
         public bool IsReadOnly => true;
+
+        string ITableBase._DatabaseIdent { set => databaseIdent = value; }
+
+        public string DatabaseIdent => databaseIdent;
 
         /// <summary>
         /// Search for a column by index
@@ -155,13 +161,15 @@ namespace Tasty.SQLiteManager.Table
         /// <inheritdoc/>
         public ResultSet Query(string command, bool awaitData)
         {
+            Database instance = InstanceManager.GetInstance(databaseIdent);
+
             if (awaitData)
             {
-                return Database.Instance.SelectData(command, this);
+                return instance.SelectData(command, this);
             }
             else
             {
-                Database.Instance.ExecuteSQL(string.Format(command, this.Name));
+                instance.ExecuteSQL(string.Format(command, this.Name));
                 return null;
             }
         }
@@ -180,7 +188,7 @@ namespace Tasty.SQLiteManager.Table
             {
                 sql = string.Format("SELECT * FROM {0};", name);
             }
-            return Database.Instance.SelectData(sql, this);
+            return InstanceManager.GetInstance(databaseIdent).SelectData(sql, this);
         }
 
         /// <inheritdoc/>
@@ -248,7 +256,7 @@ namespace Tasty.SQLiteManager.Table
                 {
                     sql = string.Format("SELECT {0} FROM {1};", selectParameter, name);
                 }
-                return Database.Instance.SelectData(sql, this);
+                return InstanceManager.GetInstance(databaseIdent).SelectData(sql, this);
             }
         }
 
@@ -260,7 +268,7 @@ namespace Tasty.SQLiteManager.Table
         /// <exception cref="MissingRequiredColumnsException"><inheritdoc/></exception>
         public bool Insert(Dictionary<IColumn, dynamic> data)
         {
-            return Database.Instance.ExecuteSQL(GenerateInsertSQL(data, false));
+            return InstanceManager.GetInstance(databaseIdent).ExecuteSQL(GenerateInsertSQL(data, false));
         }
 
         /// <summary>
@@ -271,7 +279,7 @@ namespace Tasty.SQLiteManager.Table
         /// <exception cref="MissingRequiredColumnsException"><inheritdoc/></exception>
         public bool Replace(Dictionary<IColumn, dynamic> data)
         {
-            return Database.Instance.ExecuteSQL(GenerateInsertSQL(data, true));
+            return InstanceManager.GetInstance(databaseIdent).ExecuteSQL(GenerateInsertSQL(data, true));
         }
 
         /// <summary>
@@ -284,7 +292,7 @@ namespace Tasty.SQLiteManager.Table
         {
             IColumn primaryKey = data.FirstOrDefault(x => x.Key.PrimaryKey).Key;
 
-            if (Database.Instance.ExecuteSQL(GenerateInsertSQL(data, false)))
+            if (InstanceManager.GetInstance(databaseIdent).ExecuteSQL(GenerateInsertSQL(data, false)))
             {
                 string query = "SELECT ID FROM '" + Name + "' WHERE ";
                 string conditions = "";
@@ -300,7 +308,7 @@ namespace Tasty.SQLiteManager.Table
                     }
                 }
 
-                var result = Database.Instance.SelectData(query + conditions, this);
+                var result = InstanceManager.GetInstance(databaseIdent).SelectData(query + conditions, this);
                 if (primaryKey != null)
                 {
                     if (result.ColumnExists(primaryKey.Name))
@@ -331,7 +339,7 @@ namespace Tasty.SQLiteManager.Table
         public bool BulkInsert(Dictionary<IColumn, dynamic>[] data)
         {
 #pragma warning disable CS0618 // Typ oder Element ist veraltet
-            return Database.Instance.ExecuteSQL(GenerateBulkInsert(data));
+            return InstanceManager.GetInstance(databaseIdent).ExecuteSQL(GenerateBulkInsert(data));
 #pragma warning restore CS0618 // Typ oder Element ist veraltet
         }
 
@@ -362,7 +370,7 @@ namespace Tasty.SQLiteManager.Table
         public bool BulkUpdate(Dictionary<IColumn, dynamic>[] data)
         {
 #pragma warning disable CS0618 // Typ oder Element ist veraltet
-            return Database.Instance.ExecuteSQL(GenerateBulkUpdate(data));
+            return InstanceManager.GetInstance(databaseIdent).ExecuteSQL(GenerateBulkUpdate(data));
 #pragma warning restore CS0618 // Typ oder Element ist veraltet
         }
 
@@ -422,7 +430,7 @@ namespace Tasty.SQLiteManager.Table
                 sql = string.Format("UPDATE {0} SET {1};", name, setParameter);
             }
 
-            return Database.Instance.ExecuteSQL(sql);
+            return InstanceManager.GetInstance(databaseIdent).ExecuteSQL(sql);
         }
 
         /// <summary>
@@ -452,7 +460,7 @@ namespace Tasty.SQLiteManager.Table
                 sql = string.Format("DELETE FROM {0};", name);
             }
 
-            return Database.Instance.ExecuteSQL(sql);
+            return InstanceManager.GetInstance(databaseIdent).ExecuteSQL(sql);
         }
 
         /// <summary>

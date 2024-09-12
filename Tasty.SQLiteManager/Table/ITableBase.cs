@@ -19,6 +19,13 @@ namespace Tasty.SQLiteManager.Table
         string Name { get; }
 
         /// <summary>
+        /// The database identifier for this table
+        /// </summary>
+        internal string _DatabaseIdent { set; }
+
+        string DatabaseIdent { get; }
+
+        /// <summary>
         /// A list of all columns in this table
         /// </summary>
         List<IColumn> ColumnDefinitions { get; }

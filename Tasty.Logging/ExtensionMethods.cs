@@ -2,7 +2,7 @@
 {
     public static class ExtensionMethods
     {
-        internal static string ToPrefix(this LogType logType)
+        public static string ToPrefix(this LogType logType)
         {
             switch (logType)
             {

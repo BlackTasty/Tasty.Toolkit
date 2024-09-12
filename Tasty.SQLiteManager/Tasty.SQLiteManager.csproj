@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Tasty.SQLiteManager</RootNamespace>
     <AssemblyName>Tasty.SQLiteManager</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <LangVersion>8.0</LangVersion>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
@@ -50,18 +51,26 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Entity.Design" />
-    <Reference Include="System.Data.SQLite, Version=1.0.113.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Data.SQLite.Core.1.0.113.1\lib\net46\System.Data.SQLite.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data.SQLite, Version=1.0.118.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\..\VirtualAirline\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\lib\net46\System.Data.SQLite.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\MissingConstructorException.cs" />
+    <Compile Include="Exceptions\TypeNotDatabaseEntryException.cs" />
+    <Compile Include="Instance.cs" />
+    <Compile Include="Encryption.cs" />
+    <Compile Include="Events\DatabaseEntryLoadedEventArgs.cs" />
     <Compile Include="Exceptions\AutoTableException.cs" />
     <Compile Include="Exceptions\ColumnParseException.cs" />
+    <Compile Include="Exceptions\DatabaseAccessException.cs" />
     <Compile Include="Exceptions\DatabaseNotInitializedException.cs" />
     <Compile Include="Exceptions\ForeignKeyException.cs" />
     <Compile Include="Exceptions\MissingAccessException.cs" />
+    <Compile Include="Exceptions\MissingPrimaryKeyException.cs" />
     <Compile Include="Exceptions\UnknownSqliteManagerException.cs" />
+    <Compile Include="InstanceManager.cs" />
     <Compile Include="Table\Attributes\SqliteDataSetter.cs" />
     <Compile Include="Table\Attributes\SqLiteDefaultValue.cs" />
     <Compile Include="Table\Attributes\SqliteConstructor.cs" />
@@ -70,6 +79,7 @@
     <Compile Include="Table\Attributes\SqliteUnique.cs" />
     <Compile Include="Table\Attributes\SqliteNotNull.cs" />
     <Compile Include="Table\Attributes\SqlitePrimaryKey.cs" />
+    <Compile Include="Table\Attributes\SqliteUseDatabase.cs" />
     <Compile Include="Table\CacheMethod.cs" />
     <Compile Include="Table\CacheTableDefinition.cs" />
     <Compile Include="Table\ChildTableDefinition.cs" />
@@ -99,6 +109,7 @@
     <Compile Include="Table\ResultSet.cs" />
     <Compile Include="Table\RowData.cs" />
     <Compile Include="Table\Attributes\SqliteIgnore.cs" />
+    <Compile Include="Table\SqliteTransaction.cs" />
     <Compile Include="Table\TableBaseDefinition.cs" />
     <Compile Include="Table\TableDefinition.cs" />
     <Compile Include="Util.cs" />
@@ -121,11 +132,13 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\..\Vibrance-Player\packages\System.Data.SQLite.Core.1.0.112.0\build\net46\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\Vibrance-Player\packages\System.Data.SQLite.Core.1.0.112.0\build\net46\System.Data.SQLite.Core.targets'))" />
     <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.113.1\build\net46\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.113.1\build\net46\System.Data.SQLite.Core.targets'))" />
+    <Error Condition="!Exists('..\..\VirtualAirline\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\VirtualAirline\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>cd $(ProjectDir)
-nuget pack -prop Configuration=Release</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\..\Vibrance-Player\packages\System.Data.SQLite.Core.1.0.112.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\..\Vibrance-Player\packages\System.Data.SQLite.Core.1.0.112.0\build\net46\System.Data.SQLite.Core.targets')" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.113.1\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.113.1\build\net46\System.Data.SQLite.Core.targets')" />
+  <Import Project="..\..\VirtualAirline\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\..\VirtualAirline\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
 </Project>

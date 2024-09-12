@@ -5,16 +5,17 @@ namespace Tasty.Tests.Base
     public static class Console
     {
         public static int titlePosition = 4;
-        public static int statusPosition = 80;
+        public static int statusPosition = System.Console.BufferWidth - 7;
         public static char fillCharacter = '.';
 
         public static void WriteLine(string message, ConsoleColor backgroundColor)
         {
             System.Console.BackgroundColor = backgroundColor;
             System.Console.ForegroundColor = ConsoleColor.Black;
-            System.Console.WriteLine(message);
+            System.Console.Write(message);
             System.Console.BackgroundColor = ConsoleColor.Black;
             System.Console.ForegroundColor = ConsoleColor.Gray;
+            System.Console.WriteLine();
         }
 
         public static void WriteLine_Status(string message, bool success)
@@ -22,9 +23,9 @@ namespace Tasty.Tests.Base
             WriteLine_Status(message, success ? Status.Success : Status.Fail);
         }
 
-        public static void WriteLine_Status(string message, Status status)
+        public static void WriteLine_Status(string message, Status status, bool isIndented = true)
         {
-            if (titlePosition > 0)
+            if (isIndented && titlePosition > 0)
             {
                 System.Console.Write(new string(' ', titlePosition));
             }
@@ -36,7 +37,7 @@ namespace Tasty.Tests.Base
 
             System.Console.Write(message);
             System.Console.ForegroundColor = ConsoleColor.DarkGray;
-            int calcStatusPosition = statusPosition - message.Length - titlePosition;
+            int calcStatusPosition = statusPosition - message.Length - (isIndented ? titlePosition : 0);
 
             if (calcStatusPosition > 0)
             {

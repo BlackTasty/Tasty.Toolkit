@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Tasty.SQLiteManager.Events;
 using Tasty.SQLiteManager.Exceptions;
 using Tasty.SQLiteManager.Table.Attributes;
 using Tasty.SQLiteManager.Table.Column;
@@ -21,11 +22,16 @@ namespace Tasty.SQLiteManager.Table
     /// <typeparam name="T">The type of database object.</typeparam>
     public class DatabaseEntry<T> : IDatabaseEntry
     {
+        public static event EventHandler<DatabaseEntryLoadedEventArgs<T>> EntryLoaded;
+
         protected TableDefinition<T> table;
 
         private readonly bool useDB;
         private bool fromDatabase;
         private int id;
+
+        private T @object;
+        private readonly string databaseIdent;
 
         /// <summary>
         /// <inheritdoc/>
@@ -59,13 +65,19 @@ namespace Tasty.SQLiteManager.Table
         /// <param name="table">The table containing data for this <see cref="DatabaseEntry{T}"/>.</param>
         public DatabaseEntry(TableDefinition<T> table)
         {
+
+
             if (!GetType().Attributes.HasFlag(TypeAttributes.Public))
             {
-                throw new MissingAccessException("Cannot access to class \"" + GetType().Name + "\", set access modifier to public.");
+                throw new MissingAccessException(GetType());
             }
 
             this.table = table;
             useDB = table != null;
+            if (useDB)
+            {
+                databaseIdent = table.DatabaseIdent;
+            }
             SetDefaultValues();
         }
 
@@ -84,13 +96,13 @@ namespace Tasty.SQLiteManager.Table
         }
 
         /// <summary>
-        /// Load a single <see cref="DatabaseEntry{T}"/> from the database.
+        /// Load a single <see cref="DatabaseEntry{T}"/> from the database with the supplied identifier.
         /// </summary>
         /// <param name="conditions">Optional: Conditions to filter results.</param>
         /// <returns>If no conditions are passed, the last entry in the table is returned. Else the first occurrence meeting the conditions is returned.</returns>
         public static T LoadFromDatabase(params Condition[] conditions)
         {
-            var table = GetTableDefinitionForType<T>();
+            var table = GetTableDefinitionForType();
             foreach (Condition condition in conditions)
             {
                 if (condition.UseNewSystem)
@@ -115,34 +127,48 @@ namespace Tasty.SQLiteManager.Table
         /// <returns>If no conditions are passed, returns all entries in the table. Else all occurrences meeting the conditions are returned.</returns>
         public static List<T> LoadAllFromDatabase(params Condition[] conditions)
         {
-            var table = GetTableDefinitionForType<T>();
+            var table = GetTableDefinitionForType();
 
             ResultSet result = table.Select(true, conditions);
 
             List<T> entries = new List<T>();
+            int progress = 0;
+            int max = result.Count;
             foreach (RowData data in result)
             {
-                entries.Add(ConstructGeneric(table, data, true));
+                T entry = ConstructGeneric(table, data, true);
+                entries.Add(entry);
+                progress++;
+                OnEntryLoaded(new DatabaseEntryLoadedEventArgs<T>(entry, progress, max));
+
             }
 
             return entries;
+        }
+
+        public int SaveToDatabase()
+        {
+            return SaveToDatabase(true);
         }
 
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
         /// <returns><inheritdoc/></returns>
-        public virtual int SaveToDatabase()
+        public virtual int SaveToDatabase(bool isRoot = false)
         {
             if (!useDB)
             {
                 return -10;
             }
 
+
+            Dictionary<IColumn, dynamic> rowData = new Dictionary<IColumn, dynamic>();
             if (FromDatabase)
             {
                 IColumn primaryKeyColumn = table.FirstOrDefault(x => x.PrimaryKey);
-                if (!table.Update(GetRowData(false, out bool childSuccess), new Condition(primaryKeyColumn, id)))
+                rowData = GetRowData(out bool childSuccess);
+                if (!table.Update(rowData, new Condition(primaryKeyColumn, id)))
                 {
                     Console.WriteLine("Error updating database entry!");
                     return -1;
@@ -158,7 +184,8 @@ namespace Tasty.SQLiteManager.Table
                 id = table.GetNextId();
                 if (id >= 1)
                 {
-                    if (!table.Insert(GetRowData(true, out bool childSuccess)))
+                    rowData = GetRowData(out bool childSuccess);
+                    if (!table.Insert(rowData))
                     {
                         Console.WriteLine("Error inserting database entry!");
                         return -1;
@@ -231,7 +258,7 @@ namespace Tasty.SQLiteManager.Table
                 PropertyInfo propertyInfo = dataType.GetProperty(column.PropertyInfo.Name);
                 if (!propertyInfo.CanWrite)
                 {
-                    throw new MissingAccessException("Cannot write to property \"" + propertyInfo.Name + "\" because no set method is set! Check out the documentation for more information: [LINK]");
+                    throw new MissingAccessException(propertyInfo);
                 }
 
                 if (!column.IsForeignKey)
@@ -239,7 +266,8 @@ namespace Tasty.SQLiteManager.Table
                     if (row.Value != null)
                     {
                         dynamic parsedValue;
-                        Type columnType = column.UnderlyingType != null ? column.UnderlyingType : column.DataType;
+                        Type columnType = column.UnderlyingType ?? column.DataType;
+                        bool isNullable = Nullable.GetUnderlyingType(column.DataType) != null;
 
                         if (columnType == typeof(DateTime) || columnType == typeof(TimeSpan))
                         {
@@ -250,8 +278,32 @@ namespace Tasty.SQLiteManager.Table
                             parsedValue = ParseValue(column, row.Value);
                         }
 
-                        propertyInfo.SetValue(this, Convert.ChangeType(!columnType.IsEnum ? parsedValue : Enum.ToObject(columnType, row.Value),
-                            propertyInfo.PropertyType));
+                        object value;
+
+                        if (!columnType.IsEnum)
+                        {
+                            if (!isNullable)
+                            {
+                                value = Convert.ChangeType(parsedValue, propertyInfo.PropertyType);
+                            }
+                            else
+                            {
+                                value = null;
+                            }
+                        }
+                        else
+                        {
+                            if (!isNullable)
+                            {
+                                value = Convert.ChangeType(Enum.ToObject(columnType, row.Value), propertyInfo.PropertyType);
+                            }
+                            else
+                            {
+                                value = null;
+                            }
+                        }
+
+                        propertyInfo.SetValue(this, value);
                     }
                     else
                     {
@@ -263,7 +315,7 @@ namespace Tasty.SQLiteManager.Table
                     Type foreignType = column.PropertyInfo.PropertyType;
                     Type foreignEntryType = typeof(DatabaseEntry<>).MakeGenericType(new Type[] { foreignType });
                     Type foreignTableType = Util.MakeGenericTableDefinition(foreignType);
-                    ITable foreignTable = Database.Instance[foreignType];
+                    ITable foreignTable = InstanceManager.GetInstance(databaseIdent)[foreignType];
                     IColumn foreignKeyColumn = foreignTable.GetPrimaryKeyColumn();
 
                     ResultSet result = foreignTable.Select(true, new Condition(foreignKeyColumn, row.Value));
@@ -298,7 +350,7 @@ namespace Tasty.SQLiteManager.Table
                 if (!foreignKeyAttribute.Data.IsOneToOne)
                 {
                     #region One-to-many relation
-                    ChildTableDefinition childTable = Database.Instance.GetChildTable(foreignKeyAttribute.Data.ChildTableName);
+                    ChildTableDefinition childTable = InstanceManager.GetInstance(databaseIdent).GetChildTable(foreignKeyAttribute.Data.ChildTableName);
 
                     if (foreignProperty.PropertyType.IsGenericType) // Is list, load data for children from database
                     {
@@ -315,7 +367,7 @@ namespace Tasty.SQLiteManager.Table
                             ConstructorInfo ctor = childType.GetConstructor(new[] { targetTableType });
                             if (ctor != null)
                             {
-                                ITable table = Database.Instance[childType]; // Get table for list type
+                                ITable table = InstanceManager.GetInstance(databaseIdent)[childType]; // Get table for list type
 
                                 var obj = ctor.Invoke(new object[] { table });
                                 MethodInfo setRowData = databaseEntryType.GetMethod("ConstructGeneric", BindingFlags.Static | BindingFlags.NonPublic);
@@ -376,7 +428,7 @@ namespace Tasty.SQLiteManager.Table
                             ConstructorInfo ctor = childType.GetConstructor(new[] { targetTableType });
                             if (ctor != null)
                             {
-                                ITable table = Database.Instance[childType]; // Get table for list type
+                                ITable table = InstanceManager.GetInstance(databaseIdent)[childType]; // Get table for list type
 
                                 var obj = ctor.Invoke(new object[] { table });
                                 MethodInfo setRowData = databaseEntryType.GetMethod("ConstructGeneric", BindingFlags.Static | BindingFlags.NonPublic);
@@ -434,7 +486,19 @@ namespace Tasty.SQLiteManager.Table
             }
         }
 
-        private Dictionary<IColumn, dynamic> GetRowData(bool isInsert, out bool childSuccess)
+        /// <summary>
+        /// Returns a dictionary containing values for each <see cref="IColumn"/>. Useful for creating bulk inserts or updates.
+        /// </summary>
+        public Dictionary<IColumn, dynamic> GetRowData()
+        {
+            return GetRowData(out bool _);
+        }
+
+        /// <summary>
+        /// Returns a dictionary containing values for each <see cref="IColumn"/>. Useful for creating bulk inserts or updates.
+        /// </summary>
+        /// <param name="childSuccess">Returns false if updating connections to other tables failed, otherwise true.</param>
+        public Dictionary<IColumn, dynamic> GetRowData(out bool childSuccess)
         {
             Dictionary<IColumn, dynamic> data = new Dictionary<IColumn, dynamic>();
             Type t = typeof(T);
@@ -491,7 +555,7 @@ namespace Tasty.SQLiteManager.Table
                         {
                             SqliteForeignKey sqliteForeignKeyAttribute = (SqliteForeignKey)propertyInfo.GetCustomAttribute(typeof(SqliteForeignKey));
 
-                            ChildTableDefinition childTable = Database.Instance.GetChildTable(sqliteForeignKeyAttribute.Data.ChildTableName);
+                            ChildTableDefinition childTable = InstanceManager.GetInstance(databaseIdent).GetChildTable(sqliteForeignKeyAttribute.Data.ChildTableName);
                             IColumn foreignKey = childTable.GetChildColumnByParentTable(table.Name);
                             IColumn childForeignKey = null;
 
@@ -508,7 +572,7 @@ namespace Tasty.SQLiteManager.Table
                                     else
                                     {
                                         Type foreignType = propertyInfo.PropertyType.GenericTypeArguments[0];
-                                        ITable foreignParentTable = Database.Instance[foreignType];
+                                        ITable foreignParentTable = InstanceManager.GetInstance(databaseIdent)[foreignType];
                                         if (childTable.IsSameTableRelation)
                                         {
                                             childForeignKey = childTable[string.Format("{0}_{1}",
@@ -521,7 +585,7 @@ namespace Tasty.SQLiteManager.Table
                                         }
                                     }
                                 }
-                                childEntry.SaveToDatabase();
+                                childEntry.SaveToDatabase(false);
 
                                 queryData[i] = new Dictionary<IColumn, dynamic>()
                                     {
@@ -533,7 +597,7 @@ namespace Tasty.SQLiteManager.Table
 #pragma warning disable CS0618 // Typ oder Element ist veraltet
                             string sql = childTable.GenerateBulkInsert(queryData);
 #pragma warning restore CS0618 // Typ oder Element ist veraltet
-                            childSuccess = Database.Instance.ExecuteSQL(sql);
+                            childSuccess = InstanceManager.GetInstance(databaseIdent).ExecuteSQL(sql);
                         }
                         #endregion
                     }
@@ -543,7 +607,7 @@ namespace Tasty.SQLiteManager.Table
                         #region Save foreign data into database and save id into foreign column
                         if (value is IDatabaseEntry foreignEntry)
                         {
-                            foreignEntry.SaveToDatabase();
+                            foreignEntry.SaveToDatabase(false);
 
                             string columnName = Util.GetColumnName(propertyInfo.Name).ToUpper() + "_ID";
                             data.Add(table[columnName], foreignEntry);
@@ -576,9 +640,9 @@ namespace Tasty.SQLiteManager.Table
             return value;
         }
 
-        private static TableDefinition<T> GetTableDefinitionForType<T>()
+        private static TableDefinition<T> GetTableDefinitionForType()
         {
-            return (TableDefinition<T>)Database.Instance[typeof(T)];
+            return (TableDefinition<T>)InstanceManager.GetTableFromType(typeof(T));
         }
 
         private static T ConstructGeneric(TableDefinition<T> table, RowData data, bool loadChildren)
@@ -602,7 +666,7 @@ namespace Tasty.SQLiteManager.Table
             }
             else
             {
-                return default;
+                throw new MissingConstructorException(rowType);
             }
         }
 
@@ -619,6 +683,11 @@ namespace Tasty.SQLiteManager.Table
             }
 
             return currentType;
+        }
+
+        protected static void OnEntryLoaded(DatabaseEntryLoadedEventArgs<T> e)
+        {
+            EntryLoaded?.Invoke(e.LoadedEntry, e);
         }
     }
 }

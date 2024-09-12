@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Tasty.Tests.SQLiteManager</RootNamespace>
     <AssemblyName>Tasty.Tests.SQLiteManager</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
@@ -60,6 +60,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Test\DemoCommunity.cs" />
+    <Compile Include="Test\DemoExcludedTable.cs" />
     <Compile Include="Test\DemoPost.cs" />
     <Compile Include="Test\DemoUser.cs" />
     <Compile Include="Test\DemoUserSettings.cs" />

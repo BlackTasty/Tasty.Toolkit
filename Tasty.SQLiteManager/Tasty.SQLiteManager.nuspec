@@ -7,7 +7,7 @@
     <authors>BlackTasty</authors>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">GPL-2.0-only</license>
-    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="578069884f18cecf3b77954a11b6effcf9d5566f" />
+    <repository type="git" url="https://github.com/BlackTasty/Tasty.Toolkit.git" branch="master" commit="518967be547cf833e1d44ce761b2cbd05b4f197f" />
     <description>Manage your SQLite databases with ease!</description>
     <releaseNotes>Fixed issues with n-n relations, when the relation was linking to another class/table</releaseNotes>
     <copyright>Copyright © BlackTasty 2022</copyright>

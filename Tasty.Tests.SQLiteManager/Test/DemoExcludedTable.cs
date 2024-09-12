@@ -9,22 +9,16 @@ using Tasty.SQLiteManager.Table.Attributes;
 
 namespace Tasty.Tests.SQLiteManager.Test
 {
+    [SqliteUseDatabase(Program.FOOBAR_IDENT)]
     [SqliteTable]
-    public class DemoCommunity : DatabaseEntry<DemoCommunity>
+    public class DemoExcludedTable : DatabaseEntry<DemoExcludedTable>
     {
         public string Name { get; set; }
 
-        [SqliteForeignKey("mapping_users_communities", true)]
-        public List<DemoUser> Users { get; set; }
+        public DemoExcludedTable(TableDefinition<DemoExcludedTable> table) : base(table) { }
 
-        public DemoCommunity(TableDefinition<DemoCommunity> table) : base(table)
+        public DemoExcludedTable() : this(Database.GetTable<DemoExcludedTable>())
         {
-
-        }
-
-        public DemoCommunity(): this(Database.GetTable<DemoCommunity>())
-        {
-
         }
     }
 }

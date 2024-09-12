@@ -22,7 +22,7 @@ namespace Tasty.SQLiteManager
     public class Database : IList<ITable>
     {
         [DllImport("kernel32.dll")]
-        static extern IntPtr GetConsoleWindow();
+        private static extern IntPtr GetConsoleWindow();
 
         private readonly List<ITable> tables = new List<ITable>();
 
@@ -164,6 +164,12 @@ namespace Tasty.SQLiteManager
         private readonly string dbPath;
         private readonly string connString;
 
+        private readonly string ident;
+
+        private byte[] passwordHash;
+
+        internal string Ident => ident;
+
         /// <summary>
         /// Allows access to the <see cref="Database"/> instance if initialized, else an exception is thrown.
         /// </summary>
@@ -194,14 +200,18 @@ namespace Tasty.SQLiteManager
 
         public List<ChildTableDefinition> ChildTables => childTables;
 
+        internal List<ITable> Tables => tables;
+
         /// <summary>
-        /// Initializes the database.
+        /// Initializes the default database, which can be called via "<c><see cref="Database"/>.Instance</c>".
         /// </summary>
         /// <param name="dbPath">The path to your SQLite database</param>
         /// <param name="tables">A list of <see cref="ITable"/> which represent the database structure</param>
+        /// <param name="ident">(optional) A unique identifier for this database instance</param>
+        /// <param name="password">(optional) Sets a password for this database</param>
         /// <param name="logger">(optional) A custom <see cref="Logger"/> to redirect output to another file</param>
         /// <param name="forceInitialize">(optional) Forces the re-initialization of the <see cref="Database"/> singleton object</param>
-        public static void Initialize(string dbPath, List<ITable> tables, Logger logger = null, bool forceInitialize = false)
+        public static void Initialize(string dbPath, List<ITable> tables, string password = null, Logger logger = null, bool forceInitialize = false)
         {
             if (instance == null || forceInitialize)
             {
@@ -209,30 +219,57 @@ namespace Tasty.SQLiteManager
                 {
                     tables = new List<ITable>();
                 }
-                instance = new Database(dbPath, tables, logger);
-                instance.ClearCacheTables();
+
+                instance = InstanceManager.AddInstance(new Database(dbPath, tables, null, password, logger));
             }
         }
 
         /// <summary>
-        /// Initializes the database, and automatically create tables from classes.
-        /// <para></para>
+        /// Initializes the default database, and automatically create tables from classes. The created database instance can be called via "<c><see cref="Database"/>.Instance</c>".
+        /// <para>
         /// Classes need the [<see cref="SqliteTable"/>] attribute in order to be detected.
+        /// </para>
+        /// Also when handling multiple databases with this library, make sure to assign your tables to the correct database with the [<see cref="SqliteUseDatabase"/>(<c>DB_PATH</c>)] attribute!
         /// </summary>
         /// <param name="dbPath">The path to your SQLite database</param>
+        /// <param name="ident">(optional) A unique identifier for this database instance</param>
+        /// <param name="password">(optional) Sets a password for this database. NULL = no password</param>
         /// <param name="logger">(optional) A custom <see cref="Logger"/> to redirect output to another file</param>
         /// <param name="forceInitialize">(optional) Forces the re-initialization of the <see cref="Database"/> singleton object</param>
-        public static void Initialize(string dbPath, Logger logger = null, bool forceInitialize = false)
+        public static void Initialize(string dbPath, string password = null, Logger logger = null, bool forceInitialize = false)
         {
             if (instance == null || forceInitialize)
             {
-                instance = new Database(dbPath, logger);
-                instance.ClearCacheTables();
+                instance = InstanceManager.AddInstance(new Database(dbPath, null, password, logger));
             }
         }
 
-        private Database(string dbPath, List<ITable> tables, Logger logger = null)
+        /// <summary>
+        /// Create a new instance of a database with an identifier and initialize it. This instance needs to be handled by the user, thus returning a <see cref="Database"/> object.
+        /// </summary>
+        /// <param name="dbPath">The path to your SQLite database</param>
+        /// <param name="ident">A unique identifier for this database instance. This field can neither be NULL nor an empty string!</param>
+        /// <param name="password">(optional) Sets a password for this database. NULL = no password</param>
+        /// <param name="logger">(optional) A custom <see cref="Logger"/> to redirect output to another file</param>
+        /// <returns>Returns a <see cref="Database"/> instance separate from the "<c><see cref="Database"/>.Instance</c>" instance.</returns>
+        public static Database CreateInstance(string dbPath, string ident, string password = null, Logger logger = null)
         {
+            if (InstanceManager.GetInstance(ident, true) is Database existingInstance)
+            {
+                return existingInstance;
+            }
+
+            return InstanceManager.AddInstance(new Database(dbPath, ident, password, logger));
+        }
+
+        private Database(string dbPath, List<ITable> tables, string ident, string password = null, Logger logger = null)
+        {
+            if (!string.IsNullOrEmpty(password))
+            {
+                passwordHash = password.ComputeSHA256Hash();
+            }
+
+            this.ident = ident;
             this.logger = logger;
             this.dbPath = dbPath;
             connString = string.Format("Data Source={0};Version=3;", dbPath);
@@ -372,19 +409,20 @@ namespace Tasty.SQLiteManager
             CheckDatabase();
         }
 
-        private Database(string dbPath, Logger logger = null) : this(dbPath, GetTablesFromAssemblies(), logger)
+        private Database(string dbPath, string ident, string password = null, Logger logger = null) : this(dbPath, GetTablesFromAssemblies(ident), ident, password, logger)
         {
 
         }
+
 
         /// <summary>
         /// Returns the <see cref="TableDefinition{T}"/> for the given type T.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public TableDefinition<T> GetTable<T>()
+        public static TableDefinition<T> GetTable<T>()
         {
-            return (TableDefinition<T>)this[typeof(T)];
+            return (TableDefinition<T>)InstanceManager.GetTableFromType(typeof(T));
         }
 
         public ChildTableDefinition GetChildTable(string tableName)
@@ -656,6 +694,47 @@ namespace Tasty.SQLiteManager
         }
 
         /// <summary>
+        /// Add, change or remove the password for this database
+        /// </summary>
+        /// <param name="currentPassword">The currently set password</param>
+        /// <param name="newPassword">The new password</param>
+        public void ChangePassword(string currentPassword, string newPassword)
+        {
+            if (passwordHash == null && string.IsNullOrEmpty(newPassword) ||
+                passwordHash != null && passwordHash.CompareSHA256Hashes(newPassword))
+            {
+                return;
+            }
+
+            if (passwordHash != null && !passwordHash.CompareSHA256Hashes(currentPassword))
+            {
+                throw new DatabaseAccessException("The provided current password does not match the password set for the database!");
+            }
+
+            SQLiteConnection con = new SQLiteConnection(connString);
+
+            if (passwordHash != null)
+            {
+                con.SetPassword(passwordHash);
+            }
+
+            using (con)
+            {
+                if (!string.IsNullOrEmpty(newPassword))
+                {
+                    byte[] newPasswordHash = newPassword.ComputeSHA256Hash();
+                    con.ChangePassword(newPasswordHash);
+                    passwordHash = newPasswordHash;
+                }
+                else
+                {
+                    con.ChangePassword(string.Empty);
+                    passwordHash = null;
+                }
+            }
+        }
+
+        /// <summary>
         /// Returns a list of all column names of the specified table
         /// </summary>
         /// <param name="tableName">The name of the table</param>
@@ -663,7 +742,8 @@ namespace Tasty.SQLiteManager
         public List<string> GetTableColumns(string tableName)
         {
             List<string> columnNames = new List<string>();
-            using (SQLiteConnection con = new SQLiteConnection(connString))
+
+            using (SQLiteConnection con = GetConnection())
             {
                 con.Open();
                 using (SQLiteCommand cmd = new SQLiteCommand("PRAGMA table_info(" + tableName + ");", con))
@@ -734,7 +814,7 @@ namespace Tasty.SQLiteManager
         {
             try
             {
-                using (SQLiteConnection con = new SQLiteConnection(connString))
+                using (SQLiteConnection con = GetConnection())
                 {
                     con.Open();
                     using (SQLiteCommand cmd = new SQLiteCommand(sql, con))
@@ -804,7 +884,7 @@ namespace Tasty.SQLiteManager
 
             try
             {
-                using (SQLiteConnection con = new SQLiteConnection(connString))
+                using (SQLiteConnection con = GetConnection())
                 {
                     con.Open();
                     using (SQLiteCommand cmd = new SQLiteCommand(sql, con))
@@ -837,7 +917,7 @@ namespace Tasty.SQLiteManager
             string colName = "";
             try
             {
-                using (SQLiteConnection con = new SQLiteConnection(connString))
+                using (SQLiteConnection con = GetConnection())
                 {
                     con.Open();
 
@@ -899,7 +979,7 @@ namespace Tasty.SQLiteManager
                                             columns.Add(colName, column.ParseFromDatabaseValue(value));
                                         }
                                     }
-                                    else
+                                    else if (table.ColumnExists(colName))
                                     {
                                         var test = table[colName].DefaultValue;
                                         columns.Add(colName, table[colName].DefaultValue);
@@ -918,6 +998,18 @@ namespace Tasty.SQLiteManager
                 return null;
             }
 
+        }
+
+        private SQLiteConnection GetConnection()
+        {
+            SQLiteConnection con = new SQLiteConnection(connString);
+
+            if (passwordHash != null)
+            {
+                con.SetPassword(passwordHash);
+            }
+
+            return con;
         }
 
         private string ParseString(string str)
@@ -945,7 +1037,12 @@ namespace Tasty.SQLiteManager
                 Dictionary<IColumn, dynamic> dataCopy = new Dictionary<IColumn, dynamic>();
                 foreach (KeyValuePair<string, dynamic> data in row.Columns)
                 {
-                    dataCopy.Add(table[data.Key], data.Value);
+                    IColumn targetColumn = table[data.Key];
+
+                    if (targetColumn != null)
+                    {
+                        dataCopy.Add(targetColumn, data.Value);
+                    }
                 }
                 dataBackup[i] = dataCopy;
             }
@@ -964,7 +1061,7 @@ namespace Tasty.SQLiteManager
             #endregion
         }
 
-        private static List<ITable> GetTablesFromAssemblies()
+        private static List<ITable> GetTablesFromAssemblies(string ident)
         {
             List<ITable> tables = new List<ITable>();
 
@@ -972,6 +1069,23 @@ namespace Tasty.SQLiteManager
             {
                 foreach (Type tableType in assembly.GetTypes().Where(x => Attribute.IsDefined(x, typeof(SqliteTable))))
                 {
+                    if (Attribute.IsDefined(tableType, typeof(SqliteUseDatabase)))
+                    {
+                        SqliteUseDatabase sqliteUseDatabaseAttribute = (SqliteUseDatabase)tableType.GetCustomAttribute(typeof(SqliteUseDatabase));
+
+                        if (sqliteUseDatabaseAttribute.Ident != ident)
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(ident))
+                        {
+                            continue;
+                        }
+                    }
+
                     SqliteTable sqliteTableAttribute = (SqliteTable)tableType.GetCustomAttribute(typeof(SqliteTable));
 
                     string tableName = sqliteTableAttribute.AutoName ?
@@ -983,7 +1097,9 @@ namespace Tasty.SQLiteManager
                         .FirstOrDefault(x => Attribute.IsDefined(x, typeof(SqliteConstructor)));
                     if (ctor != null)
                     {
-                        tables.Add((ITable)ctor.Invoke(new object[] { tableName }));
+                        ITable table = (ITable)ctor.Invoke(new object[] { tableName });
+                        table._DatabaseIdent = ident;
+                        tables.Add(table);
                     }
                     else
                     {
